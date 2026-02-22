@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Make native browser widgets (clock icons, calendar pickers, number spinners)
+   respect dark mode so they don't stay black-on-white */
+.dark input[type="time"],
+.dark input[type="date"],
+.dark input[type="number"],
+.dark select {
+    color-scheme: dark;
+}

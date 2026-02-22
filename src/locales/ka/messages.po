@@ -1,0 +1,181 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-02-22 18:30+0400\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: ka\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Plural-Forms: \n"
+
+#: src/components/settings-panel.tsx:180
+msgid "Advanced Per-Day Free Time Settings"
+msgstr "ყოველდღიური თავისუფალი დროის დამატებითი პარამეტრები"
+
+#: src/components/schedule-results.tsx:51
+msgid "All combinations violate your limits. Try relaxing some constraints!"
+msgstr "ყველა კომბინაცია არღვევს თქვენს შეზღუდვებს. სცადეთ პირობების შემსუბუქება!"
+
+#: src/components/course-list.tsx:49
+msgid "Any group"
+msgstr "ნებისმიერი ჯგუფი"
+
+#: src/components/schedule-results.tsx:93
+msgid "Campus Days:"
+msgstr "კამპუსის დღეები:"
+
+#: src/components/settings-panel.tsx:76
+msgid "Classes Per Day (Min - Max)"
+msgstr "ლექციები დღეში (მინ. - მაქს.)"
+
+#: src/components/course-list.tsx:66
+msgid "Clear"
+msgstr "გასუფთავება"
+
+#: src/components/settings-panel.tsx:151
+msgid "Click to cycle: Neutral → Prefer → Avoid"
+msgstr "დააწკაპუნეთ შესაცვლელად: ნეიტრალური → სასურველი → არიდება"
+
+#: src/components/file-upload.tsx:28
+msgid "Click to upload or drag & drop schedule files"
+msgstr "დააწკაპუნეთ ასატვირთად ან გადმოიტანეთ ცხრილის ფაილები"
+
+#: src/components/schedule-results.tsx:97
+msgid "Commute:"
+msgstr "მგზავრობა:"
+
+#: src/components/course-list.tsx:94
+msgid "Crunching numbers..."
+msgstr "მიმდინარეობს გამოთვლა..."
+
+#: src/components/settings-panel.tsx:64
+msgid "Daily Round-Trip Commute"
+msgstr "ყოველდღიური მგზავრობა (ორმხრივი)"
+
+#: src/components/settings-panel.tsx:98
+msgid "Default Allowed Time Range (All Days)"
+msgstr "ნაგულისხმევი დროის დიაპაზონი (ყველა დღე)"
+
+#: src/components/settings-panel.tsx:125
+msgid "Disabled"
+msgstr "გამორთული"
+
+#: src/components/settings-panel.tsx:125
+msgid "Enabled"
+msgstr "ჩართული"
+
+#: src/components/schedule-results.tsx:84
+msgid "Export as .ics"
+msgstr "ექსპორტი .ics ფორმატში"
+
+#: src/components/schedule-results.tsx:107
+msgid "Free:"
+msgstr "თავისუფალი:"
+
+#: src/components/schedule-results.tsx:102
+msgid "Gaps:"
+msgstr "ფანჯრები:"
+
+#: src/components/course-list.tsx:94
+msgid "Generate Best Schedules"
+msgstr "საუკეთესო ცხრილების გენერაცია"
+
+#: src/components/settings-panel.tsx:144
+msgid "Instructor Preferences"
+msgstr "ლექტორის პრეფერენციები"
+
+#: src/App.tsx:123
+msgid "Language"
+msgstr "ენა"
+
+#: src/components/course-list.tsx:47
+msgid "Lock to a specific group"
+msgstr "კონკრეტულ ჯგუფზე დაფიქსირება"
+
+#: src/components/settings-panel.tsx:88
+msgid "Max Overlap"
+msgstr "მაქსიმალური გადაფარვა"
+
+#: src/components/settings-panel.tsx:92
+msgid "mins"
+msgstr "წთ"
+
+#: src/components/schedule-results.tsx:50
+msgid "No Valid Schedules Found!"
+msgstr "ვალიდური ცხრილი ვერ მოიძებნა!"
+
+#. placeholder {0}: idx + 1
+#: src/components/schedule-results.tsx:77
+msgid "Option {0}"
+msgstr "ვარიანტი {0}"
+
+#: src/components/settings-panel.tsx:186
+msgid "Override the default time bounds for specific days."
+msgstr "კონკრეტული დღეებისთვის დროის ნაგულისხმევი საზღვრების შეცვლა."
+
+#. placeholder {0}: courses.length
+#: src/components/course-list.tsx:64
+msgid "Parsed Courses ({0})"
+msgstr "ამოცნობილი კურსები ({0})"
+
+#: src/components/schedule-results.tsx:79
+msgid "Pin this schedule"
+msgstr "ცხრილის ჩამაგრება"
+
+#: src/components/settings-panel.tsx:125
+msgid "Prioritize Free"
+msgstr "თავისუფალი დღის პრიორიტეტი"
+
+#: src/components/calendar-view.tsx:75
+msgid "Selected Groups"
+msgstr "არჩეული ჯგუფები"
+
+#: src/components/schedule-results.tsx:61
+msgid "Semester:"
+msgstr "სემესტრი:"
+
+#: src/components/file-upload.tsx:29
+msgid "Supports: Raw BTU HTML, Clean HTML, JSON, CSV, Markdown"
+msgstr "მხარდაჭერილი: BTU HTML, გასუფთავებული HTML, JSON, CSV, Markdown"
+
+#: src/App.tsx:129
+msgid "Theme: {theme}"
+msgstr "თემა: {theme}"
+
+#: src/components/schedule-results.tsx:42
+msgid "To prevent your browser from crashing, the app stopped early. Results shown are the best from the checked batch."
+msgstr "ბრაუზერის გათიშვის თავიდან ასაცილებლად, აპლიკაცია ადრე შეჩერდა. ნაჩვენებია საუკეთესო შედეგები შემოწმებული ნაწილიდან."
+
+#: src/components/schedule-results.tsx:41
+msgid "Too many permutations!"
+msgstr "ძალიან ბევრი კომბინაციაა!"
+
+#: src/components/schedule-results.tsx:58
+msgid "Top Suggested Schedules"
+msgstr "რეკომენდებული ცხრილები"
+
+#: src/App.tsx:115
+msgid "Ultimate Schedule Optimizer"
+msgstr "ცხრილის ოპტიმიზატორი"
+
+#: src/components/schedule-results.tsx:79
+msgid "Unpin"
+msgstr "ჩამაგრების მოხსნა"
+
+#: src/App.tsx:136
+msgid "Upload course files, dial in your precise constraints, and find your perfect week."
+msgstr "ატვირთეთ კურსის ფაილები, დააყენეთ შეზღუდვები და იპოვეთ იდეალური კვირა."
+
+#: src/components/settings-panel.tsx:114
+msgid "Weekly Day Constraints (Click to cycle)"
+msgstr "კვირის დღეების შეზღუდვები (დააწკაპუნეთ შესაცვლელად)"
+
+#: src/components/schedule-results.tsx:97
+#: src/components/schedule-results.tsx:102
+msgid "wk"
+msgstr "კვ"

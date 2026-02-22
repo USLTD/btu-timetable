@@ -1,0 +1,181 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2026-02-22 18:30+0400\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: en\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Plural-Forms: \n"
+
+#: src/components/settings-panel.tsx:180
+msgid "Advanced Per-Day Free Time Settings"
+msgstr "Advanced Per-Day Free Time Settings"
+
+#: src/components/schedule-results.tsx:51
+msgid "All combinations violate your limits. Try relaxing some constraints!"
+msgstr "All combinations violate your limits. Try relaxing some constraints!"
+
+#: src/components/course-list.tsx:49
+msgid "Any group"
+msgstr "Any group"
+
+#: src/components/schedule-results.tsx:93
+msgid "Campus Days:"
+msgstr "Campus Days:"
+
+#: src/components/settings-panel.tsx:76
+msgid "Classes Per Day (Min - Max)"
+msgstr "Classes Per Day (Min - Max)"
+
+#: src/components/course-list.tsx:66
+msgid "Clear"
+msgstr "Clear"
+
+#: src/components/settings-panel.tsx:151
+msgid "Click to cycle: Neutral → Prefer → Avoid"
+msgstr "Click to cycle: Neutral → Prefer → Avoid"
+
+#: src/components/file-upload.tsx:28
+msgid "Click to upload or drag & drop schedule files"
+msgstr "Click to upload or drag & drop schedule files"
+
+#: src/components/schedule-results.tsx:97
+msgid "Commute:"
+msgstr "Commute:"
+
+#: src/components/course-list.tsx:94
+msgid "Crunching numbers..."
+msgstr "Crunching numbers..."
+
+#: src/components/settings-panel.tsx:64
+msgid "Daily Round-Trip Commute"
+msgstr "Daily Round-Trip Commute"
+
+#: src/components/settings-panel.tsx:98
+msgid "Default Allowed Time Range (All Days)"
+msgstr "Default Allowed Time Range (All Days)"
+
+#: src/components/settings-panel.tsx:125
+msgid "Disabled"
+msgstr "Disabled"
+
+#: src/components/settings-panel.tsx:125
+msgid "Enabled"
+msgstr "Enabled"
+
+#: src/components/schedule-results.tsx:84
+msgid "Export as .ics"
+msgstr "Export as .ics"
+
+#: src/components/schedule-results.tsx:107
+msgid "Free:"
+msgstr "Free:"
+
+#: src/components/schedule-results.tsx:102
+msgid "Gaps:"
+msgstr "Gaps:"
+
+#: src/components/course-list.tsx:94
+msgid "Generate Best Schedules"
+msgstr "Generate Best Schedules"
+
+#: src/components/settings-panel.tsx:144
+msgid "Instructor Preferences"
+msgstr "Instructor Preferences"
+
+#: src/App.tsx:123
+msgid "Language"
+msgstr "Language"
+
+#: src/components/course-list.tsx:47
+msgid "Lock to a specific group"
+msgstr "Lock to a specific group"
+
+#: src/components/settings-panel.tsx:88
+msgid "Max Overlap"
+msgstr "Max Overlap"
+
+#: src/components/settings-panel.tsx:92
+msgid "mins"
+msgstr "mins"
+
+#: src/components/schedule-results.tsx:50
+msgid "No Valid Schedules Found!"
+msgstr "No Valid Schedules Found!"
+
+#. placeholder {0}: idx + 1
+#: src/components/schedule-results.tsx:77
+msgid "Option {0}"
+msgstr "Option {0}"
+
+#: src/components/settings-panel.tsx:186
+msgid "Override the default time bounds for specific days."
+msgstr "Override the default time bounds for specific days."
+
+#. placeholder {0}: courses.length
+#: src/components/course-list.tsx:64
+msgid "Parsed Courses ({0})"
+msgstr "Parsed Courses ({0})"
+
+#: src/components/schedule-results.tsx:79
+msgid "Pin this schedule"
+msgstr "Pin this schedule"
+
+#: src/components/settings-panel.tsx:125
+msgid "Prioritize Free"
+msgstr "Prioritize Free"
+
+#: src/components/calendar-view.tsx:75
+msgid "Selected Groups"
+msgstr "Selected Groups"
+
+#: src/components/schedule-results.tsx:61
+msgid "Semester:"
+msgstr "Semester:"
+
+#: src/components/file-upload.tsx:29
+msgid "Supports: Raw BTU HTML, Clean HTML, JSON, CSV, Markdown"
+msgstr "Supports: Raw BTU HTML, Clean HTML, JSON, CSV, Markdown"
+
+#: src/App.tsx:129
+msgid "Theme: {theme}"
+msgstr "Theme: {theme}"
+
+#: src/components/schedule-results.tsx:42
+msgid "To prevent your browser from crashing, the app stopped early. Results shown are the best from the checked batch."
+msgstr "To prevent your browser from crashing, the app stopped early. Results shown are the best from the checked batch."
+
+#: src/components/schedule-results.tsx:41
+msgid "Too many permutations!"
+msgstr "Too many permutations!"
+
+#: src/components/schedule-results.tsx:58
+msgid "Top Suggested Schedules"
+msgstr "Top Suggested Schedules"
+
+#: src/App.tsx:115
+msgid "Ultimate Schedule Optimizer"
+msgstr "Ultimate Schedule Optimizer"
+
+#: src/components/schedule-results.tsx:79
+msgid "Unpin"
+msgstr "Unpin"
+
+#: src/App.tsx:136
+msgid "Upload course files, dial in your precise constraints, and find your perfect week."
+msgstr "Upload course files, dial in your precise constraints, and find your perfect week."
+
+#: src/components/settings-panel.tsx:114
+msgid "Weekly Day Constraints (Click to cycle)"
+msgstr "Weekly Day Constraints (Click to cycle)"
+
+#: src/components/schedule-results.tsx:97
+#: src/components/schedule-results.tsx:102
+msgid "wk"
+msgstr "wk"
