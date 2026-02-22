@@ -69,7 +69,7 @@ msgstr "Advanced Per-Day Settings"
 msgid "All combinations violate your limits. Try relaxing some constraints!"
 msgstr "All combinations violate your limits. Try relaxing some constraints!"
 
-#: src/components/calendar-view.tsx:380
+#: src/components/calendar-view.tsx:175
 msgid "All sessions:"
 msgstr "All sessions:"
 
@@ -82,12 +82,16 @@ msgstr "and {0} more"
 msgid "Any group"
 msgstr "Any group"
 
-#: src/App.tsx:344
+#: src/App.tsx:363
 msgid "Apply"
 msgstr "Apply"
 
-#: src/components/calendar-view.tsx:216
-#: src/components/calendar-view.tsx:306
+#: src/App.tsx:318
+msgid "BTU Helper Userscript"
+msgstr "BTU Helper Userscript"
+
+#: src/components/calendar-view.tsx:256
+#: src/components/calendar-view.tsx:346
 msgid "Busy"
 msgstr "Busy"
 
@@ -123,7 +127,7 @@ msgstr "Classes Per Day (Min - Max)"
 msgid "Clear"
 msgstr "Clear"
 
-#: src/App.tsx:354
+#: src/App.tsx:373
 msgid "Click to copy"
 msgstr "Click to copy"
 
@@ -135,6 +139,7 @@ msgstr "Click to cycle: Neutral → Prefer → Avoid"
 msgid "Click to upload or drag & drop schedule files"
 msgstr "Click to upload or drag & drop schedule files"
 
+#: src/components/calendar-view.tsx:193
 #: src/components/schedule-results.tsx:166
 msgid "Close"
 msgstr "Close"
@@ -153,8 +158,8 @@ msgid "Commute:"
 msgstr "Commute:"
 
 #. placeholder {0}: formatDuration(legMinutes)
-#: src/components/calendar-view.tsx:251
-#: src/components/calendar-view.tsx:261
+#: src/components/calendar-view.tsx:291
+#: src/components/calendar-view.tsx:301
 msgid "Commute: {0}"
 msgstr "Commute: {0}"
 
@@ -166,7 +171,7 @@ msgstr "Compare"
 msgid "Compare schedules"
 msgstr "Compare schedules"
 
-#: src/App.tsx:357
+#: src/App.tsx:376
 msgid "Copied!"
 msgstr "Copied!"
 
@@ -187,6 +192,7 @@ msgstr "Daily Round-Trip Commute"
 msgid "Day {0} doesn't meet minimum classes"
 msgstr "Day {0} doesn't meet minimum classes"
 
+#: src/components/schedule-results.tsx:303
 #: src/components/schedule-results.tsx:350
 msgid "days"
 msgstr "days"
@@ -195,7 +201,7 @@ msgstr "days"
 msgid "Default Allowed Time Range (All Days)"
 msgstr "Default Allowed Time Range (All Days)"
 
-#: src/components/calendar-view.tsx:313
+#: src/components/calendar-view.tsx:353
 msgid "Delete this busy period"
 msgstr "Delete this busy period"
 
@@ -206,6 +212,10 @@ msgstr "Different Groups"
 #: src/components/settings-panel.tsx:157
 msgid "Disabled"
 msgstr "Disabled"
+
+#: src/App.tsx:324
+msgid "Dismiss"
+msgstr "Dismiss"
 
 #: src/components/settings-panel.tsx:121
 msgid "Done by 4 PM"
@@ -236,7 +246,7 @@ msgstr "Export as .ics"
 msgid "Export as ICS"
 msgstr "Export as ICS"
 
-#: src/App.tsx:331
+#: src/App.tsx:350
 msgid "Export Hash"
 msgstr "Export Hash"
 
@@ -276,7 +286,7 @@ msgstr "Generate"
 msgid "Generate Best Schedules"
 msgstr "Generate Best Schedules"
 
-#: src/components/calendar-view.tsx:378
+#: src/components/calendar-view.tsx:173
 msgid "Group:"
 msgstr "Group:"
 
@@ -284,7 +294,7 @@ msgstr "Group:"
 msgid "ICS reminder"
 msgstr "ICS reminder"
 
-#: src/App.tsx:326
+#: src/App.tsx:345
 msgid "Import Hash"
 msgstr "Import Hash"
 
@@ -297,7 +307,7 @@ msgstr "Install App"
 msgid "Instructor Preferences"
 msgstr "Instructor Preferences"
 
-#: src/components/calendar-view.tsx:379
+#: src/components/calendar-view.tsx:174
 msgid "Instructor:"
 msgstr "Instructor:"
 
@@ -314,7 +324,7 @@ msgstr "Link copied!"
 msgid "Lock group for {0}"
 msgstr "Lock group for {0}"
 
-#: src/components/calendar-view.tsx:392
+#: src/components/calendar-view.tsx:188
 msgid "Lock This Group"
 msgstr "Lock This Group"
 
@@ -386,7 +396,7 @@ msgstr "Override time bounds, set commute, and mark busy periods for each day."
 msgid "Parsed Courses ({0})"
 msgstr "Parsed Courses ({0})"
 
-#: src/App.tsx:338
+#: src/App.tsx:357
 msgid "Paste shared hash here…"
 msgstr "Paste shared hash here…"
 
@@ -450,7 +460,7 @@ msgstr "Schedule Comparison"
 msgid "Score"
 msgstr "Score"
 
-#: src/components/calendar-view.tsx:162
+#: src/components/calendar-view.tsx:202
 msgid "Selected Groups"
 msgstr "Selected Groups"
 
@@ -481,6 +491,14 @@ msgstr "Theme"
 #: src/App.tsx:301
 msgid "Theme: {theme}"
 msgstr "Theme: {theme}"
+
+#: src/App.tsx:314
+msgid "Tip: Install the"
+msgstr "Tip: Install the"
+
+#: src/App.tsx:320
+msgid "to export timetable pages directly from BTU's website."
+msgstr "to export timetable pages directly from BTU's website."
 
 #: src/components/schedule-results.tsx:143
 msgid "To prevent your browser from crashing, the app stopped early. Results shown are the best from the checked batch."
@@ -514,7 +532,7 @@ msgstr "Undo (Ctrl+Z)"
 msgid "Undo/Redo"
 msgstr "Undo/Redo"
 
-#: src/components/calendar-view.tsx:392
+#: src/components/calendar-view.tsx:188
 msgid "Unlock Group"
 msgstr "Unlock Group"
 

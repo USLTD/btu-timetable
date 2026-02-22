@@ -81,8 +81,8 @@ export function CalendarView({ scheduleData, daySettings, dailyCommute, onAddBus
   // Hover state for busy period layers
   const [hoveredBusy, setHoveredBusy] = useState<{ day: DayNumber; idx: number } | null>(null);
 
-  // Group detail popover state
-  const [popover, setPopover] = useState<{ cIdx: number; dayNum: DayNumber } | null>(null);
+  // Group detail popover state — one popover per course group (not per day)
+  const [popoverCIdx, setPopoverCIdx] = useState<number | null>(null);
 
   const yToMinutes = useCallback((y: number, el: HTMLElement): number => {
     const rect = el.getBoundingClientRect();
@@ -125,7 +125,7 @@ export function CalendarView({ scheduleData, daySettings, dailyCommute, onAddBus
   return (
     <div className="flex flex-col lg:flex-row gap-4">
       {/* Mobile day tabs */}
-      <div className="lg:hidden flex gap-1 overflow-x-auto pb-2">
+      <div className="lg:hidden flex gap-1 overflow-x-auto pb-2 no-print">
         {dayNums.map((dayNum, idx) => (
           <button key={dayNum} onClick={() => setMobileDay(idx)}
             className={`px-3 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors ${mobileDay === idx
@@ -148,14 +148,54 @@ export function CalendarView({ scheduleData, daySettings, dailyCommute, onAddBus
           </div>
 
           {/* Day columns — on mobile show only selected day, on desktop show all */}
-          <div className={`flex-1 divide-x divide-gray-100 dark:divide-gray-700 bg-gray-50 dark:bg-gray-900 hidden lg:grid`} style={{ gridTemplateColumns: `repeat(${dayNums.length}, minmax(0, 1fr))` }}>
+          <div className={`flex-1 divide-x divide-gray-100 dark:divide-gray-700 bg-gray-50 dark:bg-gray-900 hidden lg:grid`} data-calendar-grid style={{ gridTemplateColumns: `repeat(${dayNums.length}, minmax(0, 1fr))` }}>
             {dayNums.map((dayNum) => renderDayColumn(dayNum))}
           </div>
-          <div className="flex-1 lg:hidden bg-gray-50 dark:bg-gray-900">
+          <div className="flex-1 lg:hidden bg-gray-50 dark:bg-gray-900" data-calendar-mobile>
             {dayNums[mobileDay] && renderDayColumn(dayNums[mobileDay])}
           </div>
         </div>
       </div>
+
+      {/* Single popover for selected course group */}
+      {popoverCIdx !== null && scheduleData.schedule[popoverCIdx] && (() => {
+        const item = scheduleData.schedule[popoverCIdx];
+        const courseIdx = courses?.findIndex(c => c.courseName === item.course.courseName) ?? -1;
+        const isLocked = courseIdx >= 0 && courses?.[courseIdx]?.lockedGroup === item.group.name;
+        return (
+          <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg p-3 text-xs"
+            onClick={(e) => e.stopPropagation()}>
+            <div className="font-bold text-sm text-gray-800 dark:text-gray-100 mb-2">
+              {item.course.subjectCode && <span className="text-gray-500 dark:text-gray-400 font-mono text-xs">{item.course.subjectCode} </span>}
+              {item.course.courseName}
+            </div>
+            <div className="space-y-1 text-gray-600 dark:text-gray-300">
+              <div><span className="font-semibold"><Trans>Group:</Trans></span> {item.group.name}</div>
+              <div><span className="font-semibold"><Trans>Instructor:</Trans></span> {item.group.instructor}</div>
+              <div className="font-semibold mt-1"><Trans>All sessions:</Trans></div>
+              {item.group.times.map((gt, gi) => (
+                <div key={gi} className="pl-2">{localizedDayName(gt.day, locale, 'short')} {gt.time} — {gt.room}</div>
+              ))}
+            </div>
+            <div className="flex gap-2 mt-2">
+              {onLockGroup && courseIdx >= 0 && (
+                <button
+                  className={`flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded text-xs font-medium transition-colors ${isLocked
+                    ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/50'
+                    : 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50'
+                    }`}
+                  onClick={() => { onLockGroup(courseIdx, isLocked ? undefined : item.group.name); setPopoverCIdx(null); }}>
+                  {isLocked ? <><Unlock className="w-3.5 h-3.5" /> <Trans>Unlock Group</Trans></> : <><Lock className="w-3.5 h-3.5" /> <Trans>Lock This Group</Trans></>}
+                </button>
+              )}
+              <button onClick={() => setPopoverCIdx(null)}
+                className="px-2 py-1.5 rounded text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                <Trans>Close</Trans>
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Group sidebar */}
       <div className="w-full lg:w-64 flex flex-col gap-2">
@@ -350,50 +390,20 @@ export function CalendarView({ scheduleData, daySettings, dailyCommute, onAddBus
                 if (!time) return null;
                 const top = ((time.start / 60) - startHour) * pxPerHour;
                 const height = ((time.end - time.start) / 60) * pxPerHour;
-                const isPopoverOpen = popover?.cIdx === cIdx && popover?.dayNum === dayNum;
-                const courseIdx = courses?.findIndex(c => c.courseName === item.course.courseName) ?? -1;
-                const isLocked = courseIdx >= 0 && courses?.[courseIdx]?.lockedGroup === item.group.name;
+                const isSelected = popoverCIdx === cIdx;
                 return (
                   <div
                     key={`${cIdx}-${tIdx}`}
-                    className={`absolute w-[94%] left-[3%] px-1 py-0.5 border-l-4 overflow-visible rounded shadow-sm text-[10px] sm:text-xs leading-tight cursor-pointer ${CALENDAR_COLORS[cIdx % CALENDAR_COLORS.length]} ${isPopoverOpen ? 'ring-2 ring-blue-500 dark:ring-blue-400' : ''}`}
-                    style={{ top: `${top}px`, height: `${height}px`, zIndex: isPopoverOpen ? 30 : 10 }}
-                    onClick={(e) => { e.stopPropagation(); setPopover(isPopoverOpen ? null : { cIdx, dayNum }); }}
+                    className={`absolute w-[94%] left-[3%] px-1 py-0.5 border-l-4 overflow-visible rounded shadow-sm text-[10px] sm:text-xs leading-tight cursor-pointer ${CALENDAR_COLORS[cIdx % CALENDAR_COLORS.length]} ${isSelected ? 'ring-2 ring-blue-500 dark:ring-blue-400' : ''}`}
+                    style={{ top: `${top}px`, height: `${height}px`, zIndex: isSelected ? 30 : 10 }}
+                    onClick={(e) => { e.stopPropagation(); setPopoverCIdx(isSelected ? null : cIdx); }}
                     role="button" tabIndex={0} aria-label={`${item.course.courseName} — ${item.group.name}`}
-                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPopover(isPopoverOpen ? null : { cIdx, dayNum }); } }}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPopoverCIdx(isSelected ? null : cIdx); } }}
                   >
                     <div className="font-bold truncate">
                       {item.course.subjectCode ? `${item.course.subjectCode} ` : ''}{item.course.courseName}
                     </div>
                     <div className="truncate">{ts.time} • {ts.room}</div>
-                    {/* Popover */}
-                    {isPopoverOpen && (
-                      <div className="absolute left-0 top-full mt-1 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg p-3 z-50 text-xs"
-                        onClick={(e) => e.stopPropagation()}>
-                        <div className="font-bold text-sm text-gray-800 dark:text-gray-100 mb-2">
-                          {item.course.subjectCode && <span className="text-gray-500 dark:text-gray-400 font-mono text-xs">{item.course.subjectCode} </span>}
-                          {item.course.courseName}
-                        </div>
-                        <div className="space-y-1 text-gray-600 dark:text-gray-300">
-                          <div><span className="font-semibold"><Trans>Group:</Trans></span> {item.group.name}</div>
-                          <div><span className="font-semibold"><Trans>Instructor:</Trans></span> {item.group.instructor}</div>
-                          <div className="font-semibold mt-1"><Trans>All sessions:</Trans></div>
-                          {item.group.times.map((gt, gi) => (
-                            <div key={gi} className="pl-2">{localizedDayName(gt.day, locale, 'short')} {gt.time} — {gt.room}</div>
-                          ))}
-                        </div>
-                        {onLockGroup && courseIdx >= 0 && (
-                          <button
-                            className={`mt-2 w-full flex items-center justify-center gap-1 px-2 py-1.5 rounded text-xs font-medium transition-colors ${isLocked
-                                ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/50'
-                                : 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50'
-                              }`}
-                            onClick={() => { onLockGroup(courseIdx, isLocked ? undefined : item.group.name); setPopover(null); }}>
-                            {isLocked ? <><Unlock className="w-3.5 h-3.5" /> <Trans>Unlock Group</Trans></> : <><Lock className="w-3.5 h-3.5" /> <Trans>Lock This Group</Trans></>}
-                          </button>
-                        )}
-                      </div>
-                    )}
                   </div>
                 );
               })

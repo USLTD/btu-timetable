@@ -253,10 +253,10 @@ export function ScheduleResults({ schedules, daySettings, dailyCommute, classesP
           {sorted.map((res, idx) => {
             const originalIdx = schedules.indexOf(res);
             return (
-              <div key={originalIdx} id={`schedule-card-${originalIdx}`} className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 md:p-6 border ${res.pinned ? 'border-yellow-400 dark:border-yellow-600 ring-2 ring-yellow-200 dark:ring-yellow-800' : 'border-gray-100 dark:border-gray-700'}`}>
-                <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-                  <div className="flex items-center gap-2">
-                    <span className="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm shadow-sm font-bold">#{idx + 1}</span>
+              <div key={originalIdx} id={`schedule-card-${originalIdx}`} className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm p-3 sm:p-4 md:p-6 border ${res.pinned ? 'border-yellow-400 dark:border-yellow-600 ring-2 ring-yellow-200 dark:ring-yellow-800' : 'border-gray-100 dark:border-gray-700'}`}>
+                <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3 mb-4">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <span className="bg-blue-600 text-white w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm shadow-sm font-bold">#{idx + 1}</span>
                     {editingLabel === originalIdx ? (
                       <input ref={labelInputRef} autoFocus type="text" defaultValue={res.label ?? ''}
                         placeholder={t`Option ${idx + 1}`}
@@ -274,47 +274,47 @@ export function ScheduleResults({ schedules, daySettings, dailyCommute, classesP
                     {/* Pin toggle */}
                     <button onClick={() => onTogglePin(originalIdx)} title={res.pinned ? t`Unpin` : t`Pin this schedule`}
                       aria-label={res.pinned ? t`Unpin` : t`Pin this schedule`}
-                      className={`p-1 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${res.pinned ? 'text-yellow-500' : 'text-gray-300 dark:text-gray-600 hover:text-yellow-400'}`}>
+                      className={`p-2 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${res.pinned ? 'text-yellow-500' : 'text-gray-300 dark:text-gray-600 hover:text-yellow-400'}`}>
                       <Star className={`w-5 h-5 ${res.pinned ? 'fill-current' : ''}`} />
                     </button>
                     {/* ICS export */}
                     <button onClick={() => handleExportICS(res, idx)} title={t`Export as .ics`}
                       aria-label={t`Export as ICS`}
-                      className="p-1 rounded text-gray-400 dark:text-gray-500 hover:text-blue-500 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500">
+                      className="p-2 rounded text-gray-400 dark:text-gray-500 hover:text-blue-500 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500">
                       <Download className="w-5 h-5" />
                     </button>
                     {/* Compare toggle */}
                     <button onClick={() => toggleCompare(idx)}
                       title={t`Compare`} aria-label={t`Compare schedules`}
-                      className={`p-1 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${compareA === idx || compareB === idx ? 'text-indigo-500' : 'text-gray-300 dark:text-gray-600 hover:text-indigo-400'}`}>
+                      className={`p-2 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${compareA === idx || compareB === idx ? 'text-indigo-500' : 'text-gray-300 dark:text-gray-600 hover:text-indigo-400'}`}>
                       <GitCompareArrows className="w-5 h-5" />
                     </button>
                     {/* Try similar */}
                     <button onClick={() => handleTrySimilar(originalIdx, res)}
                       title={t`Find similar schedules (1-group swap)`} aria-label={t`Find similar schedules`}
-                      className={`p-1 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${similarResults[originalIdx] ? 'text-teal-500' : 'text-gray-300 dark:text-gray-600 hover:text-teal-400'}`}>
+                      className={`p-2 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${similarResults[originalIdx] ? 'text-teal-500' : 'text-gray-300 dark:text-gray-600 hover:text-teal-400'}`}>
                       <Shuffle className="w-5 h-5" />
                     </button>
                   </div>
 
-                  <div className="flex flex-wrap gap-2 sm:gap-3 text-sm">
-                    <div className="bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 px-3 py-1.5 rounded-lg flex items-center gap-2">
-                      <CalendarIcon className="w-4 h-4 text-blue-500" />
-                      <span className="font-medium dark:text-gray-200"><Trans>Campus Days:</Trans> <span className="text-blue-700 dark:text-blue-400">{res.daysOnCampus}</span></span>
+                  <div className="flex flex-wrap gap-1.5 sm:gap-2 text-xs sm:text-sm">
+                    <div className="bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center gap-1.5">
+                      <CalendarIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
+                      <span className="font-medium dark:text-gray-200"><span className="hidden sm:inline"><Trans>Campus Days:</Trans> </span><span className="text-blue-700 dark:text-blue-400">{res.daysOnCampus}<span className="sm:hidden"> <Trans>days</Trans></span></span></span>
                     </div>
-                    <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 px-3 py-1.5 rounded-lg flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-red-500" />
-                      <span className="font-medium dark:text-gray-200"><Trans>Commute:</Trans> <span className="text-red-700 dark:text-red-400">~{formatDuration(Math.round(res.weeklyCommute * 60))}/{t`wk`}</span></span>
+                    <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center gap-1.5">
+                      <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-500" />
+                      <span className="font-medium dark:text-gray-200"><span className="hidden sm:inline"><Trans>Commute:</Trans> </span><span className="text-red-700 dark:text-red-400">~{formatDuration(Math.round(res.weeklyCommute * 60))}/{t`wk`}</span></span>
                     </div>
                     {res.totalGapTime > 0 && (
-                      <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 px-3 py-1.5 rounded-lg flex items-center gap-2">
-                        <Timer className="w-4 h-4 text-amber-500" />
-                        <span className="font-medium dark:text-gray-200"><Trans>Gaps:</Trans> <span className="text-amber-700 dark:text-amber-400">{formatDuration(res.totalGapTime)}/{t`wk`}</span></span>
+                      <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center gap-1.5">
+                        <Timer className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
+                        <span className="font-medium dark:text-gray-200"><span className="hidden sm:inline"><Trans>Gaps:</Trans> </span><span className="text-amber-700 dark:text-amber-400">{formatDuration(res.totalGapTime)}/{t`wk`}</span></span>
                       </div>
                     )}
-                    <div className={`border px-3 py-1.5 rounded-lg flex items-center gap-2 ${res.freeWeekdays > 0 ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700' : 'bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-700'}`}>
-                      <AlertCircle className={`w-4 h-4 ${res.freeWeekdays > 0 ? 'text-green-600' : 'text-orange-500'}`} />
-                      <span className="font-medium dark:text-gray-200"><Trans>Free:</Trans> <span className={res.freeWeekdays > 0 ? 'text-green-700 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}>{formatFreeDays(res)}</span></span>
+                    <div className={`border px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center gap-1.5 ${res.freeWeekdays > 0 ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700' : 'bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-700'}`}>
+                      <AlertCircle className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${res.freeWeekdays > 0 ? 'text-green-600' : 'text-orange-500'}`} />
+                      <span className="font-medium dark:text-gray-200"><span className="hidden sm:inline"><Trans>Free:</Trans> </span><span className={res.freeWeekdays > 0 ? 'text-green-700 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}>{formatFreeDays(res)}</span></span>
                     </div>
                   </div>
                 </div>

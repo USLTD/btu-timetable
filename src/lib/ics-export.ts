@@ -11,6 +11,24 @@ function toICalDateTime(d: Date, h: number, m: number): string {
   return `${toICalDate(d)}T${pad(h)}${pad(m)}00`;
 }
 
+/** Escape special characters for iCalendar text values. */
+function escapeICalText(text: string): string {
+  return text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+}
+
+/** Generate a UUID, with fallback for non-secure contexts. */
+function generateUID(): string {
+  try {
+    return crypto.randomUUID();
+  } catch {
+    // Fallback for environments without crypto.randomUUID
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = Math.random() * 16 | 0;
+      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+  }
+}
+
 /** Get the first occurrence date of a given DayNumber on or after `start`. */
 function firstOccurrence(start: Date, dayNum: DayNumber): Date {
   const jsDay = dayNum % 7; // DayNumber 7 (Sunday) → JS 0
@@ -19,6 +37,9 @@ function firstOccurrence(start: Date, dayNum: DayNumber): Date {
   d.setDate(d.getDate() + diff);
   return d;
 }
+
+/** Default semester length in weeks */
+const SEMESTER_WEEKS = 15;
 
 export function generateICS(schedule: ScheduleItem[], reminderMinutes?: number): string {
   // Use next Monday as the reference week
@@ -34,6 +55,7 @@ export function generateICS(schedule: ScheduleItem[], reminderMinutes?: number):
     'VERSION:2.0',
     'PRODID:-//EasyBTU//Schedule//EN',
     'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
   ];
 
   for (const item of schedule) {
@@ -50,14 +72,21 @@ export function generateICS(schedule: ScheduleItem[], reminderMinutes?: number):
       const dtStart = toICalDateTime(firstDate, startH, startM);
       const dtEnd = toICalDateTime(firstDate, endH, endM);
 
+      const summary = escapeICalText(
+        (item.course.subjectCode ? item.course.subjectCode + ' ' : '') + item.course.courseName
+      );
+      const location = escapeICalText(t.room || '');
+      const description = escapeICalText(`${item.group.name} — ${item.group.instructor}`);
+
       lines.push(
         'BEGIN:VEVENT',
         `DTSTART:${dtStart}`,
         `DTEND:${dtEnd}`,
-        `SUMMARY:${item.course.subjectCode ? item.course.subjectCode + ' ' : ''}${item.course.courseName}`,
-        `LOCATION:${t.room}`,
-        `DESCRIPTION:${item.group.name} — ${item.group.instructor}`,
-        `UID:${crypto.randomUUID()}`,
+        `RRULE:FREQ=WEEKLY;COUNT=${SEMESTER_WEEKS}`,
+        `SUMMARY:${summary}`,
+        `LOCATION:${location}`,
+        `DESCRIPTION:${description}`,
+        `UID:${generateUID()}@easybtu`,
       );
 
       // Add alarm/reminder if requested
@@ -65,7 +94,7 @@ export function generateICS(schedule: ScheduleItem[], reminderMinutes?: number):
         lines.push(
           'BEGIN:VALARM',
           'ACTION:DISPLAY',
-          `DESCRIPTION:${item.course.courseName} in ${reminderMinutes} min`,
+          `DESCRIPTION:${escapeICalText(item.course.courseName)} in ${reminderMinutes} min`,
           `TRIGGER:-PT${reminderMinutes}M`,
           'END:VALARM',
         );
@@ -85,9 +114,13 @@ export function downloadICS(content: string, filename = 'schedule.ics'): void {
   const a = document.createElement('a');
   a.href = url;
   a.download = filename;
+  a.style.display = 'none';
   document.body.appendChild(a);
   a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  // Small delay to ensure download starts before cleanup
+  setTimeout(() => {
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }, 100);
 }
 

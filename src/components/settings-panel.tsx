@@ -97,10 +97,10 @@ export function SettingsPanel({
 
         {/* Global Time Range */}
         <div className="flex flex-col gap-1.5 lg:col-span-5 pt-2 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
             <label className="text-sm font-semibold text-gray-700 dark:text-gray-200"><Trans>Default Allowed Time Range (All Days)</Trans></label>
             {/* Quick presets */}
-            <div className="flex items-center gap-1 text-xs">
+            <div className="flex items-center gap-1 text-xs flex-wrap">
               <button onClick={() => updateGlobalTime(540, globalTime.max)}
                 className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
                 title={t`No classes before 9 AM`}>

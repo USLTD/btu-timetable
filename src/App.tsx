@@ -1,5 +1,5 @@
 ﻿import { useState, useCallback, useEffect, useMemo } from 'react';
-import { Calendar as CalendarIcon, Sun, Moon, Monitor, Download, Share2, Import, Copy, Check, Printer, Undo2, Redo2 } from 'lucide-react';
+import { Calendar as CalendarIcon, Sun, Moon, Monitor, Download, Share2, Import, Copy, Check, Printer, Undo2, Redo2, Puzzle, X } from 'lucide-react';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { usePwaInstall } from './lib/use-pwa-install.ts';
 import { encodeState, importHash, shareToUrl } from './lib/url-state.ts';
@@ -255,13 +255,13 @@ export default function App() {
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 md:p-8 font-sans transition-colors" role="main">
       <div className="max-w-6xl mx-auto">
-        <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
-              <CalendarIcon className="w-6 h-6 text-blue-600" />
+        <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl shadow-sm mb-6">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <h1 className="text-lg sm:text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+              <CalendarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
               <Trans>Ultimate Schedule Optimizer</Trans>
             </h1>
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1 flex-wrap">
               {/* Locale switcher */}
               <select
                 value={currentLocale}
@@ -304,9 +304,28 @@ export default function App() {
               </button>
             </div>
           </div>
-          <p className="text-gray-600 dark:text-gray-400 mb-6 no-print">
+          <p className="text-gray-600 dark:text-gray-400 mb-4 no-print">
             <Trans>Upload course files, dial in your precise constraints, and find your perfect week.</Trans>
           </p>
+          {!localStorage.getItem('hide-userscript-hint') && (
+            <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 text-sm text-amber-800 dark:text-amber-300 no-print">
+              <Puzzle className="w-4 h-4 shrink-0" />
+              <span className="flex-1">
+                <Trans>Tip: Install the</Trans>{' '}
+                <a href="http://userscripts.usltd.ge/btu-timetable-helper.user.js"
+                  target="_blank" rel="noopener noreferrer"
+                  className="font-medium underline hover:text-amber-900 dark:hover:text-amber-200 transition-colors">
+                  <Trans>BTU Helper Userscript</Trans>
+                </a>{' '}
+                <Trans>to export timetable pages directly from BTU's website.</Trans>
+              </span>
+              <button onClick={(e) => { (e.currentTarget.parentElement as HTMLElement).remove(); localStorage.setItem('hide-userscript-hint', '1'); }}
+                className="p-1 rounded hover:bg-amber-100 dark:hover:bg-amber-800/40 transition-colors shrink-0"
+                aria-label={t`Dismiss`}>
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          )}
           <div className="no-print">
             <SettingsPanel
               dailyCommute={dailyCommute} setDailyCommute={setDailyCommute}
@@ -378,6 +397,10 @@ export default function App() {
           onRenameSchedule={handleRenameSchedule} onLockGroup={handleLockGroup} onAddBusyPeriod={addBusyPeriod}
           onRemoveBusyPeriod={removeBusyPeriod}
         />
+
+        <footer className="mt-8 pb-4 text-center text-xs text-gray-400 dark:text-gray-500 no-print">
+          2026 © Luka Mamukashvili
+        </footer>
       </div>
     </div>
   );
