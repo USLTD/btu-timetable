@@ -1,5 +1,5 @@
 import { i18n } from "@lingui/core";
-import { messages as enMessages } from "./locales/en/messages.po";
+import { messages as enMessages } from "./locales/en/messages";
 
 export const locales = {
   en: "English",
