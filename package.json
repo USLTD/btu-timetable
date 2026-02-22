@@ -1,8 +1,15 @@
 {
   "name": "easy-btu-timetable",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
+  "description": "Offline-first BTU schedule optimizer — upload course data, set constraints, and find your perfect week",
+  "homepage": "https://usltd.github.io/easy-btu-timetable/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/USLTD/easy-btu-timetable.git"
+  },
+  "license": "MIT",
   "scripts": {
     "dev": "vite",
     "build": "lingui extract && lingui compile --typescript && tsc -b && vite build",

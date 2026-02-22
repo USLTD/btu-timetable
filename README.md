@@ -1,75 +1,73 @@
-# React + TypeScript + Vite
+# Easy BTU Timetable
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Offline-first schedule optimizer for [BTU (Business and Technology University)](https://btu.edu.ge/) students. Upload your course data, set constraints, and find the best timetable for your week — all in the browser.
 
-Currently, two official plugins are available:
+**[Try it live →](https://usltd.github.io/easy-btu-timetable/)**
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## React Compiler
+- **Course file upload** — drag-and-drop or browse to load HTML course pages exported from BTU's portal (or use the companion userscript)
+- **Constraint engine** — per-day enable/disable/prioritize, allowed time windows, busy periods, min/max classes per day, max overlap tolerance, commute budgets
+- **Instructor preferences** — prefer, neutral, or avoid specific lecturers
+- **Smart scoring** — schedules ranked by free days, gap time, commute cost, and instructor fit
+- **Web Worker scheduler** — heavy combinatorics run off the main thread for a responsive UI
+- **Undo / Redo** — full settings history with Ctrl+Z / Ctrl+Y
+- **What-if mode** — temporarily exclude courses to explore alternative plans
+- **Group locking** — pre-select a specific group for any course
+- **Drag-and-drop ordering** — reorder courses to set priority
+- **Busy periods** — draw unavailable time blocks directly on the calendar
+- **Schedule comparison** — pin & name your favourite schedules; side-by-side view
+- **ICS export** — download any schedule as a `.ics` calendar file
+- **URL sharing** — snapshot settings into a shareable link or compact hash
+- **Dark mode** — system-aware with manual toggle (light / dark / auto)
+- **i18n** — English and Georgian (ქართული) via Lingui
+- **PWA** — installable, works offline via Workbox service worker
+- **Keyboard shortcuts** — `G` generate, `D` theme, `P` pin, `←`/`→` browse schedules
+- **Print-friendly** — clean CSS `@media print` layout
+- **Accessible** — ARIA labels, focus-visible rings, keyboard navigation
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+## Getting started
 
-Note: This will impact Vite dev & build performances.
+### Prerequisites
 
-## Expanding the ESLint configuration
+- [Node.js](https://nodejs.org/) 22+
+- [pnpm](https://pnpm.io/) 10+
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### Install & run
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+pnpm install
+pnpm dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Build for production
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+pnpm build      # extracts & compiles i18n, type-checks, then bundles
+pnpm preview    # serve the production build locally
 ```
+
+### Userscript
+
+[export-btu-timetable.user.js](export-btu-timetable.user.js) is a companion userscript that exports course data from BTU's portal into JSON files this app can import.
+
+## Tech stack
+
+| Layer | Library |
+|---|---|
+| UI | React 19, TypeScript 5.9, Tailwind CSS 4 |
+| Build | Vite 8, React Compiler |
+| i18n | Lingui 5 (.po catalogs) |
+| PWA | vite-plugin-pwa + Workbox |
+| Drag & drop | @dnd-kit/react |
+| Icons | Lucide React |
+
+## Deployment
+
+The app auto-deploys to GitHub Pages on every push to `main` via the workflow in `.github/workflows/deploy.yml`.
+
+## License
+
+[MIT](LICENSE)

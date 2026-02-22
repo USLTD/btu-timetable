@@ -4,9 +4,11 @@ import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import { lingui } from '@lingui/vite-plugin'
 
+const BASE_URL = process.env.BASE_URL || '/btu-timetable/'
+
 // https://vite.dev/config/
 export default defineConfig({
-  base: './',
+  base: BASE_URL,
   plugins: [
     react({
       babel: {
@@ -38,8 +40,8 @@ export default defineConfig({
         theme_color: '#2563eb',
         background_color: '#f3f4f6',
         display: 'standalone',
-        start_url: './',
-        scope: './',
+        start_url: BASE_URL,
+        scope: BASE_URL,
         icons: [
           { src: 'android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
           { src: 'android-chrome-512x512.png', sizes: '512x512', type: 'image/png' },
