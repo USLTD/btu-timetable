@@ -3,7 +3,7 @@ import { CALENDAR_COLORS, localizedDayName } from '../lib/constants.ts';
 import { parseTime, formatDuration, formatTime } from '../lib/time.ts';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { useRef, useState, useCallback } from 'react';
-import { Car, X } from 'lucide-react';
+import { Car, X, Lock, Unlock } from 'lucide-react';
 
 interface CalendarViewProps {
   scheduleData: ScoredSchedule;
@@ -13,6 +13,10 @@ interface CalendarViewProps {
   onAddBusyPeriod?: (dayNum: DayNumber, bp: BusyPeriod) => void;
   /** When provided, enables click-to-delete busy periods */
   onRemoveBusyPeriod?: (dayNum: DayNumber, bpIdx: number) => void;
+  /** Lock/unlock a group selection */
+  onLockGroup?: (courseIdx: number, groupName: string | undefined) => void;
+  /** Course list (to map course index) */
+  courses?: { courseName: string; lockedGroup?: string }[];
 }
 
 /** Group touching/adjacent busy periods into combined visual blocks */
@@ -36,7 +40,7 @@ function groupBusyPeriods(periods: BusyPeriod[]): { merged: { start: number; end
   return groups;
 }
 
-export function CalendarView({ scheduleData, daySettings, dailyCommute, onAddBusyPeriod, onRemoveBusyPeriod }: CalendarViewProps) {
+export function CalendarView({ scheduleData, daySettings, dailyCommute, onAddBusyPeriod, onRemoveBusyPeriod, onLockGroup, courses }: CalendarViewProps) {
   const { t, i18n } = useLingui();
   const locale = i18n.locale;
   const allDayNums: DayNumber[] = [1, 2, 3, 4, 5, 6];
@@ -76,6 +80,9 @@ export function CalendarView({ scheduleData, daySettings, dailyCommute, onAddBus
 
   // Hover state for busy period layers
   const [hoveredBusy, setHoveredBusy] = useState<{ day: DayNumber; idx: number } | null>(null);
+
+  // Group detail popover state
+  const [popover, setPopover] = useState<{ cIdx: number; dayNum: DayNumber } | null>(null);
 
   const yToMinutes = useCallback((y: number, el: HTMLElement): number => {
     const rect = el.getBoundingClientRect();
@@ -129,7 +136,7 @@ export function CalendarView({ scheduleData, daySettings, dailyCommute, onAddBus
       </div>
 
       {/* Calendar grid */}
-      <div className="flex-1 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden text-sm">
+      <div className="flex-1 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden text-sm" data-calendar>
         <div className="flex">
           {/* Hour labels */}
           <div className="w-12 border-r border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900 flex flex-col pt-10">
@@ -337,23 +344,56 @@ export function CalendarView({ scheduleData, daySettings, dailyCommute, onAddBus
           {/* Course blocks */}
           {scheduleData.schedule.map((item: ScheduleItem, cIdx: number) =>
             item.group.times
-              .filter((t: TimeSlot) => t.day === dayNum)
-              .map((t: TimeSlot, tIdx: number) => {
-                const time = parseTime(t.time);
+              .filter((ts: TimeSlot) => ts.day === dayNum)
+              .map((ts: TimeSlot, tIdx: number) => {
+                const time = parseTime(ts.time);
                 if (!time) return null;
                 const top = ((time.start / 60) - startHour) * pxPerHour;
                 const height = ((time.end - time.start) / 60) * pxPerHour;
+                const isPopoverOpen = popover?.cIdx === cIdx && popover?.dayNum === dayNum;
+                const courseIdx = courses?.findIndex(c => c.courseName === item.course.courseName) ?? -1;
+                const isLocked = courseIdx >= 0 && courses?.[courseIdx]?.lockedGroup === item.group.name;
                 return (
                   <div
                     key={`${cIdx}-${tIdx}`}
-                    className={`absolute w-[94%] left-[3%] px-1 py-0.5 border-l-4 overflow-hidden rounded shadow-sm text-[10px] sm:text-xs leading-tight ${CALENDAR_COLORS[cIdx % CALENDAR_COLORS.length]}`}
-                    style={{ top: `${top}px`, height: `${height}px`, zIndex: 10 }}
-                    title={`${item.course.courseName}\n${item.group.instructor}\n${t.room}`}
+                    className={`absolute w-[94%] left-[3%] px-1 py-0.5 border-l-4 overflow-visible rounded shadow-sm text-[10px] sm:text-xs leading-tight cursor-pointer ${CALENDAR_COLORS[cIdx % CALENDAR_COLORS.length]} ${isPopoverOpen ? 'ring-2 ring-blue-500 dark:ring-blue-400' : ''}`}
+                    style={{ top: `${top}px`, height: `${height}px`, zIndex: isPopoverOpen ? 30 : 10 }}
+                    onClick={(e) => { e.stopPropagation(); setPopover(isPopoverOpen ? null : { cIdx, dayNum }); }}
+                    role="button" tabIndex={0} aria-label={`${item.course.courseName} — ${item.group.name}`}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPopover(isPopoverOpen ? null : { cIdx, dayNum }); } }}
                   >
                     <div className="font-bold truncate">
                       {item.course.subjectCode ? `${item.course.subjectCode} ` : ''}{item.course.courseName}
                     </div>
-                    <div className="truncate">{t.time} • {t.room}</div>
+                    <div className="truncate">{ts.time} • {ts.room}</div>
+                    {/* Popover */}
+                    {isPopoverOpen && (
+                      <div className="absolute left-0 top-full mt-1 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg p-3 z-50 text-xs"
+                        onClick={(e) => e.stopPropagation()}>
+                        <div className="font-bold text-sm text-gray-800 dark:text-gray-100 mb-2">
+                          {item.course.subjectCode && <span className="text-gray-500 dark:text-gray-400 font-mono text-xs">{item.course.subjectCode} </span>}
+                          {item.course.courseName}
+                        </div>
+                        <div className="space-y-1 text-gray-600 dark:text-gray-300">
+                          <div><span className="font-semibold"><Trans>Group:</Trans></span> {item.group.name}</div>
+                          <div><span className="font-semibold"><Trans>Instructor:</Trans></span> {item.group.instructor}</div>
+                          <div className="font-semibold mt-1"><Trans>All sessions:</Trans></div>
+                          {item.group.times.map((gt, gi) => (
+                            <div key={gi} className="pl-2">{localizedDayName(gt.day, locale, 'short')} {gt.time} — {gt.room}</div>
+                          ))}
+                        </div>
+                        {onLockGroup && courseIdx >= 0 && (
+                          <button
+                            className={`mt-2 w-full flex items-center justify-center gap-1 px-2 py-1.5 rounded text-xs font-medium transition-colors ${isLocked
+                                ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-200 dark:hover:bg-yellow-900/50'
+                                : 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50'
+                              }`}
+                            onClick={() => { onLockGroup(courseIdx, isLocked ? undefined : item.group.name); setPopover(null); }}>
+                            {isLocked ? <><Unlock className="w-3.5 h-3.5" /> <Trans>Unlock Group</Trans></> : <><Lock className="w-3.5 h-3.5" /> <Trans>Lock This Group</Trans></>}
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })

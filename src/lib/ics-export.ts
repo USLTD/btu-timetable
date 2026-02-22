@@ -1,8 +1,6 @@
 import type { ScheduleItem, DayNumber } from '../types.ts';
 import { parseTime } from './time.ts';
 
-const ICAL_DAYS: Record<DayNumber, string> = { 1: 'MO', 2: 'TU', 3: 'WE', 4: 'TH', 5: 'FR', 6: 'SA', 7: 'SU' };
-
 function pad(n: number): string { return n.toString().padStart(2, '0'); }
 
 function toICalDate(d: Date): string {
@@ -22,7 +20,15 @@ function firstOccurrence(start: Date, dayNum: DayNumber): Date {
   return d;
 }
 
-export function generateICS(schedule: ScheduleItem[], semesterStart: Date, semesterWeeks: number, reminderMinutes?: number): string {
+export function generateICS(schedule: ScheduleItem[], reminderMinutes?: number): string {
+  // Use next Monday as the reference week
+  const now = new Date();
+  const day = now.getDay(); // 0=Sun
+  const diff = ((1 - day) + 7) % 7 || 7; // days until next Mon
+  const nextMonday = new Date(now);
+  nextMonday.setDate(now.getDate() + diff);
+  nextMonday.setHours(0, 0, 0, 0);
+
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -40,16 +46,14 @@ export function generateICS(schedule: ScheduleItem[], semesterStart: Date, semes
       const endH = Math.floor(parsed.end / 60);
       const endM = parsed.end % 60;
 
-      const firstDate = firstOccurrence(semesterStart, t.day);
+      const firstDate = firstOccurrence(nextMonday, t.day);
       const dtStart = toICalDateTime(firstDate, startH, startM);
       const dtEnd = toICalDateTime(firstDate, endH, endM);
-      const byDay = ICAL_DAYS[t.day];
 
       lines.push(
         'BEGIN:VEVENT',
         `DTSTART:${dtStart}`,
         `DTEND:${dtEnd}`,
-        `RRULE:FREQ=WEEKLY;COUNT=${semesterWeeks};BYDAY=${byDay}`,
         `SUMMARY:${item.course.subjectCode ? item.course.subjectCode + ' ' : ''}${item.course.courseName}`,
         `LOCATION:${t.room}`,
         `DESCRIPTION:${item.group.name} — ${item.group.instructor}`,

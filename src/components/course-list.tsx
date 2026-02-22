@@ -24,17 +24,17 @@ function SortableCourseItem({ course, index, onToggle, onLockGroup, isWhatIfExcl
   const { ref, isDragging } = useSortable({ id: course.courseName, index });
   const { t } = useLingui();
   return (
-    <div ref={ref} className={`flex items-center gap-1 ${isDragging ? 'opacity-50' : ''}`}>
+    <div ref={ref} className={`flex items-center gap-1 ${isDragging ? 'opacity-50' : ''}`} role="listitem">
       <div className="cursor-grab text-gray-400 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-400 touch-none p-1">
         <GripVertical className="w-4 h-4" />
       </div>
       <button
         onClick={() => onToggle(index)}
         className={`border px-3 py-1.5 rounded-full text-sm flex items-center gap-1.5 transition-colors cursor-pointer ${isWhatIfExcluded
-            ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700 opacity-80'
-            : course.isActive
-              ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-700'
-              : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-500 border-gray-200 dark:border-gray-700 opacity-70'
+          ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700 opacity-80'
+          : course.isActive
+            ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-700'
+            : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-500 border-gray-200 dark:border-gray-700 opacity-70'
           }`}
       >
         {course.isActive ? <CheckCircle className="w-4 h-4" /> : <div className="w-4 h-4 rounded-full border-2 border-gray-400 dark:border-gray-600" />}
@@ -48,6 +48,7 @@ function SortableCourseItem({ course, index, onToggle, onLockGroup, isWhatIfExcl
         <button
           onClick={() => onToggleWhatIf(course.courseName)}
           title={isWhatIfExcluded ? t`Re-include in "What if"` : t`Exclude in "What if" mode`}
+          aria-label={isWhatIfExcluded ? t`Re-include ${course.courseName}` : t`Exclude ${course.courseName}`}
           className={`p-1 rounded transition-colors ${isWhatIfExcluded ? 'text-amber-500' : 'text-gray-300 dark:text-gray-600 hover:text-amber-400'}`}
         >
           <EyeOff className="w-3.5 h-3.5" />
@@ -59,6 +60,7 @@ function SortableCourseItem({ course, index, onToggle, onLockGroup, isWhatIfExcl
           onChange={e => onLockGroup(index, e.target.value || undefined)}
           className="text-xs border dark:border-gray-600 rounded px-1 py-0.5 bg-white dark:bg-gray-800 dark:text-gray-300 max-w-30 truncate"
           title={t`Lock to a specific group`}
+          aria-label={t`Lock group for ${course.courseName}`}
         >
           <option value="">{t`Any group`}</option>
           {course.groups.map(g => (
@@ -94,7 +96,7 @@ export function CourseList({ courses, loading, onToggle, onClear, onGenerate, on
           onReorder(reordered.map((c, i) => ({ ...c, order: i })));
         }}
       >
-        <div className="flex flex-wrap gap-2 mb-6">
+        <div className="flex flex-wrap gap-2 mb-6" role="list" aria-label={t`Course list`}>
           {courses.map((c, i) => (
             <SortableCourseItem key={c.courseName} course={c} index={i} onToggle={onToggle} onLockGroup={onLockGroup}
               isWhatIfExcluded={whatIfExclusions.has(c.courseName)} onToggleWhatIf={onToggleWhatIf} />

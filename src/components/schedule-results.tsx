@@ -1,5 +1,5 @@
-import { useState, useCallback } from 'react';
-import { Calendar as CalendarIcon, Clock, AlertCircle, Download, Star, Timer, GitCompareArrows, Shuffle, Info, Bell, ChevronDown, ChevronUp } from 'lucide-react';
+import { useState, useCallback, useRef } from 'react';
+import { Calendar as CalendarIcon, Clock, AlertCircle, Download, Star, Timer, GitCompareArrows, Shuffle, Info, Bell, ChevronDown, ChevronUp, Pencil } from 'lucide-react';
 import { Trans, useLingui } from '@lingui/react/macro';
 import type { BusyPeriod, Course, DayNumber, DaySettings, InstructorPref, MinMax, RejectionReason, ScoredSchedule } from '../types.ts';
 import { CalendarView } from './calendar-view.tsx';
@@ -22,18 +22,20 @@ interface ScheduleResultsProps {
   rejections: RejectionReason[];
   courses: Course[];
   onTogglePin: (idx: number) => void;
+  onRenameSchedule: (idx: number, label: string) => void;
+  onLockGroup?: (courseIdx: number, groupName: string | undefined) => void;
   onAddBusyPeriod?: (dayNum: DayNumber, bp: BusyPeriod) => void;
   onRemoveBusyPeriod?: (dayNum: DayNumber, bpIdx: number) => void;
 }
 
-export function ScheduleResults({ schedules, daySettings, dailyCommute, classesPerDay, maxOverlap, maxResults, instructorPrefs, hasSearched, loading, limitWarning, rejections, courses, onTogglePin, onAddBusyPeriod, onRemoveBusyPeriod }: ScheduleResultsProps) {
-  const [semesterStart, setSemesterStart] = useState('2026-09-14');
-  const [semesterWeeks, setSemesterWeeks] = useState(15);
+export function ScheduleResults({ schedules, daySettings, dailyCommute, classesPerDay, maxOverlap, maxResults, instructorPrefs, hasSearched, loading, limitWarning, rejections, courses, onTogglePin, onRenameSchedule, onLockGroup, onAddBusyPeriod, onRemoveBusyPeriod }: ScheduleResultsProps) {
   const [reminderMinutes, setReminderMinutes] = useState(15);
   const [compareA, setCompareA] = useState<number | null>(null);
   const [compareB, setCompareB] = useState<number | null>(null);
   const [similarResults, setSimilarResults] = useState<Record<number, ScoredSchedule[]>>({});
   const [showRejections, setShowRejections] = useState(false);
+  const [editingLabel, setEditingLabel] = useState<number | null>(null);
+  const labelInputRef = useRef<HTMLInputElement>(null);
   const { t, i18n } = useLingui();
 
   /** Format the free days list using ICU-localized day names */
@@ -44,7 +46,7 @@ export function ScheduleResults({ schedules, daySettings, dailyCommute, classesP
   };
 
   const handleExportICS = (res: ScoredSchedule, idx: number) => {
-    const ics = generateICS(res.schedule, new Date(semesterStart), semesterWeeks, reminderMinutes);
+    const ics = generateICS(res.schedule, reminderMinutes);
     downloadICS(ics, `schedule-option-${idx + 1}.ics`);
   };
 
@@ -207,11 +209,11 @@ export function ScheduleResults({ schedules, daySettings, dailyCommute, classesP
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
             <div>
               <div className="text-sm font-semibold text-blue-600 dark:text-blue-400 mb-2">A</div>
-              <CalendarView scheduleData={sorted[compareA!]} daySettings={daySettings} dailyCommute={dailyCommute} onAddBusyPeriod={onAddBusyPeriod} onRemoveBusyPeriod={onRemoveBusyPeriod} />
+              <CalendarView scheduleData={sorted[compareA!]} daySettings={daySettings} dailyCommute={dailyCommute} onAddBusyPeriod={onAddBusyPeriod} onRemoveBusyPeriod={onRemoveBusyPeriod} onLockGroup={onLockGroup} courses={courses} />
             </div>
             <div>
               <div className="text-sm font-semibold text-green-600 dark:text-green-400 mb-2">B</div>
-              <CalendarView scheduleData={sorted[compareB!]} daySettings={daySettings} dailyCommute={dailyCommute} onAddBusyPeriod={onAddBusyPeriod} onRemoveBusyPeriod={onRemoveBusyPeriod} />
+              <CalendarView scheduleData={sorted[compareB!]} daySettings={daySettings} dailyCommute={dailyCommute} onAddBusyPeriod={onAddBusyPeriod} onRemoveBusyPeriod={onRemoveBusyPeriod} onLockGroup={onLockGroup} courses={courses} />
             </div>
           </div>
         </div>
@@ -221,18 +223,13 @@ export function ScheduleResults({ schedules, daySettings, dailyCommute, classesP
         <div className="space-y-8">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100"><Trans>Top Suggested Schedules</Trans></h2>
-            {/* ICS semester config + reminder */}
+            {/* ICS reminder */}
             <div className="flex items-center gap-2 text-sm flex-wrap">
-              <label className="text-gray-500 dark:text-gray-400"><Trans>Semester:</Trans></label>
-              <input type="date" value={semesterStart} onChange={e => setSemesterStart(e.target.value)}
-                className="border dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-800 dark:text-gray-200 shadow-sm" />
-              <input type="number" value={semesterWeeks} onChange={e => setSemesterWeeks(Number(e.target.value))} min={1} max={52}
-                className="w-14 border dark:border-gray-600 rounded px-2 py-1 text-sm bg-white dark:bg-gray-800 dark:text-gray-200 shadow-sm" />
-              <span className="text-gray-400 dark:text-gray-500">wks</span>
-              <div className="flex items-center gap-1 ml-2 border-l dark:border-gray-600 pl-2">
+              <div className="flex items-center gap-1">
                 <Bell className="w-3.5 h-3.5 text-gray-400" />
                 <select value={reminderMinutes} onChange={e => setReminderMinutes(Number(e.target.value))}
-                  className="text-xs border dark:border-gray-600 rounded px-1 py-0.5 bg-white dark:bg-gray-800 dark:text-gray-300">
+                  className="text-xs border dark:border-gray-600 rounded px-1 py-0.5 bg-white dark:bg-gray-800 dark:text-gray-300"
+                  aria-label={t`ICS reminder`}>
                   <option value={0}>{t`No reminder`}</option>
                   <option value={5}>5 min</option>
                   <option value={10}>10 min</option>
@@ -245,11 +242,12 @@ export function ScheduleResults({ schedules, daySettings, dailyCommute, classesP
           </div>
 
           {/* Keyboard shortcuts hint */}
-          <div className="flex flex-wrap gap-3 text-xs text-gray-400 dark:text-gray-500">
+          <div className="flex flex-wrap gap-3 text-xs text-gray-400 dark:text-gray-500 no-print">
             <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded font-mono">G</span><span><Trans>Generate</Trans></span>
             <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded font-mono">D</span><span><Trans>Theme</Trans></span>
             <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded font-mono">←→</span><span><Trans>Navigate</Trans></span>
             <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded font-mono">P</span><span><Trans>Pin</Trans></span>
+            <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded font-mono">Ctrl+Z/Y</span><span><Trans>Undo/Redo</Trans></span>
           </div>
 
           {sorted.map((res, idx) => {
@@ -259,27 +257,42 @@ export function ScheduleResults({ schedules, daySettings, dailyCommute, classesP
                 <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
                   <div className="flex items-center gap-2">
                     <span className="bg-blue-600 text-white w-8 h-8 rounded-full flex items-center justify-center text-sm shadow-sm font-bold">#{idx + 1}</span>
-                    <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100">{t`Option ${idx + 1}`}</h3>
+                    {editingLabel === originalIdx ? (
+                      <input ref={labelInputRef} autoFocus type="text" defaultValue={res.label ?? ''}
+                        placeholder={t`Option ${idx + 1}`}
+                        className="text-lg font-bold text-gray-800 dark:text-gray-100 bg-transparent border-b-2 border-blue-400 outline-none px-1 w-40"
+                        onBlur={e => { onRenameSchedule(originalIdx, e.target.value.trim()); setEditingLabel(null); }}
+                        onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); if (e.key === 'Escape') setEditingLabel(null); }}
+                      />
+                    ) : (
+                      <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 cursor-pointer group/label flex items-center gap-1"
+                        onClick={() => setEditingLabel(originalIdx)}>
+                        {res.label || t`Option ${idx + 1}`}
+                        <Pencil className="w-3.5 h-3.5 text-gray-300 dark:text-gray-600 opacity-0 group-hover/label:opacity-100 transition-opacity" />
+                      </h3>
+                    )}
                     {/* Pin toggle */}
                     <button onClick={() => onTogglePin(originalIdx)} title={res.pinned ? t`Unpin` : t`Pin this schedule`}
-                      className={`p-1 rounded transition-colors ${res.pinned ? 'text-yellow-500' : 'text-gray-300 dark:text-gray-600 hover:text-yellow-400'}`}>
+                      aria-label={res.pinned ? t`Unpin` : t`Pin this schedule`}
+                      className={`p-1 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${res.pinned ? 'text-yellow-500' : 'text-gray-300 dark:text-gray-600 hover:text-yellow-400'}`}>
                       <Star className={`w-5 h-5 ${res.pinned ? 'fill-current' : ''}`} />
                     </button>
                     {/* ICS export */}
                     <button onClick={() => handleExportICS(res, idx)} title={t`Export as .ics`}
-                      className="p-1 rounded text-gray-400 dark:text-gray-500 hover:text-blue-500 transition-colors">
+                      aria-label={t`Export as ICS`}
+                      className="p-1 rounded text-gray-400 dark:text-gray-500 hover:text-blue-500 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500">
                       <Download className="w-5 h-5" />
                     </button>
                     {/* Compare toggle */}
                     <button onClick={() => toggleCompare(idx)}
-                      title={t`Compare`}
-                      className={`p-1 rounded transition-colors ${compareA === idx || compareB === idx ? 'text-indigo-500' : 'text-gray-300 dark:text-gray-600 hover:text-indigo-400'}`}>
+                      title={t`Compare`} aria-label={t`Compare schedules`}
+                      className={`p-1 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${compareA === idx || compareB === idx ? 'text-indigo-500' : 'text-gray-300 dark:text-gray-600 hover:text-indigo-400'}`}>
                       <GitCompareArrows className="w-5 h-5" />
                     </button>
                     {/* Try similar */}
                     <button onClick={() => handleTrySimilar(originalIdx, res)}
-                      title={t`Find similar schedules (1-group swap)`}
-                      className={`p-1 rounded transition-colors ${similarResults[originalIdx] ? 'text-teal-500' : 'text-gray-300 dark:text-gray-600 hover:text-teal-400'}`}>
+                      title={t`Find similar schedules (1-group swap)`} aria-label={t`Find similar schedules`}
+                      className={`p-1 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${similarResults[originalIdx] ? 'text-teal-500' : 'text-gray-300 dark:text-gray-600 hover:text-teal-400'}`}>
                       <Shuffle className="w-5 h-5" />
                     </button>
                   </div>
@@ -305,7 +318,7 @@ export function ScheduleResults({ schedules, daySettings, dailyCommute, classesP
                     </div>
                   </div>
                 </div>
-                <CalendarView scheduleData={res} daySettings={daySettings} dailyCommute={dailyCommute} onAddBusyPeriod={onAddBusyPeriod} onRemoveBusyPeriod={onRemoveBusyPeriod} />
+                <CalendarView scheduleData={res} daySettings={daySettings} dailyCommute={dailyCommute} onAddBusyPeriod={onAddBusyPeriod} onRemoveBusyPeriod={onRemoveBusyPeriod} onLockGroup={onLockGroup} courses={courses} />
 
                 {/* Try Similar results */}
                 {similarResults[originalIdx] && (

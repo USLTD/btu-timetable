@@ -13,169 +13,538 @@ msgstr ""
 "Language-Team: \n"
 "Plural-Forms: \n"
 
-#: src/components/settings-panel.tsx:180
-msgid "Advanced Per-Day Free Time Settings"
-msgstr "Advanced Per-Day Free Time Settings"
+#. placeholder {0}: r.course
+#. placeholder {1}: r.group
+#. placeholder {2}: localizedDayName(r.day, i18n.locale, 'short')
+#: src/components/schedule-results.tsx:99
+msgid "\"{0}\" ({1}) exceeds max classes on {2}"
+msgstr "\"{0}\" ({1}) exceeds max classes on {2}"
 
-#: src/components/schedule-results.tsx:51
+#. placeholder {0}: r.course
+#. placeholder {1}: r.group
+#. placeholder {2}: localizedDayName(r.day, i18n.locale, 'short')
+#: src/components/schedule-results.tsx:96
+msgid "\"{0}\" ({1}) falls on disabled day {2}"
+msgstr "\"{0}\" ({1}) falls on disabled day {2}"
+
+#. placeholder {0}: r.course
+#. placeholder {1}: r.group
+#. placeholder {2}: localizedDayName(r.day, i18n.locale, 'short')
+#: src/components/schedule-results.tsx:97
+msgid "\"{0}\" ({1}) is outside allowed hours on {2}"
+msgstr "\"{0}\" ({1}) is outside allowed hours on {2}"
+
+#. placeholder {0}: r.course
+#. placeholder {1}: r.group
+#. placeholder {2}: localizedDayName(r.day, i18n.locale, 'short')
+#: src/components/schedule-results.tsx:98
+msgid "\"{0}\" ({1}) overlaps a busy period on {2}"
+msgstr "\"{0}\" ({1}) overlaps a busy period on {2}"
+
+#. placeholder {0}: r.course
+#. placeholder {1}: r.group
+#. placeholder {2}: r.conflictCourse
+#. placeholder {3}: r.conflictGroup
+#: src/components/schedule-results.tsx:100
+msgid "\"{0}\" ({1}) overlaps with \"{2}\" ({3})"
+msgstr "\"{0}\" ({1}) overlaps with \"{2}\" ({3})"
+
+#: src/components/update-toast.tsx:17
+msgid "A new version is ready. Reload to update."
+msgstr "A new version is ready. Reload to update."
+
+#: src/components/settings-panel.tsx:306
+msgid "Add busy period"
+msgstr "Add busy period"
+
+#: src/components/settings-panel.tsx:180
+#~ msgid "Advanced Per-Day Free Time Settings"
+#~ msgstr "Advanced Per-Day Free Time Settings"
+
+#: src/components/settings-panel.tsx:213
+msgid "Advanced Per-Day Settings"
+msgstr "Advanced Per-Day Settings"
+
+#: src/components/schedule-results.tsx:152
 msgid "All combinations violate your limits. Try relaxing some constraints!"
 msgstr "All combinations violate your limits. Try relaxing some constraints!"
 
-#: src/components/course-list.tsx:49
+#: src/components/calendar-view.tsx:380
+msgid "All sessions:"
+msgstr "All sessions:"
+
+#. placeholder {0}: rejections.length - 12
+#: src/components/schedule-results.tsx:132
+msgid "and {0} more"
+msgstr "and {0} more"
+
+#: src/components/course-list.tsx:65
 msgid "Any group"
 msgstr "Any group"
 
-#: src/components/schedule-results.tsx:93
+#: src/App.tsx:344
+msgid "Apply"
+msgstr "Apply"
+
+#: src/components/calendar-view.tsx:216
+#: src/components/calendar-view.tsx:306
+msgid "Busy"
+msgstr "Busy"
+
+#: src/components/settings-panel.tsx:289
+msgid "Busy:"
+msgstr "Busy:"
+
+#: src/components/settings-panel.tsx:122
+msgid "By 4 PM"
+msgstr "By 4 PM"
+
+#: src/components/settings-panel.tsx:117
+msgid "By 5 PM"
+msgstr "By 5 PM"
+
+#: src/components/schedule-results.tsx:175
+msgid "Campus Days"
+msgstr "Campus Days"
+
+#: src/components/schedule-results.tsx:303
 msgid "Campus Days:"
 msgstr "Campus Days:"
 
-#: src/components/settings-panel.tsx:76
+#: src/App.tsx:271
+msgid "Choose language"
+msgstr "Choose language"
+
+#: src/components/settings-panel.tsx:78
 msgid "Classes Per Day (Min - Max)"
 msgstr "Classes Per Day (Min - Max)"
 
-#: src/components/course-list.tsx:66
+#: src/components/course-list.tsx:82
 msgid "Clear"
 msgstr "Clear"
 
-#: src/components/settings-panel.tsx:151
+#: src/App.tsx:354
+msgid "Click to copy"
+msgstr "Click to copy"
+
+#: src/components/settings-panel.tsx:184
 msgid "Click to cycle: Neutral → Prefer → Avoid"
 msgstr "Click to cycle: Neutral → Prefer → Avoid"
 
-#: src/components/file-upload.tsx:28
+#: src/components/file-upload.tsx:30
 msgid "Click to upload or drag & drop schedule files"
 msgstr "Click to upload or drag & drop schedule files"
 
-#: src/components/schedule-results.tsx:97
+#: src/components/schedule-results.tsx:166
+msgid "Close"
+msgstr "Close"
+
+#: src/components/schedule-results.tsx:352
+msgid "commute"
+msgstr "commute"
+
+#: src/components/schedule-results.tsx:178
+msgid "Commute"
+msgstr "Commute"
+
+#: src/components/schedule-results.tsx:307
+#: src/components/settings-panel.tsx:265
 msgid "Commute:"
 msgstr "Commute:"
 
-#: src/components/course-list.tsx:94
+#. placeholder {0}: formatDuration(legMinutes)
+#: src/components/calendar-view.tsx:251
+#: src/components/calendar-view.tsx:261
+msgid "Commute: {0}"
+msgstr "Commute: {0}"
+
+#: src/components/schedule-results.tsx:288
+msgid "Compare"
+msgstr "Compare"
+
+#: src/components/schedule-results.tsx:288
+msgid "Compare schedules"
+msgstr "Compare schedules"
+
+#: src/App.tsx:357
+msgid "Copied!"
+msgstr "Copied!"
+
+#: src/components/course-list.tsx:99
+msgid "Course list"
+msgstr "Course list"
+
+#: src/components/course-list.tsx:111
 msgid "Crunching numbers..."
 msgstr "Crunching numbers..."
 
-#: src/components/settings-panel.tsx:64
+#: src/components/settings-panel.tsx:66
 msgid "Daily Round-Trip Commute"
 msgstr "Daily Round-Trip Commute"
 
-#: src/components/settings-panel.tsx:98
+#. placeholder {0}: localizedDayName(r.day, i18n.locale, 'short')
+#: src/components/schedule-results.tsx:101
+msgid "Day {0} doesn't meet minimum classes"
+msgstr "Day {0} doesn't meet minimum classes"
+
+#: src/components/schedule-results.tsx:350
+msgid "days"
+msgstr "days"
+
+#: src/components/settings-panel.tsx:101
 msgid "Default Allowed Time Range (All Days)"
 msgstr "Default Allowed Time Range (All Days)"
 
-#: src/components/settings-panel.tsx:125
+#: src/components/calendar-view.tsx:313
+msgid "Delete this busy period"
+msgstr "Delete this busy period"
+
+#: src/components/schedule-results.tsx:193
+msgid "Different Groups"
+msgstr "Different Groups"
+
+#: src/components/settings-panel.tsx:157
 msgid "Disabled"
 msgstr "Disabled"
 
-#: src/components/settings-panel.tsx:125
+#: src/components/settings-panel.tsx:121
+msgid "Done by 4 PM"
+msgstr "Done by 4 PM"
+
+#: src/components/settings-panel.tsx:116
+msgid "Done by 5 PM"
+msgstr "Done by 5 PM"
+
+#: src/components/settings-panel.tsx:157
 msgid "Enabled"
 msgstr "Enabled"
 
-#: src/components/schedule-results.tsx:84
+#. placeholder {0}: course.courseName
+#: src/components/course-list.tsx:51
+msgid "Exclude {0}"
+msgstr "Exclude {0}"
+
+#: src/components/course-list.tsx:50
+msgid "Exclude in \"What if\" mode"
+msgstr "Exclude in \"What if\" mode"
+
+#: src/components/schedule-results.tsx:281
 msgid "Export as .ics"
 msgstr "Export as .ics"
 
-#: src/components/schedule-results.tsx:107
+#: src/components/schedule-results.tsx:282
+msgid "Export as ICS"
+msgstr "Export as ICS"
+
+#: src/App.tsx:331
+msgid "Export Hash"
+msgstr "Export Hash"
+
+#: src/components/schedule-results.tsx:294
+msgid "Find similar schedules"
+msgstr "Find similar schedules"
+
+#: src/components/schedule-results.tsx:294
+msgid "Find similar schedules (1-group swap)"
+msgstr "Find similar schedules (1-group swap)"
+
+#: src/components/schedule-results.tsx:176
+msgid "Free Days"
+msgstr "Free Days"
+
+#: src/components/schedule-results.tsx:317
 msgid "Free:"
 msgstr "Free:"
 
-#: src/components/schedule-results.tsx:102
+#: src/components/schedule-results.tsx:351
+msgid "gaps"
+msgstr "gaps"
+
+#: src/components/schedule-results.tsx:177
+msgid "Gaps"
+msgstr "Gaps"
+
+#: src/components/schedule-results.tsx:312
 msgid "Gaps:"
 msgstr "Gaps:"
 
-#: src/components/course-list.tsx:94
+#: src/components/schedule-results.tsx:246
+msgid "Generate"
+msgstr "Generate"
+
+#: src/components/course-list.tsx:111
 msgid "Generate Best Schedules"
 msgstr "Generate Best Schedules"
 
-#: src/components/settings-panel.tsx:144
+#: src/components/calendar-view.tsx:378
+msgid "Group:"
+msgstr "Group:"
+
+#: src/components/schedule-results.tsx:232
+msgid "ICS reminder"
+msgstr "ICS reminder"
+
+#: src/App.tsx:326
+msgid "Import Hash"
+msgstr "Import Hash"
+
+#: src/App.tsx:278
+#: src/App.tsx:278
+msgid "Install App"
+msgstr "Install App"
+
+#: src/components/settings-panel.tsx:177
 msgid "Instructor Preferences"
 msgstr "Instructor Preferences"
 
-#: src/App.tsx:123
+#: src/components/calendar-view.tsx:379
+msgid "Instructor:"
+msgstr "Instructor:"
+
+#: src/App.tsx:270
 msgid "Language"
 msgstr "Language"
 
-#: src/components/course-list.tsx:47
+#: src/App.tsx:283
+msgid "Link copied!"
+msgstr "Link copied!"
+
+#. placeholder {0}: course.courseName
+#: src/components/course-list.tsx:63
+msgid "Lock group for {0}"
+msgstr "Lock group for {0}"
+
+#: src/components/calendar-view.tsx:392
+msgid "Lock This Group"
+msgstr "Lock This Group"
+
+#: src/components/course-list.tsx:62
 msgid "Lock to a specific group"
 msgstr "Lock to a specific group"
 
-#: src/components/settings-panel.tsx:88
+#: src/components/settings-panel.tsx:90
 msgid "Max Overlap"
 msgstr "Max Overlap"
 
-#: src/components/settings-panel.tsx:92
+#: src/components/settings-panel.tsx:94
 msgid "mins"
 msgstr "mins"
 
-#: src/components/schedule-results.tsx:50
+#: src/components/schedule-results.tsx:248
+msgid "Navigate"
+msgstr "Navigate"
+
+#: src/components/settings-panel.tsx:107
+msgid "No 8 AM"
+msgstr "No 8 AM"
+
+#: src/components/settings-panel.tsx:112
+msgid "No 9 AM"
+msgstr "No 9 AM"
+
+#: src/components/settings-panel.tsx:111
+msgid "No classes before 10 AM"
+msgstr "No classes before 10 AM"
+
+#: src/components/settings-panel.tsx:106
+msgid "No classes before 9 AM"
+msgstr "No classes before 9 AM"
+
+#: src/components/schedule-results.tsx:233
+msgid "No reminder"
+msgstr "No reminder"
+
+#: src/components/schedule-results.tsx:332
+msgid "No valid neighbors found — all alternative groups conflict."
+msgstr "No valid neighbors found — all alternative groups conflict."
+
+#: src/components/schedule-results.tsx:151
 msgid "No Valid Schedules Found!"
 msgstr "No Valid Schedules Found!"
 
+#: src/components/schedule-results.tsx:44
+#: src/components/schedule-results.tsx:205
+msgid "None"
+msgstr "None"
+
 #. placeholder {0}: idx + 1
-#: src/components/schedule-results.tsx:77
+#: src/components/schedule-results.tsx:262
+#: src/components/schedule-results.tsx:270
 msgid "Option {0}"
 msgstr "Option {0}"
 
 #: src/components/settings-panel.tsx:186
-msgid "Override the default time bounds for specific days."
-msgstr "Override the default time bounds for specific days."
+#~ msgid "Override the default time bounds for specific days."
+#~ msgstr "Override the default time bounds for specific days."
+
+#: src/components/settings-panel.tsx:220
+msgid "Override time bounds, set commute, and mark busy periods for each day."
+msgstr "Override time bounds, set commute, and mark busy periods for each day."
 
 #. placeholder {0}: courses.length
-#: src/components/course-list.tsx:64
+#: src/components/course-list.tsx:80
 msgid "Parsed Courses ({0})"
 msgstr "Parsed Courses ({0})"
 
-#: src/components/schedule-results.tsx:79
+#: src/App.tsx:338
+msgid "Paste shared hash here…"
+msgstr "Paste shared hash here…"
+
+#: src/components/schedule-results.tsx:249
+msgid "Pin"
+msgstr "Pin"
+
+#: src/components/schedule-results.tsx:275
+#: src/components/schedule-results.tsx:276
 msgid "Pin this schedule"
 msgstr "Pin this schedule"
 
-#: src/components/settings-panel.tsx:125
+#: src/App.tsx:287
+#: src/App.tsx:287
+msgid "Print schedule"
+msgstr "Print schedule"
+
+#: src/components/settings-panel.tsx:157
 msgid "Prioritize Free"
 msgstr "Prioritize Free"
 
-#: src/components/calendar-view.tsx:75
+#. placeholder {0}: course.courseName
+#: src/components/course-list.tsx:51
+msgid "Re-include {0}"
+msgstr "Re-include {0}"
+
+#: src/components/course-list.tsx:50
+msgid "Re-include in \"What if\""
+msgstr "Re-include in \"What if\""
+
+#: src/App.tsx:298
+msgid "Redo"
+msgstr "Redo"
+
+#: src/App.tsx:296
+msgid "Redo (Ctrl+Y)"
+msgstr "Redo (Ctrl+Y)"
+
+#: src/components/update-toast.tsx:24
+msgid "Reload"
+msgstr "Reload"
+
+#: src/components/settings-panel.tsx:127
+msgid "Reset"
+msgstr "Reset"
+
+#: src/components/settings-panel.tsx:279
+msgid "Reset to default"
+msgstr "Reset to default"
+
+#: src/components/settings-panel.tsx:126
+msgid "Reset to full range"
+msgstr "Reset to full range"
+
+#: src/components/schedule-results.tsx:162
+msgid "Schedule Comparison"
+msgstr "Schedule Comparison"
+
+#: src/components/schedule-results.tsx:179
+#: src/components/schedule-results.tsx:347
+msgid "Score"
+msgstr "Score"
+
+#: src/components/calendar-view.tsx:162
 msgid "Selected Groups"
 msgstr "Selected Groups"
 
 #: src/components/schedule-results.tsx:61
-msgid "Semester:"
-msgstr "Semester:"
+#~ msgid "Semester:"
+#~ msgstr "Semester:"
 
-#: src/components/file-upload.tsx:29
+#: src/App.tsx:283
+msgid "Share (copy URL)"
+msgstr "Share (copy URL)"
+
+#: src/App.tsx:283
+msgid "Share settings"
+msgstr "Share settings"
+
+#: src/components/schedule-results.tsx:328
+msgid "Similar Schedules (1-group swap)"
+msgstr "Similar Schedules (1-group swap)"
+
+#: src/components/file-upload.tsx:31
 msgid "Supports: Raw BTU HTML, Clean HTML, JSON, CSV, Markdown"
 msgstr "Supports: Raw BTU HTML, Clean HTML, JSON, CSV, Markdown"
 
-#: src/App.tsx:129
+#: src/components/schedule-results.tsx:247
+msgid "Theme"
+msgstr "Theme"
+
+#: src/App.tsx:301
 msgid "Theme: {theme}"
 msgstr "Theme: {theme}"
 
-#: src/components/schedule-results.tsx:42
+#: src/components/schedule-results.tsx:143
 msgid "To prevent your browser from crashing, the app stopped early. Results shown are the best from the checked batch."
 msgstr "To prevent your browser from crashing, the app stopped early. Results shown are the best from the checked batch."
 
-#: src/components/schedule-results.tsx:41
+#: src/App.tsx:301
+msgid "Toggle theme"
+msgstr "Toggle theme"
+
+#: src/components/schedule-results.tsx:142
 msgid "Too many permutations!"
 msgstr "Too many permutations!"
 
-#: src/components/schedule-results.tsx:58
+#: src/components/schedule-results.tsx:225
 msgid "Top Suggested Schedules"
 msgstr "Top Suggested Schedules"
 
-#: src/App.tsx:115
+#: src/App.tsx:262
 msgid "Ultimate Schedule Optimizer"
 msgstr "Ultimate Schedule Optimizer"
 
-#: src/components/schedule-results.tsx:79
+#: src/App.tsx:293
+msgid "Undo"
+msgstr "Undo"
+
+#: src/App.tsx:291
+msgid "Undo (Ctrl+Z)"
+msgstr "Undo (Ctrl+Z)"
+
+#: src/components/schedule-results.tsx:250
+msgid "Undo/Redo"
+msgstr "Undo/Redo"
+
+#: src/components/calendar-view.tsx:392
+msgid "Unlock Group"
+msgstr "Unlock Group"
+
+#: src/components/schedule-results.tsx:275
+#: src/components/schedule-results.tsx:276
 msgid "Unpin"
 msgstr "Unpin"
 
-#: src/App.tsx:136
+#: src/components/update-toast.tsx:16
+msgid "Update available"
+msgstr "Update available"
+
+#: src/App.tsx:308
 msgid "Upload course files, dial in your precise constraints, and find your perfect week."
 msgstr "Upload course files, dial in your precise constraints, and find your perfect week."
 
-#: src/components/settings-panel.tsx:114
+#. placeholder {0}: si + 1
+#: src/components/schedule-results.tsx:345
+msgid "Variant {0}"
+msgstr "Variant {0}"
+
+#: src/components/settings-panel.tsx:146
 msgid "Weekly Day Constraints (Click to cycle)"
 msgstr "Weekly Day Constraints (Click to cycle)"
 
-#: src/components/schedule-results.tsx:97
-#: src/components/schedule-results.tsx:102
+#: src/components/schedule-results.tsx:120
+msgid "Why were some combinations rejected?"
+msgstr "Why were some combinations rejected?"
+
+#: src/components/schedule-results.tsx:307
+#: src/components/schedule-results.tsx:312
 msgid "wk"
 msgstr "wk"

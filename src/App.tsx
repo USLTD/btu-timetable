@@ -1,5 +1,5 @@
-﻿import { useState, useCallback, useEffect } from 'react';
-import { Calendar as CalendarIcon, Sun, Moon, Monitor, Download, Share2, Import, Copy, Check } from 'lucide-react';
+﻿import { useState, useCallback, useEffect, useMemo } from 'react';
+import { Calendar as CalendarIcon, Sun, Moon, Monitor, Download, Share2, Import, Copy, Check, Printer, Undo2, Redo2 } from 'lucide-react';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { usePwaInstall } from './lib/use-pwa-install.ts';
 import { encodeState, importHash, shareToUrl } from './lib/url-state.ts';
@@ -8,6 +8,7 @@ import { parseFiles } from './lib/parsers.ts';
 import { usePersistedState } from './lib/storage.ts';
 import { useTheme } from './lib/use-theme.ts';
 import { useSchedulerWorker } from './lib/use-scheduler-worker.ts';
+import { useUndoRedo } from './lib/use-undo-redo.ts';
 import { locales, loadCatalog, type Locale } from './i18n.ts';
 import { SettingsPanel } from './components/settings-panel.tsx';
 import { FileUpload } from './components/file-upload.tsx';
@@ -45,6 +46,22 @@ export default function App() {
   const themeIcon = theme === 'dark' ? <Moon className="w-5 h-5" /> : theme === 'light' ? <Sun className="w-5 h-5" /> : <Monitor className="w-5 h-5" />;
   const { canInstall, install } = usePwaInstall();
   const scheduler = useSchedulerWorker();
+
+  // Undo/redo for settings
+  const settingsSnapshot = useMemo(() => ({
+    daySettings, globalTime, classesPerDay, maxOverlap, dailyCommute, instructorPrefs,
+  }), [daySettings, globalTime, classesPerDay, maxOverlap, dailyCommute, instructorPrefs]);
+
+  const restoreSettings = useCallback((s: typeof settingsSnapshot) => {
+    setDaySettings(s.daySettings);
+    setGlobalTime(s.globalTime);
+    setClassesPerDay(s.classesPerDay);
+    setMaxOverlap(s.maxOverlap);
+    setDailyCommute(s.dailyCommute);
+    setInstructorPrefs(s.instructorPrefs);
+  }, [setDaySettings, setGlobalTime, setClassesPerDay, setMaxOverlap, setDailyCommute, setInstructorPrefs]);
+
+  const { undo, redo, canUndo, canRedo } = useUndoRedo(settingsSnapshot, restoreSettings);
   const toggleDayPref = useCallback((dayNum: DayNumber) => {
     setDaySettings((prev: DaySettings) => {
       const states: DayPref[] = ['enabled', 'prioritize', 'disabled'];
@@ -86,6 +103,11 @@ export default function App() {
   const handleTogglePin = (idx: number) => {
     const updated = [...schedules];
     updated[idx] = { ...updated[idx], pinned: !updated[idx].pinned };
+    setSchedules(updated);
+  };
+  const handleRenameSchedule = (idx: number, label: string) => {
+    const updated = [...schedules];
+    updated[idx] = { ...updated[idx], label: label || undefined };
     setSchedules(updated);
   };
   const handleGenerate = async () => {
@@ -139,6 +161,12 @@ export default function App() {
       if (e.key === 'g' || e.key === 'G') {
         e.preventDefault();
         handleGenerate();
+      } else if ((e.key === 'z' || e.key === 'Z') && (e.ctrlKey || e.metaKey) && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      } else if (((e.key === 'y' || e.key === 'Y') && (e.ctrlKey || e.metaKey)) || ((e.key === 'z' || e.key === 'Z') && (e.ctrlKey || e.metaKey) && e.shiftKey)) {
+        e.preventDefault();
+        redo();
       } else if (e.key === 'd' || e.key === 'D') {
         e.preventDefault();
         cycleTheme();
@@ -225,7 +253,7 @@ export default function App() {
   }, [exportHash]);
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 md:p-8 font-sans transition-colors">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 md:p-8 font-sans transition-colors" role="main">
       <div className="max-w-6xl mx-auto">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-sm mb-6">
           <div className="flex items-center justify-between mb-2">
@@ -240,41 +268,58 @@ export default function App() {
                 onChange={e => switchLocale(e.target.value as Locale)}
                 className="text-sm border dark:border-gray-600 rounded px-2 py-1.5 bg-white dark:bg-gray-800 dark:text-gray-300 cursor-pointer"
                 title={t`Language`}
+                aria-label={t`Choose language`}
               >
                 {Object.entries(locales).map(([code, name]) => (
                   <option key={code} value={code}>{name}</option>
                 ))}
               </select>
               {canInstall && (
-                <button onClick={install} title={t`Install App`}
-                  className="p-2 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors">
+                <button onClick={install} title={t`Install App`} aria-label={t`Install App`}
+                  className="p-2 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500">
                   <Download className="w-5 h-5" />
                 </button>
               )}
-              <button onClick={handleShare} title={shared ? t`Link copied!` : t`Share (copy URL)`}
-                className={`p-2 rounded-lg transition-colors ${shared ? 'text-green-500' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>
+              <button onClick={handleShare} title={shared ? t`Link copied!` : t`Share (copy URL)`} aria-label={t`Share settings`}
+                className={`p-2 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${shared ? 'text-green-500' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>
                 {shared ? <Check className="w-5 h-5" /> : <Share2 className="w-5 h-5" />}
               </button>
-              <button onClick={cycleTheme} title={t`Theme: ${theme}`}
-                className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+              <button onClick={() => window.print()} title={t`Print schedule`} aria-label={t`Print schedule`}
+                className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors no-print focus-visible:ring-2 focus-visible:ring-blue-500">
+                <Printer className="w-5 h-5" />
+              </button>
+              <button onClick={undo} disabled={!canUndo} title={t`Undo (Ctrl+Z)`}
+                className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-30 no-print"
+                aria-label={t`Undo`}>
+                <Undo2 className="w-5 h-5" />
+              </button>
+              <button onClick={redo} disabled={!canRedo} title={t`Redo (Ctrl+Y)`}
+                className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-30 no-print"
+                aria-label={t`Redo`}>
+                <Redo2 className="w-5 h-5" />
+              </button>
+              <button onClick={cycleTheme} title={t`Theme: ${theme}`} aria-label={t`Toggle theme`}
+                className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500">
                 {themeIcon}
               </button>
             </div>
           </div>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <p className="text-gray-600 dark:text-gray-400 mb-6 no-print">
             <Trans>Upload course files, dial in your precise constraints, and find your perfect week.</Trans>
           </p>
-          <SettingsPanel
-            dailyCommute={dailyCommute} setDailyCommute={setDailyCommute}
-            classesPerDay={classesPerDay} setClassesPerDay={setClassesPerDay}
-            maxOverlap={maxOverlap} setMaxOverlap={setMaxOverlap}
-            globalTime={globalTime} updateGlobalTime={updateGlobalTime}
-            daySettings={daySettings} toggleDayPref={toggleDayPref} updateDayTime={updateDayTime} updateDaySetting={updateDaySetting}
-            showAdvanced={showAdvanced} setShowAdvanced={setShowAdvanced}
-            courses={courses} instructorPrefs={instructorPrefs} setInstructorPrefs={setInstructorPrefs}
-          />
+          <div className="no-print">
+            <SettingsPanel
+              dailyCommute={dailyCommute} setDailyCommute={setDailyCommute}
+              classesPerDay={classesPerDay} setClassesPerDay={setClassesPerDay}
+              maxOverlap={maxOverlap} setMaxOverlap={setMaxOverlap}
+              globalTime={globalTime} updateGlobalTime={updateGlobalTime}
+              daySettings={daySettings} toggleDayPref={toggleDayPref} updateDayTime={updateDayTime} updateDaySetting={updateDaySetting}
+              showAdvanced={showAdvanced} setShowAdvanced={setShowAdvanced}
+              courses={courses} instructorPrefs={instructorPrefs} setInstructorPrefs={setInstructorPrefs}
+            />
+          </div>
           {/* Import / Export hash controls */}
-          <div className="flex flex-wrap items-center gap-2 mb-3">
+          <div className="flex flex-wrap items-center gap-2 mb-3 no-print">
             <button onClick={() => { setShowImport(!showImport); setExportHash(''); }}
               className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
               <Import className="w-4 h-4" />
@@ -313,13 +358,15 @@ export default function App() {
               </span>
             </div>
           )}
-          <FileUpload isDragging={isDragging} setIsDragging={setIsDragging} onFiles={handleFiles} />
-          <CourseList
-            courses={courses} loading={loading}
-            onToggle={toggleCourse} onClear={handleClear} onGenerate={handleGenerate}
-            onLockGroup={handleLockGroup} onReorder={handleReorder}
-            whatIfExclusions={whatIfExclusions} onToggleWhatIf={toggleWhatIf}
-          />
+          <div className="no-print">
+            <FileUpload isDragging={isDragging} setIsDragging={setIsDragging} onFiles={handleFiles} />
+            <CourseList
+              courses={courses} loading={loading}
+              onToggle={toggleCourse} onClear={handleClear} onGenerate={handleGenerate}
+              onLockGroup={handleLockGroup} onReorder={handleReorder}
+              whatIfExclusions={whatIfExclusions} onToggleWhatIf={toggleWhatIf}
+            />
+          </div>
         </div>
         <ScheduleResults
           schedules={schedules} daySettings={daySettings} dailyCommute={dailyCommute}
@@ -328,7 +375,7 @@ export default function App() {
           hasSearched={hasSearched} loading={loading} limitWarning={limitWarning}
           rejections={rejections} courses={courses}
           onTogglePin={handleTogglePin}
-          onAddBusyPeriod={addBusyPeriod}
+          onRenameSchedule={handleRenameSchedule} onLockGroup={handleLockGroup} onAddBusyPeriod={addBusyPeriod}
           onRemoveBusyPeriod={removeBusyPeriod}
         />
       </div>

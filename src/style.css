@@ -2,6 +2,18 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Global focus-visible ring for keyboard navigation */
+:focus-visible {
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+    border-radius: 4px;
+}
+
+/* Remove default outlines when using mouse */
+:focus:not(:focus-visible) {
+    outline: none;
+}
+
 /* Make native browser widgets (clock icons, calendar pickers, number spinners)
    respect dark mode so they don't stay black-on-white */
 .dark input[type="time"],
@@ -9,4 +21,76 @@
 .dark input[type="number"],
 .dark select {
     color-scheme: dark;
+}
+
+/* Toast slide-up animation */
+@keyframes slide-up {
+    from {
+        transform: translateY(1rem);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.animate-slide-up {
+    animation: slide-up 0.3s ease-out;
+}
+
+/* Slow spin for update icon */
+@keyframes spin-slow {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin-slow {
+    animation: spin-slow 2s linear infinite;
+}
+
+/* Print-friendly styles */
+@media print {
+
+    /* Hide non-essential UI */
+    header,
+    nav,
+    .no-print,
+    button,
+    select,
+    input,
+    [role="alert"],
+    .animate-slide-up {
+        display: none !important;
+    }
+
+    /* Reset backgrounds & shadows for clean printout */
+    body {
+        background: white !important;
+        color: black !important;
+    }
+
+    * {
+        box-shadow: none !important;
+    }
+
+    /* Full width for schedule cards */
+    .grid {
+        display: block !important;
+    }
+
+    /* Keep calendar grid visible */
+    [data-calendar] {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
+
+    /* Force visible text in dark mode */
+    .dark * {
+        color: black !important;
+        background: white !important;
+        border-color: #ccc !important;
+    }
 }

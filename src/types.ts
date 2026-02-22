@@ -79,6 +79,7 @@ export interface ScoredSchedule {
   weeklyCommute: number;
   gaps: GapSegment[];
   pinned?: boolean;
+  label?: string;
 }
 
 /** Reasons a schedule combination was rejected */
