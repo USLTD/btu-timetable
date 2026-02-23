@@ -7,6 +7,7 @@ import type { Course, DayNumber, DayPref, DaySetting, DaySettings, LecturerPref,
 import { parseFiles } from './lib/parsers.ts';
 import { usePersistedState } from './lib/storage.ts';
 import { useTheme } from './lib/use-theme.ts';
+import { useToast } from './components/toast.tsx';
 import { useSchedulerWorker } from './lib/use-scheduler-worker.ts';
 import { useUndoRedo } from './lib/use-undo-redo.ts';
 import { locales, loadCatalog, type Locale } from './i18n.ts';
@@ -57,6 +58,7 @@ export default function App() {
 
   const maxResults = 20;
   const { theme, cycleTheme } = useTheme();
+  const { toast } = useToast();
 
   const themeIcon = theme === 'dark' ? <Moon className="w-5 h-5" /> : theme === 'light' ? <Sun className="w-5 h-5" /> : <Monitor className="w-5 h-5" />;
   const { canInstall, install } = usePwaInstall();
@@ -241,6 +243,7 @@ export default function App() {
   const handleShare = useCallback(() => {
     shareToUrl(buildShareableState());
     setShared(true);
+    toast(t`Link copied to clipboard!`);
     setTimeout(() => setShared(false), 2000);
   }, [buildShareableState]);
 
@@ -439,7 +442,7 @@ export default function App() {
             </div>
           )}
           <div className="no-print">
-            <FileUpload isDragging={isDragging} setIsDragging={setIsDragging} onFiles={handleFiles} />
+            <FileUpload isDragging={isDragging} setIsDragging={setIsDragging} onFiles={handleFiles} hasCourses={courses.length > 0} />
             <CourseList
               courses={courses} loading={loading}
               onToggle={toggleCourse} onClear={handleClear} onGenerate={handleGenerate}

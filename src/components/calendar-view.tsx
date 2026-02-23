@@ -135,6 +135,20 @@ export function CalendarView({ scheduleData, daySettings, dailyCommute, onAddBus
         ))}
       </div>
 
+      {/* Mobile color legend (#6) */}
+      <div className="lg:hidden flex flex-wrap gap-x-3 gap-y-1 pb-2 text-xs no-print">
+        {scheduleData.schedule.map((item, idx) => {
+          const colorClass = CALENDAR_COLORS[idx % CALENDAR_COLORS.length];
+          const bgClass = colorClass.split(' ').find(c => c.startsWith('bg-') && !c.startsWith('bg-opacity')) || 'bg-blue-100';
+          return (
+            <span key={idx} className="flex items-center gap-1">
+              <span className={`w-2.5 h-2.5 rounded-full ${bgClass}`} />
+              <span className="text-gray-600 dark:text-gray-400 truncate max-w-[120px]">{item.course.courseName}</span>
+            </span>
+          );
+        })}
+      </div>
+
       {/* Calendar grid */}
       <div className="flex-1 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden text-sm" data-calendar>
         <div className="flex">

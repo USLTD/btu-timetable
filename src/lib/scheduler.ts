@@ -147,6 +147,8 @@ export function trySimilar(
 
     for (const altGroup of course.groups) {
       if (altGroup.name === item.group.name) continue; // same group, skip
+      // Respect excluded groups
+      if (course.excludedGroups?.includes(altGroup.name)) continue;
 
       // Build candidate schedule with this one swap
       const candidate: ScheduleItem[] = base.schedule.map((si, idx) =>

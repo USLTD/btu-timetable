@@ -11,6 +11,8 @@ import { registerSW } from 'virtual:pwa-register'
 import './style.css'
 import App from './App.tsx'
 
+import { ToastProvider } from './components/toast.tsx'
+
 // If the URL contains a shared hash, write it to localStorage
 // BEFORE React mounts so usePersistedState picks it up immediately.
 restoreFromHash();
@@ -35,7 +37,9 @@ loadCatalog(startLocale).then(() => {
     <StrictMode>
       <ErrorBoundary>
         <I18nProvider i18n={i18n}>
-          <App />
+          <ToastProvider>
+            <App />
+          </ToastProvider>
           <UpdateToast />
         </I18nProvider>
       </ErrorBoundary>

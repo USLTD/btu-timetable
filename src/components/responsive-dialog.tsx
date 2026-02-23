@@ -33,6 +33,30 @@ export function ResponsiveDialog({ open, onClose, title, children }: ResponsiveD
         return () => document.removeEventListener('keydown', handler);
     }, [open, isMobile, onClose]);
 
+    // Focus trap for desktop modal (#11)
+    useEffect(() => {
+        if (isMobile || !open) return;
+        const el = overlayRef.current;
+        if (!el) return;
+        const focusable = el.querySelectorAll<HTMLElement>(
+            'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+        );
+        if (focusable.length > 0) focusable[0].focus();
+
+        const handler = (e: KeyboardEvent) => {
+            if (e.key !== 'Tab' || focusable.length === 0) return;
+            const first = focusable[0];
+            const last = focusable[focusable.length - 1];
+            if (e.shiftKey) {
+                if (document.activeElement === first) { e.preventDefault(); last.focus(); }
+            } else {
+                if (document.activeElement === last) { e.preventDefault(); first.focus(); }
+            }
+        };
+        document.addEventListener('keydown', handler);
+        return () => document.removeEventListener('keydown', handler);
+    }, [open, isMobile]);
+
     if (isMobile) {
         return (
             <Drawer.Root open={open} onOpenChange={(o) => { if (!o) onClose(); }}>

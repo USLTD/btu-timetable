@@ -1,5 +1,6 @@
-import { useState, useCallback, useRef, useEffect } from 'react';
-import { Calendar as CalendarIcon, Clock, AlertCircle, Download, Star, Timer, GitCompareArrows, Shuffle, Info, Bell, ChevronDown, ChevronUp, Pencil, FileText, Image, Printer } from 'lucide-react';
+import { useState, useCallback, useRef, useEffect, useMemo } from 'react';
+import { Star, Download, ChevronDown, ChevronUp, AlertCircle, Pencil, Bell, Image, FileText, Printer, Info, Shuffle, GitCompareArrows, Eye, EyeOff } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock, Timer } from 'lucide-react';
 import { Trans, useLingui } from '@lingui/react/macro';
 import type { BusyPeriod, Course, DayNumber, DaySettings, LecturerPref, MinMax, RejectionReason, ScoredSchedule } from '../types.ts';
 import { CalendarView } from './calendar-view.tsx';
@@ -9,6 +10,8 @@ import { generateScheduleHTML, downloadHTML, exportToPrintablePDF } from '../lib
 import { exportAsImage, type ImageFormat } from '../lib/image-export.ts';
 import { trySimilar } from '../lib/scheduler.ts';
 import { formatDuration } from '../lib/time.ts';
+import { useToast } from './toast.tsx';
+import { useSwipe } from '../lib/use-swipe.ts';
 
 interface ScheduleResultsProps {
   schedules: ScoredSchedule[];
@@ -41,6 +44,48 @@ export function ScheduleResults({ schedules, daySettings, dailyCommute, classesP
   const { t, i18n } = useLingui();
   const [openExportMenu, setOpenExportMenu] = useState<number | null>(null);
   const exportMenuRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+  const [collapsedCards, setCollapsedCards] = useState<Set<number>>(new Set());
+
+  const toggleCollapse = useCallback((idx: number) => {
+    setCollapsedCards(prev => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx); else next.add(idx);
+      return next;
+    });
+  }, []);
+
+  // Swipe navigation (#5)
+  const [, setFocusedCard] = useState(0);
+  const swipeHandlers = useSwipe(
+    useCallback(() => {
+      // Swipe left = next
+      setFocusedCard(prev => {
+        const next = Math.min(prev + 1, schedules.length - 1);
+        document.getElementById(`schedule-card-${next}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return next;
+      });
+    }, [schedules.length]),
+    useCallback(() => {
+      // Swipe right = prev
+      setFocusedCard(prev => {
+        const p = Math.max(prev - 1, 0);
+        document.getElementById(`schedule-card-${p}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return p;
+      });
+    }, []),
+  );
+
+  // Bulk export pinned (#3)
+  const handleBulkExport = useCallback(() => {
+    const pinned = schedules.filter(s => s.pinned);
+    if (pinned.length === 0) { toast(t`No pinned schedules to export`, 'info'); return; }
+    // Merge all pinned into one ICS
+    const allItems = pinned.flatMap(s => s.schedule);
+    const ics = generateICS(allItems, reminderMinutes);
+    downloadICS(ics, `pinned-schedules.ics`);
+    toast(t`Exported ${pinned.length} pinned schedule(s)`);
+  }, [schedules, reminderMinutes, toast, t]);
 
   // Close export menu on outside click
   useEffect(() => {
@@ -65,23 +110,49 @@ export function ScheduleResults({ schedules, daySettings, dailyCommute, classesP
     const ics = generateICS(res.schedule, reminderMinutes);
     downloadICS(ics, `schedule-option-${idx + 1}.ics`);
     setOpenExportMenu(null);
+    toast(t`ICS exported — Option ${idx + 1}`);
   };
 
   const handleExportHTML = (res: ScoredSchedule, idx: number) => {
     const html = generateScheduleHTML(res.schedule, `BTU Schedule — Option ${idx + 1}`);
     downloadHTML(html, `schedule-option-${idx + 1}.html`);
     setOpenExportMenu(null);
+    toast(t`HTML exported — Option ${idx + 1}`);
   };
 
   const handleExportPDF = (res: ScoredSchedule, idx: number) => {
     exportToPrintablePDF(res.schedule, idx + 1);
     setOpenExportMenu(null);
+    toast(t`PDF opened in new window`);
   };
 
   const handleExportImage = async (res: ScoredSchedule, idx: number, format: ImageFormat) => {
-    await exportAsImage(res.schedule, idx + 1, format);
+    try {
+      await exportAsImage(res.schedule, idx + 1, format);
+      toast(t`${format.toUpperCase()} exported — Option ${idx + 1}`);
+    } catch {
+      toast(t`Image export failed`, 'error');
+    }
     setOpenExportMenu(null);
   };
+
+  // Stats dashboard (#2)
+  const stats = useMemo(() => {
+    if (schedules.length === 0) return null;
+    const scores = schedules.map(s => s.score);
+    const freeDaysCounts = schedules.map(s => s.freeWeekdays);
+    const gapTimes = schedules.map(s => s.totalGapTime);
+    return {
+      count: schedules.length,
+      bestScore: Math.max(...scores),
+      worstScore: Math.min(...scores),
+      avgFreeDays: (freeDaysCounts.reduce((a, b) => a + b, 0) / freeDaysCounts.length).toFixed(1),
+      maxFreeDays: Math.max(...freeDaysCounts),
+      minGap: Math.min(...gapTimes),
+      avgGap: Math.round(gapTimes.reduce((a, b) => a + b, 0) / gapTimes.length),
+      pinned: schedules.filter(s => s.pinned).length,
+    };
+  }, [schedules]);
 
   const handleTrySimilar = useCallback((idx: number, res: ScoredSchedule) => {
     if (similarResults[idx]) {
@@ -124,7 +195,7 @@ export function ScheduleResults({ schedules, daySettings, dailyCommute, classesP
     const msgs: string[] = [];
     const counts: Record<string, number> = {};
     for (const r of rejections) {
-      let key: string;
+      let key = '';
       switch (r.type) {
         case 'day_disabled': key = t`"${r.course}" (${r.group}) falls on disabled day ${localizedDayName(r.day, i18n.locale, 'short')}`; break;
         case 'outside_hours': key = t`"${r.course}" (${r.group}) is outside allowed hours on ${localizedDayName(r.day, i18n.locale, 'short')}`; break;
@@ -271,8 +342,34 @@ export function ScheduleResults({ schedules, daySettings, dailyCommute, classesP
                   <option value={60}>1h</option>
                 </select>
               </div>
+              {stats && stats.pinned > 0 && (
+                <button onClick={handleBulkExport}
+                  className="text-xs px-2.5 py-1 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border border-yellow-200 dark:border-yellow-700 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors flex items-center gap-1">
+                  <Download className="w-3.5 h-3.5" /> <Trans>Export {stats.pinned} Pinned</Trans>
+                </button>
+              )}
             </div>
-          </div>
+          </div>          {/* Stats dashboard (#2) */}
+          {stats && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 no-print">
+              <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg px-3 py-2">
+                <div className="text-xs text-blue-600 dark:text-blue-400 font-medium"><Trans>Results</Trans></div>
+                <div className="text-lg font-bold text-blue-800 dark:text-blue-200">{stats.count}{stats.pinned > 0 && <span className="text-xs font-normal text-yellow-500 ml-1">★{stats.pinned}</span>}</div>
+              </div>
+              <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-700 rounded-lg px-3 py-2">
+                <div className="text-xs text-green-600 dark:text-green-400 font-medium"><Trans>Best Free Days</Trans></div>
+                <div className="text-lg font-bold text-green-800 dark:text-green-200">{stats.maxFreeDays} <span className="text-xs font-normal text-gray-400">avg {stats.avgFreeDays}</span></div>
+              </div>
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg px-3 py-2">
+                <div className="text-xs text-amber-600 dark:text-amber-400 font-medium"><Trans>Min Gaps</Trans></div>
+                <div className="text-lg font-bold text-amber-800 dark:text-amber-200">{formatDuration(stats.minGap)} <span className="text-xs font-normal text-gray-400">avg {formatDuration(stats.avgGap)}</span></div>
+              </div>
+              <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-700 rounded-lg px-3 py-2">
+                <div className="text-xs text-purple-600 dark:text-purple-400 font-medium"><Trans>Score Range</Trans></div>
+                <div className="text-lg font-bold text-purple-800 dark:text-purple-200">{stats.bestScore.toFixed(0)} <span className="text-xs font-normal text-gray-400">— {stats.worstScore.toFixed(0)}</span></div>
+              </div>
+            </div>
+          )}
 
           {/* Keyboard shortcuts hint */}
           <div className="flex flex-wrap gap-3 text-xs text-gray-400 dark:text-gray-500 no-print">
@@ -283,157 +380,167 @@ export function ScheduleResults({ schedules, daySettings, dailyCommute, classesP
             <span className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded font-mono">Ctrl+Z/Y</span><span><Trans>Undo/Redo</Trans></span>
           </div>
 
-          {sorted.map((res, idx) => {
-            const originalIdx = schedules.indexOf(res);
-            return (
-              <div key={originalIdx} id={`schedule-card-${originalIdx}`} className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm p-3 sm:p-4 md:p-6 border ${res.pinned ? 'border-yellow-400 dark:border-yellow-600 ring-2 ring-yellow-200 dark:ring-yellow-800' : 'border-gray-100 dark:border-gray-700'}`}>
-                <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3 mb-4">
-                  <div className="flex items-center gap-1.5 sm:gap-2">
-                    <span className="bg-blue-600 text-white w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm shadow-sm font-bold">#{idx + 1}</span>
-                    {editingLabel === originalIdx ? (
-                      <input ref={labelInputRef} autoFocus type="text" defaultValue={res.label ?? ''}
-                        placeholder={t`Option ${idx + 1}`}
-                        className="text-lg font-bold text-gray-800 dark:text-gray-100 bg-transparent border-b-2 border-blue-400 outline-none px-1 w-40"
-                        onBlur={e => { onRenameSchedule(originalIdx, e.target.value.trim()); setEditingLabel(null); }}
-                        onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); if (e.key === 'Escape') setEditingLabel(null); }}
-                      />
-                    ) : (
-                      <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 cursor-pointer group/label flex items-center gap-1"
-                        onClick={() => setEditingLabel(originalIdx)}>
-                        {res.label || t`Option ${idx + 1}`}
-                        <Pencil className="w-3.5 h-3.5 text-gray-300 dark:text-gray-600 opacity-0 group-hover/label:opacity-100 transition-opacity" />
-                      </h3>
-                    )}
-                    {/* Pin toggle */}
-                    <button onClick={() => onTogglePin(originalIdx)} title={res.pinned ? t`Unpin` : t`Pin this schedule`}
-                      aria-label={res.pinned ? t`Unpin` : t`Pin this schedule`}
-                      className={`p-2 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${res.pinned ? 'text-yellow-500' : 'text-gray-300 dark:text-gray-600 hover:text-yellow-400'}`}>
-                      <Star className={`w-5 h-5 ${res.pinned ? 'fill-current' : ''}`} />
-                    </button>
-                    {/* Export button-dropdown */}
-                    <div className="relative" ref={openExportMenu === originalIdx ? exportMenuRef : undefined}>
-                      <div className="flex items-center">
-                        <button onClick={() => handleExportICS(res, idx)} title={t`Export as .ics`}
-                          aria-label={t`Export as ICS`}
-                          className="p-2 rounded-l text-gray-400 dark:text-gray-500 hover:text-blue-500 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 border-r border-gray-200 dark:border-gray-600">
-                          <Download className="w-5 h-5" />
-                        </button>
-                        <button onClick={() => setOpenExportMenu(openExportMenu === originalIdx ? null : originalIdx)}
-                          aria-label={t`More export options`}
-                          className="p-2 rounded-r text-gray-400 dark:text-gray-500 hover:text-blue-500 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500">
-                          <ChevronDown className="w-3.5 h-3.5" />
-                        </button>
+          <div {...swipeHandlers}>
+            {sorted.map((res, idx) => {
+              const originalIdx = schedules.indexOf(res);
+              return (
+                <div key={originalIdx} id={`schedule-card-${originalIdx}`} className={`bg-white dark:bg-gray-800 rounded-xl shadow-sm p-3 sm:p-4 md:p-6 border ${res.pinned ? 'border-yellow-400 dark:border-yellow-600 ring-2 ring-yellow-200 dark:ring-yellow-800' : 'border-gray-100 dark:border-gray-700'}`}>
+                  <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-3 mb-4">
+                    <div className="flex items-center gap-1.5 sm:gap-2">
+                      <span className="bg-blue-600 text-white w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center text-xs sm:text-sm shadow-sm font-bold">#{idx + 1}</span>
+                      {editingLabel === originalIdx ? (
+                        <input ref={labelInputRef} autoFocus type="text" defaultValue={res.label ?? ''}
+                          placeholder={t`Option ${idx + 1}`}
+                          className="text-lg font-bold text-gray-800 dark:text-gray-100 bg-transparent border-b-2 border-blue-400 outline-none px-1 w-40"
+                          onBlur={e => { onRenameSchedule(originalIdx, e.target.value.trim()); setEditingLabel(null); }}
+                          onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); if (e.key === 'Escape') setEditingLabel(null); }}
+                        />
+                      ) : (
+                        <h3 className="text-lg font-bold text-gray-800 dark:text-gray-100 cursor-pointer group/label flex items-center gap-1"
+                          onClick={() => setEditingLabel(originalIdx)}>
+                          {res.label || t`Option ${idx + 1}`}
+                          <Pencil className="w-3.5 h-3.5 text-gray-300 dark:text-gray-600 opacity-0 group-hover/label:opacity-100 transition-opacity" />
+                        </h3>
+                      )}
+                      {/* Pin toggle */}
+                      <button onClick={() => onTogglePin(originalIdx)} title={res.pinned ? t`Unpin` : t`Pin this schedule`}
+                        aria-label={res.pinned ? t`Unpin` : t`Pin this schedule`}
+                        className={`p-2 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${res.pinned ? 'text-yellow-500' : 'text-gray-300 dark:text-gray-600 hover:text-yellow-400'}`}>
+                        <Star className={`w-5 h-5 ${res.pinned ? 'fill-current' : ''}`} />
+                      </button>
+                      {/* Export button-dropdown */}
+                      <div className="relative" ref={openExportMenu === originalIdx ? exportMenuRef : undefined}>
+                        <div className="flex items-center">
+                          <button onClick={() => handleExportICS(res, idx)} title={t`Export as .ics`}
+                            aria-label={t`Export as ICS`}
+                            className="p-2 rounded-l text-gray-400 dark:text-gray-500 hover:text-blue-500 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 border-r border-gray-200 dark:border-gray-600">
+                            <Download className="w-5 h-5" />
+                          </button>
+                          <button onClick={() => setOpenExportMenu(openExportMenu === originalIdx ? null : originalIdx)}
+                            aria-label={t`More export options`}
+                            className="p-2 rounded-r text-gray-400 dark:text-gray-500 hover:text-blue-500 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500">
+                            <ChevronDown className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        {openExportMenu === originalIdx && (
+                          <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-50 min-w-[160px] py-1">
+                            <button onClick={() => handleExportICS(res, idx)}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                              <Download className="w-4 h-4" /> ICS
+                            </button>
+                            <button onClick={() => handleExportHTML(res, idx)}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                              <FileText className="w-4 h-4" /> HTML
+                            </button>
+                            <button onClick={() => handleExportPDF(res, idx)}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                              <Printer className="w-4 h-4" /> PDF
+                            </button>
+                            <div className="border-t border-gray-200 dark:border-gray-600 my-1" />
+                            <button onClick={() => handleExportImage(res, idx, 'png')}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                              <Image className="w-4 h-4" /> PNG
+                            </button>
+                            <button onClick={() => handleExportImage(res, idx, 'jpeg')}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                              <Image className="w-4 h-4" /> JPEG
+                            </button>
+                            <button onClick={() => handleExportImage(res, idx, 'svg')}
+                              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                              <Image className="w-4 h-4" /> SVG
+                            </button>
+                          </div>
+                        )}
                       </div>
-                      {openExportMenu === originalIdx && (
-                        <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-50 min-w-[160px] py-1">
-                          <button onClick={() => handleExportICS(res, idx)}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                            <Download className="w-4 h-4" /> ICS
-                          </button>
-                          <button onClick={() => handleExportHTML(res, idx)}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                            <FileText className="w-4 h-4" /> HTML
-                          </button>
-                          <button onClick={() => handleExportPDF(res, idx)}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                            <Printer className="w-4 h-4" /> PDF
-                          </button>
-                          <div className="border-t border-gray-200 dark:border-gray-600 my-1" />
-                          <button onClick={() => handleExportImage(res, idx, 'png')}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                            <Image className="w-4 h-4" /> PNG
-                          </button>
-                          <button onClick={() => handleExportImage(res, idx, 'jpeg')}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                            <Image className="w-4 h-4" /> JPEG
-                          </button>
-                          <button onClick={() => handleExportImage(res, idx, 'svg')}
-                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                            <Image className="w-4 h-4" /> SVG
-                          </button>
+                      {/* Compare toggle */}
+                      <button onClick={() => toggleCompare(idx)}
+                        title={t`Compare`} aria-label={t`Compare schedules`}
+                        className={`p-2 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${compareA === idx || compareB === idx ? 'text-indigo-500' : 'text-gray-300 dark:text-gray-600 hover:text-indigo-400'}`}>
+                        <GitCompareArrows className="w-5 h-5" />
+                      </button>
+                      {/* Try similar */}
+                      <button onClick={() => handleTrySimilar(originalIdx, res)}
+                        title={t`Find similar schedules (1-group swap)`} aria-label={t`Find similar schedules`}
+                        className={`p-2 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${similarResults[originalIdx] ? 'text-teal-500' : 'text-gray-300 dark:text-gray-600 hover:text-teal-400'}`}>
+                        <Shuffle className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2 text-xs sm:text-sm">
+                      <div className="bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center gap-1.5">
+                        <CalendarIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
+                        <span className="font-medium dark:text-gray-200"><span className="hidden sm:inline"><Trans>Campus Days:</Trans> </span><span className="text-blue-700 dark:text-blue-400">{res.daysOnCampus}<span className="sm:hidden"> <Trans>days</Trans></span></span></span>
+                      </div>
+                      <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center gap-1.5">
+                        <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-500" />
+                        <span className="font-medium dark:text-gray-200"><span className="hidden sm:inline"><Trans>Commute:</Trans> </span><span className="text-red-700 dark:text-red-400">~{formatDuration(Math.round(res.weeklyCommute * 60))}/{t`wk`}</span></span>
+                      </div>
+                      {res.totalGapTime > 0 && (
+                        <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center gap-1.5">
+                          <Timer className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
+                          <span className="font-medium dark:text-gray-200"><span className="hidden sm:inline"><Trans>Gaps:</Trans> </span><span className="text-amber-700 dark:text-amber-400">{formatDuration(res.totalGapTime)}/{t`wk`}</span></span>
+                        </div>
+                      )}
+                      <div className={`border px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center gap-1.5 ${res.freeWeekdays > 0 ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700' : 'bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-700'}`}>
+                        <AlertCircle className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${res.freeWeekdays > 0 ? 'text-green-600' : 'text-orange-500'}`} />
+                        <span className="font-medium dark:text-gray-200"><span className="hidden sm:inline"><Trans>Free:</Trans> </span><span className={res.freeWeekdays > 0 ? 'text-green-700 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}>{formatFreeDays(res)}</span></span>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Collapsible calendar (#8) */}
+                  <button onClick={() => toggleCollapse(originalIdx)}
+                    className="w-full flex items-center justify-center gap-1 py-1.5 text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors no-print">
+                    {collapsedCards.has(originalIdx) ? <><Eye className="w-3.5 h-3.5" /> <Trans>Show Calendar</Trans></> : <><EyeOff className="w-3.5 h-3.5" /> <Trans>Hide Calendar</Trans></>}
+                  </button>
+                  {!collapsedCards.has(originalIdx) && (
+                    <CalendarView scheduleData={res} daySettings={daySettings} dailyCommute={dailyCommute} onAddBusyPeriod={onAddBusyPeriod} onRemoveBusyPeriod={onRemoveBusyPeriod} onLockGroup={onLockGroup} courses={courses} />
+                  )}
+
+                  {/* Try Similar results */}
+                  {similarResults[originalIdx] && (
+                    <div className="mt-4 border-t dark:border-gray-700 pt-4">
+                      <h4 className="text-sm font-semibold text-teal-700 dark:text-teal-400 mb-3 flex items-center gap-2">
+                        <Shuffle className="w-4 h-4" />
+                        <Trans>Similar Schedules (1-group swap)</Trans>
+                        <span className="text-xs text-gray-400">({similarResults[originalIdx].length})</span>
+                      </h4>
+                      {similarResults[originalIdx].length === 0 ? (
+                        <p className="text-sm text-gray-500 dark:text-gray-400"><Trans>No valid neighbors found — all alternative groups conflict.</Trans></p>
+                      ) : (
+                        <div className="space-y-3">
+                          {similarResults[originalIdx].map((sim, si) => {
+                            // Find the swapped group
+                            const diff = sim.schedule.find((s, i) => res.schedule[i] && s.group.name !== res.schedule[i].group.name);
+                            const origItem = diff ? res.schedule.find(x => x.course.courseName === diff.course.courseName) : null;
+                            return (
+                              <div key={si} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 text-sm">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="font-medium dark:text-gray-200">
+                                    {diff && origItem ? (
+                                      <>{diff.course.courseName}: <span className="text-red-500 line-through">{origItem.group.name}</span> → <span className="text-green-600 dark:text-green-400">{diff.group.name}</span></>
+                                    ) : t`Variant ${si + 1}`}
+                                  </span>
+                                  <span className="text-xs text-gray-400">{t`Score`}: {sim.score.toFixed(0)}</span>
+                                </div>
+                                <div className="flex gap-3 text-xs text-gray-500 dark:text-gray-400">
+                                  <span>{sim.daysOnCampus} {t`days`}</span>
+                                  <span>{formatDuration(sim.totalGapTime)} {t`gaps`}</span>
+                                  <span>~{formatDuration(Math.round(sim.weeklyCommute * 60))} {t`commute`}</span>
+                                </div>
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                     </div>
-                    {/* Compare toggle */}
-                    <button onClick={() => toggleCompare(idx)}
-                      title={t`Compare`} aria-label={t`Compare schedules`}
-                      className={`p-2 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${compareA === idx || compareB === idx ? 'text-indigo-500' : 'text-gray-300 dark:text-gray-600 hover:text-indigo-400'}`}>
-                      <GitCompareArrows className="w-5 h-5" />
-                    </button>
-                    {/* Try similar */}
-                    <button onClick={() => handleTrySimilar(originalIdx, res)}
-                      title={t`Find similar schedules (1-group swap)`} aria-label={t`Find similar schedules`}
-                      className={`p-2 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${similarResults[originalIdx] ? 'text-teal-500' : 'text-gray-300 dark:text-gray-600 hover:text-teal-400'}`}>
-                      <Shuffle className="w-5 h-5" />
-                    </button>
-                  </div>
-
-                  <div className="flex flex-wrap gap-1.5 sm:gap-2 text-xs sm:text-sm">
-                    <div className="bg-gray-50 dark:bg-gray-700 border dark:border-gray-600 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center gap-1.5">
-                      <CalendarIcon className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-500" />
-                      <span className="font-medium dark:text-gray-200"><span className="hidden sm:inline"><Trans>Campus Days:</Trans> </span><span className="text-blue-700 dark:text-blue-400">{res.daysOnCampus}<span className="sm:hidden"> <Trans>days</Trans></span></span></span>
-                    </div>
-                    <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center gap-1.5">
-                      <Clock className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-red-500" />
-                      <span className="font-medium dark:text-gray-200"><span className="hidden sm:inline"><Trans>Commute:</Trans> </span><span className="text-red-700 dark:text-red-400">~{formatDuration(Math.round(res.weeklyCommute * 60))}/{t`wk`}</span></span>
-                    </div>
-                    {res.totalGapTime > 0 && (
-                      <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-700 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center gap-1.5">
-                        <Timer className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-500" />
-                        <span className="font-medium dark:text-gray-200"><span className="hidden sm:inline"><Trans>Gaps:</Trans> </span><span className="text-amber-700 dark:text-amber-400">{formatDuration(res.totalGapTime)}/{t`wk`}</span></span>
-                      </div>
-                    )}
-                    <div className={`border px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg flex items-center gap-1.5 ${res.freeWeekdays > 0 ? 'bg-green-50 dark:bg-green-900/30 border-green-200 dark:border-green-700' : 'bg-orange-50 dark:bg-orange-900/30 border-orange-200 dark:border-orange-700'}`}>
-                      <AlertCircle className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${res.freeWeekdays > 0 ? 'text-green-600' : 'text-orange-500'}`} />
-                      <span className="font-medium dark:text-gray-200"><span className="hidden sm:inline"><Trans>Free:</Trans> </span><span className={res.freeWeekdays > 0 ? 'text-green-700 dark:text-green-400' : 'text-orange-600 dark:text-orange-400'}>{formatFreeDays(res)}</span></span>
-                    </div>
-                  </div>
+                  )}
                 </div>
-                <CalendarView scheduleData={res} daySettings={daySettings} dailyCommute={dailyCommute} onAddBusyPeriod={onAddBusyPeriod} onRemoveBusyPeriod={onRemoveBusyPeriod} onLockGroup={onLockGroup} courses={courses} />
-
-                {/* Try Similar results */}
-                {similarResults[originalIdx] && (
-                  <div className="mt-4 border-t dark:border-gray-700 pt-4">
-                    <h4 className="text-sm font-semibold text-teal-700 dark:text-teal-400 mb-3 flex items-center gap-2">
-                      <Shuffle className="w-4 h-4" />
-                      <Trans>Similar Schedules (1-group swap)</Trans>
-                      <span className="text-xs text-gray-400">({similarResults[originalIdx].length})</span>
-                    </h4>
-                    {similarResults[originalIdx].length === 0 ? (
-                      <p className="text-sm text-gray-500 dark:text-gray-400"><Trans>No valid neighbors found — all alternative groups conflict.</Trans></p>
-                    ) : (
-                      <div className="space-y-3">
-                        {similarResults[originalIdx].map((sim, si) => {
-                          // Find the swapped group
-                          const diff = sim.schedule.find((s, i) => res.schedule[i] && s.group.name !== res.schedule[i].group.name);
-                          const origItem = diff ? res.schedule.find(x => x.course.courseName === diff.course.courseName) : null;
-                          return (
-                            <div key={si} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-3 text-sm">
-                              <div className="flex items-center justify-between mb-1">
-                                <span className="font-medium dark:text-gray-200">
-                                  {diff && origItem ? (
-                                    <>{diff.course.courseName}: <span className="text-red-500 line-through">{origItem.group.name}</span> → <span className="text-green-600 dark:text-green-400">{diff.group.name}</span></>
-                                  ) : t`Variant ${si + 1}`}
-                                </span>
-                                <span className="text-xs text-gray-400">{t`Score`}: {sim.score.toFixed(0)}</span>
-                              </div>
-                              <div className="flex gap-3 text-xs text-gray-500 dark:text-gray-400">
-                                <span>{sim.daysOnCampus} {t`days`}</span>
-                                <span>{formatDuration(sim.totalGapTime)} {t`gaps`}</span>
-                                <span>~{formatDuration(Math.round(sim.weeklyCommute * 60))} {t`commute`}</span>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        </div >
+      )
+      }
     </>
   );
 }
