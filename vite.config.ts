@@ -1,10 +1,10 @@
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
-import { VitePWA } from 'vite-plugin-pwa'
-import { lingui } from '@lingui/vite-plugin'
+import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
+import { VitePWA } from "vite-plugin-pwa";
+import { lingui } from "@lingui/vite-plugin";
 
-const BASE_URL = '/';
+const BASE_URL = "/";
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -13,41 +13,59 @@ export default defineConfig({
     react({
       babel: {
         plugins: [
-          ['babel-plugin-react-compiler'],
-          ['@lingui/babel-plugin-lingui-macro'],
+          ["babel-plugin-react-compiler"],
+          ["@lingui/babel-plugin-lingui-macro"],
         ],
       },
     }),
     lingui(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      registerType: "prompt",
       devOptions: {
-        enabled: true, // enables SW in dev so PWA install prompt works on localhost
+        enabled: false, // enables SW in dev so PWA install prompt works on localhost
       },
       workbox: {
         // Precache all app assets (JS chunks include locale catalogs & worker)
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
         // SPA: serve index.html for any navigation request when offline
-        navigateFallback: 'index.html',
+        navigateFallback: "index.html",
         navigateFallbackDenylist: [/^\/api/],
       },
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'favicon-32x32.png', 'favicon-16x16.png'],
+      includeAssets: [
+        "favicon.ico",
+        "apple-touch-icon.png",
+        "favicon-32x32.png",
+        "favicon-16x16.png",
+      ],
       manifest: {
-        name: 'Easy BTU Timetable',
-        short_name: 'BTU Schedule',
-        description: 'Offline-first BTU schedule optimizer',
-        theme_color: '#2563eb',
-        background_color: '#f3f4f6',
-        display: 'standalone',
+        name: "Easy BTU Timetable",
+        short_name: "BTU Schedule",
+        description: "Offline-first BTU schedule optimizer",
+        theme_color: "#2563eb",
+        background_color: "#f3f4f6",
+        display: "standalone",
         start_url: BASE_URL,
         scope: BASE_URL,
         icons: [
-          { src: 'android-chrome-192x192.png', sizes: '192x192', type: 'image/png' },
-          { src: 'android-chrome-512x512.png', sizes: '512x512', type: 'image/png' },
-          { src: 'android-chrome-512x512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
+          {
+            src: "android-chrome-192x192.png",
+            sizes: "192x192",
+            type: "image/png",
+          },
+          {
+            src: "android-chrome-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+          },
+          {
+            src: "android-chrome-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "maskable",
+          },
         ],
       },
     }),
   ],
-})
+});
