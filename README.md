@@ -51,7 +51,7 @@ pnpm preview    # serve the production build locally
 
 ### Userscript
 
-[export-btu-timetable.user.js](export-btu-timetable.user.js) is a companion userscript that exports course data from BTU's portal into JSON files this app can import.
+[btu-timetable-helper.user.js](http://userscripts.usltd.ge/btu-timetable-helper.user.js) is a companion userscript that exports course data from BTU's portal into clean HTML table, JSON, CSV or Markdown files this app can import.
 
 ## Tech stack
 
