@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Drawer } from 'vaul';
 import { X } from 'lucide-react';
 import { useMobile } from '../lib/use-mobile.ts';
@@ -10,32 +10,49 @@ interface ResponsiveDialogProps {
     children: ReactNode;
 }
 
-/** Adaptive dialog: bottom drawer on mobile, custom overlay modal on desktop. */
+/** Adaptive dialog: bottom drawer on mobile, animated overlay modal on desktop. */
 export function ResponsiveDialog({ open, onClose, title, children }: ResponsiveDialogProps) {
     const isMobile = useMobile();
     const overlayRef = useRef<HTMLDivElement>(null);
+    const [visible, setVisible] = useState(false);
+    const [animating, setAnimating] = useState(false);
+
+    // Manage open/close animation lifecycle for desktop modal
+    useEffect(() => {
+        if (isMobile) return;
+        if (open) {
+            setVisible(true);
+            // Trigger enter animation on next frame
+            requestAnimationFrame(() => setAnimating(true));
+        } else if (visible) {
+            // Start exit animation
+            setAnimating(false);
+            const timer = setTimeout(() => setVisible(false), 200);
+            return () => clearTimeout(timer);
+        }
+    }, [open, isMobile]);
 
     // Lock body scroll when desktop modal is open
     useEffect(() => {
-        if (isMobile || !open) return;
+        if (isMobile || !visible) return;
         const prev = document.body.style.overflow;
         document.body.style.overflow = 'hidden';
         return () => { document.body.style.overflow = prev; };
-    }, [open, isMobile]);
+    }, [visible, isMobile]);
 
     // Close on Escape key for desktop modal
     useEffect(() => {
-        if (isMobile || !open) return;
+        if (isMobile || !visible) return;
         const handler = (e: KeyboardEvent) => {
             if (e.key === 'Escape') onClose();
         };
         document.addEventListener('keydown', handler);
         return () => document.removeEventListener('keydown', handler);
-    }, [open, isMobile, onClose]);
+    }, [visible, isMobile, onClose]);
 
     // Focus trap for desktop modal (#11)
     useEffect(() => {
-        if (isMobile || !open) return;
+        if (isMobile || !visible) return;
         const el = overlayRef.current;
         if (!el) return;
         const focusable = el.querySelectorAll<HTMLElement>(
@@ -55,7 +72,7 @@ export function ResponsiveDialog({ open, onClose, title, children }: ResponsiveD
         };
         document.addEventListener('keydown', handler);
         return () => document.removeEventListener('keydown', handler);
-    }, [open, isMobile]);
+    }, [visible, isMobile]);
 
     if (isMobile) {
         return (
@@ -79,19 +96,19 @@ export function ResponsiveDialog({ open, onClose, title, children }: ResponsiveD
         );
     }
 
-    // Desktop: custom overlay modal (no native <dialog> for backward compatibility)
-    if (!open) return null;
+    // Desktop: animated overlay modal
+    if (!visible) return null;
 
     return (
         <div
             ref={overlayRef}
             onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+            className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-200 ${animating ? 'bg-black/40' : 'bg-black/0'}`}
             role="dialog"
             aria-modal="true"
             aria-label={title}
         >
-            <div className="bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] border border-gray-200 dark:border-gray-700 mx-4 flex flex-col animate-in fade-in zoom-in-95 duration-200">
+            <div className={`bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] border border-gray-200 dark:border-gray-700 mx-4 flex flex-col transition-all duration-200 ${animating ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'}`}>
                 <div className="px-6 pt-5 pb-3 flex items-center justify-between border-b border-gray-200 dark:border-gray-700 shrink-0">
                     <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">{title}</h2>
                     <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">

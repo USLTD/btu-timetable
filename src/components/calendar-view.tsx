@@ -4,6 +4,7 @@ import { parseTime, formatDuration, formatTime } from '../lib/time.ts';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { useRef, useState, useCallback } from 'react';
 import { Car, X, Lock, Unlock } from 'lucide-react';
+import { useSwipe } from '../lib/use-swipe.ts';
 
 interface CalendarViewProps {
   scheduleData: ScoredSchedule;
@@ -122,8 +123,14 @@ export function CalendarView({ scheduleData, daySettings, dailyCommute, onAddBus
     setDragEnd(null);
   }, [dragDay, dragStart, dragEnd, onAddBusyPeriod]);
 
+  // Swipe to change day on mobile
+  const swipeDayHandlers = useSwipe(
+    useCallback(() => setMobileDay(prev => Math.min(prev + 1, dayNums.length - 1)), [dayNums.length]),
+    useCallback(() => setMobileDay(prev => Math.max(prev - 1, 0)), []),
+  );
+
   return (
-    <div className="flex flex-col lg:flex-row gap-4">
+    <div className="flex flex-col lg:flex-row gap-4" {...swipeDayHandlers}>
       {/* Mobile day tabs */}
       <div className="lg:hidden flex gap-1 overflow-x-auto pb-2 no-print">
         {dayNums.map((dayNum, idx) => (
@@ -224,6 +231,11 @@ export function CalendarView({ scheduleData, daySettings, dailyCommute, onAddBus
                 {item.course.courseName}
               </div>
               <div className="text-gray-600 dark:text-gray-400 text-xs">{item.group.name} — {item.group.lecturer}</div>
+              {item.group.times.map((ts, ti) => (
+                <div key={ti} className="text-gray-500 dark:text-gray-500 text-[11px] mt-0.5">
+                  {localizedDayName(ts.day, locale, 'short')} {ts.time}{ts.room ? ` · ${ts.room}` : ''}
+                </div>
+              ))}
             </div>
           );
         })}

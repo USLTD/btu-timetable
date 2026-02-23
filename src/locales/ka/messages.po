@@ -16,28 +16,28 @@ msgstr ""
 #. placeholder {0}: r.course
 #. placeholder {1}: r.group
 #. placeholder {2}: localizedDayName(r.day, i18n.locale, 'short')
-#: src/components/schedule-results.tsx:99
+#: src/components/schedule-results.tsx:184
 msgid "\"{0}\" ({1}) exceeds max classes on {2}"
 msgstr ""
 
 #. placeholder {0}: r.course
 #. placeholder {1}: r.group
 #. placeholder {2}: localizedDayName(r.day, i18n.locale, 'short')
-#: src/components/schedule-results.tsx:96
+#: src/components/schedule-results.tsx:181
 msgid "\"{0}\" ({1}) falls on disabled day {2}"
 msgstr ""
 
 #. placeholder {0}: r.course
 #. placeholder {1}: r.group
 #. placeholder {2}: localizedDayName(r.day, i18n.locale, 'short')
-#: src/components/schedule-results.tsx:97
+#: src/components/schedule-results.tsx:182
 msgid "\"{0}\" ({1}) is outside allowed hours on {2}"
 msgstr ""
 
 #. placeholder {0}: r.course
 #. placeholder {1}: r.group
 #. placeholder {2}: localizedDayName(r.day, i18n.locale, 'short')
-#: src/components/schedule-results.tsx:98
+#: src/components/schedule-results.tsx:183
 msgid "\"{0}\" ({1}) overlaps a busy period on {2}"
 msgstr ""
 
@@ -45,13 +45,33 @@ msgstr ""
 #. placeholder {1}: r.group
 #. placeholder {2}: r.conflictCourse
 #. placeholder {3}: r.conflictGroup
-#: src/components/schedule-results.tsx:100
+#: src/components/schedule-results.tsx:185
 msgid "\"{0}\" ({1}) overlaps with \"{2}\" ({3})"
 msgstr ""
+
+#. placeholder {0}: format.toUpperCase()
+#. placeholder {1}: idx + 1
+#: src/components/schedule-results.tsx:113
+msgid "{0} exported — Option {1}"
+msgstr ""
+
+#. placeholder {0}: course.groups.length - excludedCount
+#. placeholder {1}: course.groups.length
+#: src/components/course-list.tsx:70
+msgid "{0}/{1}"
+msgstr ""
+
+#: src/App.tsx:564
+msgid "<0>Hosting:</0> GitHub Pages (static files only). GitHub's own privacy policy applies to any server logs they may keep; we do not receive or control them."
+msgstr "<0>ჰოსტინგი:</0> GitHub Pages (მხოლოდ სტატიკური ფაილები). სერვერის ნებისმიერ ჩანაწერთან დაკავშირებით, რომელსაც შესაძლოა ინახავდეს GitHub, მოქმედებს თავად GitHub-ის კონფიდენციალურობის პოლიტიკა; ჩვენ არ ვიღებთ და არ ვაკონტროლებთ აღნიშნულ მონაცემებს."
 
 #: src/components/update-toast.tsx:17
 msgid "A new version is ready. Reload to update."
 msgstr ""
+
+#: src/App.tsx:583
+msgid "Acceptance of Terms"
+msgstr "პირობებზე თანხმობა"
 
 #: src/components/settings-panel.tsx:306
 msgid "Add busy period"
@@ -63,35 +83,51 @@ msgstr ""
 
 #: src/components/settings-panel.tsx:213
 msgid "Advanced Per-Day Settings"
-msgstr ""
+msgstr "ყოველდღიური დამატებითი პარამეტრები"
 
-#: src/components/schedule-results.tsx:152
+#: src/App.tsx:596
+msgid "All BTU logos, course names, and related materials remain the property of BTU. The App merely processes user-supplied data."
+msgstr "BTU-ს ყველა ლოგო, სასწავლო კურსის დასახელება და მასთან დაკავშირებული ნებისმიერი მასალა რჩება უშუალოდ BTU-ს საკუთრებაში. აპლიკაცია მხოლოდ ამუშავებს მომხმარებლის მიერ მიწოდებულ მონაცემებს."
+
+#: src/components/schedule-results.tsx:237
 msgid "All combinations violate your limits. Try relaxing some constraints!"
 msgstr "ყველა კომბინაცია არღვევს თქვენს შეზღუდვებს. სცადეთ პირობების შემსუბუქება!"
 
-#: src/components/calendar-view.tsx:175
+#: src/App.tsx:558
+msgid "All course data, preferences, busy periods, and generated schedules are processed <0>entirely in your browser</0> using JavaScript and never leave your device."
+msgstr "კურსებთან დაკავშირებული ყველა მონაცემი, მომხმარებლის პრეფერენციები, დაკავებული პერიოდები და გენერირებული ცხრილები მუშავდება <0>უშუალოდ თქვენს ბრაუზერში</0> JavaScript-ის მეშვეობით და არასოდეს ტოვებს თქვენს მოწყობილობას."
+
+#: src/components/calendar-view.tsx:196
 msgid "All sessions:"
 msgstr ""
 
+#: src/App.tsx:524
+msgid "and"
+msgstr ""
+
 #. placeholder {0}: rejections.length - 12
-#: src/components/schedule-results.tsx:132
+#: src/components/schedule-results.tsx:217
 msgid "and {0} more"
 msgstr ""
 
-#: src/components/course-list.tsx:65
+#: src/components/course-list.tsx:68
 msgid "Any group"
 msgstr "ნებისმიერი ჯგუფი"
 
-#: src/App.tsx:363
+#: src/App.tsx:457
 msgid "Apply"
 msgstr ""
 
-#: src/App.tsx:318
+#: src/components/schedule-results.tsx:341
+msgid "Best Free Days"
+msgstr ""
+
+#: src/App.tsx:408
 msgid "BTU Helper Userscript"
 msgstr ""
 
-#: src/components/calendar-view.tsx:256
-#: src/components/calendar-view.tsx:346
+#: src/components/calendar-view.tsx:282
+#: src/components/calendar-view.tsx:372
 msgid "Busy"
 msgstr ""
 
@@ -107,15 +143,35 @@ msgstr ""
 msgid "By 5 PM"
 msgstr ""
 
-#: src/components/schedule-results.tsx:175
+#: src/App.tsx:584
+msgid "By accessing or using the Service, you agree to be bound by these Terms. If you do not agree, please do not use the Service."
+msgstr "სერვისზე წვდომით ან მისი გამოყენებით, თქვენ ადასტურებთ, რომ ეთანხმებით წინამდებარე პირობებს. თუ არ ეთანხმებით აღნიშნულ პირობებს, გთხოვთ, ნუ ისარგებლებთ სერვისით."
+
+#: src/App.tsx:522
+msgid "By using this app, you agree to our"
+msgstr ""
+
+#: src/components/schedule-results.tsx:260
 msgid "Campus Days"
 msgstr ""
 
-#: src/components/schedule-results.tsx:303
+#: src/components/schedule-results.tsx:463
 msgid "Campus Days:"
 msgstr "კამპუსის დღეები:"
 
-#: src/App.tsx:271
+#: src/App.tsx:603
+msgid "Changes to Terms"
+msgstr "ცვლილებები პირობებში"
+
+#: src/App.tsx:569
+msgid "Changes to This Policy"
+msgstr "ცვლილებები კონფიდენციალურობის პოლიტიკაში"
+
+#: src/App.tsx:567
+msgid "Children's Privacy"
+msgstr "არასრულწლოვანთა კონფიდენციალურობა"
+
+#: src/App.tsx:320
 msgid "Choose language"
 msgstr ""
 
@@ -123,11 +179,11 @@ msgstr ""
 msgid "Classes Per Day (Min - Max)"
 msgstr "ლექციები დღეში (მინ. - მაქს.)"
 
-#: src/components/course-list.tsx:82
+#: src/components/course-list.tsx:212
 msgid "Clear"
 msgstr "გასუფთავება"
 
-#: src/App.tsx:373
+#: src/App.tsx:467
 msgid "Click to copy"
 msgstr ""
 
@@ -135,51 +191,59 @@ msgstr ""
 msgid "Click to cycle: Neutral → Prefer → Avoid"
 msgstr "დააწკაპუნეთ შესაცვლელად: ნეიტრალური → სასურველი → არიდება"
 
-#: src/components/file-upload.tsx:30
+#: src/components/file-upload.tsx:32
 msgid "Click to upload or drag & drop schedule files"
 msgstr "დააწკაპუნეთ ასატვირთად ან გადმოიტანეთ ცხრილის ფაილები"
 
-#: src/components/calendar-view.tsx:193
-#: src/components/schedule-results.tsx:166
+#: src/components/calendar-view.tsx:214
+#: src/components/schedule-results.tsx:251
 msgid "Close"
 msgstr ""
 
-#: src/components/schedule-results.tsx:352
+#: src/components/schedule-results.tsx:519
 msgid "commute"
 msgstr ""
 
-#: src/components/schedule-results.tsx:178
+#: src/components/schedule-results.tsx:263
 msgid "Commute"
 msgstr ""
 
-#: src/components/schedule-results.tsx:307
+#: src/components/schedule-results.tsx:467
 #: src/components/settings-panel.tsx:265
 msgid "Commute:"
 msgstr "მგზავრობა:"
 
 #. placeholder {0}: formatDuration(legMinutes)
-#: src/components/calendar-view.tsx:291
-#: src/components/calendar-view.tsx:301
+#: src/components/calendar-view.tsx:317
+#: src/components/calendar-view.tsx:327
 msgid "Commute: {0}"
 msgstr ""
 
-#: src/components/schedule-results.tsx:288
+#: src/components/schedule-results.tsx:448
 msgid "Compare"
 msgstr ""
 
-#: src/components/schedule-results.tsx:288
+#: src/components/schedule-results.tsx:448
 msgid "Compare schedules"
 msgstr ""
 
-#: src/App.tsx:376
+#: src/App.tsx:605
+msgid "Contact"
+msgstr "საკონტაქტო ინფორმაცია"
+
+#: src/App.tsx:571
+msgid "Contact Us"
+msgstr "საკონტაქტო ინფორმაცია"
+
+#: src/App.tsx:470
 msgid "Copied!"
 msgstr ""
 
-#: src/components/course-list.tsx:99
+#: src/components/course-list.tsx:230
 msgid "Course list"
 msgstr ""
 
-#: src/components/course-list.tsx:111
+#: src/components/course-list.tsx:243
 msgid "Crunching numbers..."
 msgstr "მიმდინარეობს გამოთვლა..."
 
@@ -188,12 +252,12 @@ msgid "Daily Round-Trip Commute"
 msgstr "ყოველდღიური მგზავრობა (ორმხრივი)"
 
 #. placeholder {0}: localizedDayName(r.day, i18n.locale, 'short')
-#: src/components/schedule-results.tsx:101
+#: src/components/schedule-results.tsx:186
 msgid "Day {0} doesn't meet minimum classes"
 msgstr ""
 
-#: src/components/schedule-results.tsx:303
-#: src/components/schedule-results.tsx:350
+#: src/components/schedule-results.tsx:463
+#: src/components/schedule-results.tsx:517
 msgid "days"
 msgstr ""
 
@@ -201,11 +265,15 @@ msgstr ""
 msgid "Default Allowed Time Range (All Days)"
 msgstr "ნაგულისხმევი დროის დიაპაზონი (ყველა დღე)"
 
-#: src/components/calendar-view.tsx:353
+#: src/components/calendar-view.tsx:379
 msgid "Delete this busy period"
 msgstr ""
 
-#: src/components/schedule-results.tsx:193
+#: src/App.tsx:585
+msgid "Description of Service"
+msgstr "სერვისის აღწერა"
+
+#: src/components/schedule-results.tsx:278
 msgid "Different Groups"
 msgstr ""
 
@@ -213,7 +281,11 @@ msgstr ""
 msgid "Disabled"
 msgstr "გამორთული"
 
-#: src/App.tsx:324
+#: src/App.tsx:598
+msgid "Disclaimers and Limitation of Liability"
+msgstr "პასუხისმგებლობის შეზღუდვა და უარყოფა"
+
+#: src/App.tsx:418
 msgid "Dismiss"
 msgstr ""
 
@@ -225,122 +297,238 @@ msgstr ""
 msgid "Done by 5 PM"
 msgstr ""
 
+#: src/components/file-upload.tsx:47
+msgid "Drop the file above or click to browse"
+msgstr ""
+
+#: src/App.tsx:552
+msgid "Easy BTU Timetable (“we”, “us”, or “the App”) operates the website <0>timetable.usltd.ge</0> and the associated Progressive Web App (the “Service”)."
+msgstr "Easy BTU Timetable (შემდგომში „ჩვენ“ ან „აპლიკაცია“) ოპერირებას უწევს ვებსაიტს <0>timetable.usltd.ge</0> და მასთან დაკავშირებულ პროგრესულ ვებ-აპლიკაციას (შემდგომში „სერვისი“)."
+
+#: src/App.tsx:551
+#: src/App.tsx:581
+msgid "Effective date: 23 February 2026"
+msgstr "ძალაში შესვლის თარიღი: 23 თებერვალი, 2026"
+
 #: src/components/settings-panel.tsx:157
 msgid "Enabled"
 msgstr "ჩართული"
 
-#. placeholder {0}: course.courseName
 #: src/components/course-list.tsx:51
-msgid "Exclude {0}"
-msgstr ""
+#~ msgid "Exclude {0}"
+#~ msgstr ""
 
 #: src/components/course-list.tsx:50
-msgid "Exclude in \"What if\" mode"
+#~ msgid "Exclude in \"What if\" mode"
+#~ msgstr ""
+
+#. placeholder {0}: stats.pinned
+#: src/components/schedule-results.tsx:329
+msgid "Export {0} Pinned"
 msgstr ""
 
-#: src/components/schedule-results.tsx:281
+#: src/components/schedule-results.tsx:405
 msgid "Export as .ics"
 msgstr "ექსპორტი .ics ფორმატში"
 
-#: src/components/schedule-results.tsx:282
+#: src/components/schedule-results.tsx:406
 msgid "Export as ICS"
 msgstr ""
 
-#: src/App.tsx:350
+#: src/components/file-upload.tsx:41
+msgid "Export from BTU"
+msgstr ""
+
+#: src/App.tsx:444
 msgid "Export Hash"
 msgstr ""
 
-#: src/components/schedule-results.tsx:294
+#. placeholder {0}: pinned.length
+#: src/components/schedule-results.tsx:68
+msgid "Exported {0} pinned schedule(s)"
+msgstr ""
+
+#: src/components/schedule-results.tsx:454
 msgid "Find similar schedules"
 msgstr ""
 
-#: src/components/schedule-results.tsx:294
+#: src/components/schedule-results.tsx:454
 msgid "Find similar schedules (1-group swap)"
 msgstr ""
 
-#: src/components/schedule-results.tsx:176
+#: src/App.tsx:606
+msgid "For questions, please open an issue at <0>github.com/USLTD/btu-timetable</0>."
+msgstr "კითხვების არსებობის შემთხვევაში, გთხოვთ, შექმნათ მოთხოვნა (issue) მისამართზე: <0>github.com/USLTD/btu-timetable</0>."
+
+#: src/components/schedule-results.tsx:261
 msgid "Free Days"
 msgstr ""
 
-#: src/components/schedule-results.tsx:317
+#: src/components/schedule-results.tsx:477
 msgid "Free:"
 msgstr "თავისუფალი:"
 
-#: src/components/schedule-results.tsx:351
+#: src/components/schedule-results.tsx:518
 msgid "gaps"
 msgstr ""
 
-#: src/components/schedule-results.tsx:177
+#: src/components/schedule-results.tsx:262
 msgid "Gaps"
 msgstr ""
 
-#: src/components/schedule-results.tsx:312
+#: src/components/schedule-results.tsx:472
 msgid "Gaps:"
 msgstr "ფანჯრები:"
 
-#: src/components/schedule-results.tsx:246
+#: src/components/schedule-results.tsx:357
 msgid "Generate"
 msgstr ""
 
-#: src/components/course-list.tsx:111
+#: src/components/course-list.tsx:243
 msgid "Generate Best Schedules"
 msgstr "საუკეთესო ცხრილების გენერაცია"
 
-#: src/components/calendar-view.tsx:173
+#: src/components/file-upload.tsx:51
+msgid "Get your schedule"
+msgstr ""
+
+#: src/App.tsx:601
+msgid "Governing Law"
+msgstr "მარეგულირებელი კანონმდებლობა"
+
+#: src/components/calendar-view.tsx:194
 msgid "Group:"
 msgstr ""
 
-#: src/components/schedule-results.tsx:232
+#: src/components/course-list.tsx:93
+msgid "Groups"
+msgstr ""
+
+#: src/components/schedule-results.tsx:484
+msgid "Hide Calendar"
+msgstr ""
+
+#: src/components/schedule-results.tsx:369
+msgid "Hide Schedules"
+msgstr ""
+
+#. placeholder {0}: idx + 1
+#: src/components/schedule-results.tsx:101
+msgid "HTML exported — Option {0}"
+msgstr ""
+
+#. placeholder {0}: idx + 1
+#: src/components/schedule-results.tsx:94
+msgid "ICS exported — Option {0}"
+msgstr ""
+
+#: src/components/schedule-results.tsx:317
 msgid "ICS reminder"
 msgstr ""
 
-#: src/App.tsx:345
+#: src/components/schedule-results.tsx:115
+msgid "Image export failed"
+msgstr ""
+
+#: src/App.tsx:439
 msgid "Import Hash"
 msgstr ""
 
-#: src/App.tsx:278
-#: src/App.tsx:278
+#: src/App.tsx:553
+msgid "Information We Collect"
+msgstr "შეგროვებული მონაცემები"
+
+#: src/App.tsx:327
+#: src/App.tsx:327
 msgid "Install App"
 msgstr ""
 
 #: src/components/settings-panel.tsx:177
-msgid "Instructor Preferences"
-msgstr "ლექტორის პრეფერენციები"
+#~ msgid "Instructor Preferences"
+#~ msgstr "ლექტორის პრეფერენციები"
 
 #: src/components/calendar-view.tsx:174
-msgid "Instructor:"
-msgstr ""
+#~ msgid "Instructor:"
+#~ msgstr ""
 
-#: src/App.tsx:270
+#: src/App.tsx:593
+msgid "Intellectual Property"
+msgstr "ინტელექტუალური საკუთრება"
+
+#: src/App.tsx:319
 msgid "Language"
 msgstr "ენა"
 
-#: src/App.tsx:283
+#: src/components/settings-panel.tsx:177
+msgid "Lecturer Preferences"
+msgstr ""
+
+#: src/components/calendar-view.tsx:195
+msgid "Lecturer:"
+msgstr ""
+
+#: src/App.tsx:259
+msgid "Link copied to clipboard!"
+msgstr ""
+
+#: src/App.tsx:332
 msgid "Link copied!"
 msgstr ""
 
-#. placeholder {0}: course.courseName
-#: src/components/course-list.tsx:63
-msgid "Lock group for {0}"
-msgstr ""
+#: src/App.tsx:560
+msgid "Local Storage and PWA Caching"
+msgstr "ლოკალური მეხსიერება და PWA ქეშირება"
 
-#: src/components/calendar-view.tsx:188
+#: src/components/course-list.tsx:63
+#~ msgid "Lock group for {0}"
+#~ msgstr ""
+
+#: src/components/calendar-view.tsx:209
 msgid "Lock This Group"
 msgstr ""
 
 #: src/components/course-list.tsx:62
-msgid "Lock to a specific group"
-msgstr "კონკრეტულ ჯგუფზე დაფიქსირება"
+#~ msgid "Lock to a specific group"
+#~ msgstr "კონკრეტულ ჯგუფზე დაფიქსირება"
+
+#: src/components/course-list.tsx:109
+msgid "Lock to this group only"
+msgstr ""
+
+#. placeholder {0}: course.courseName
+#: src/components/course-list.tsx:82
+msgid "Manage groups for {0}"
+msgstr ""
+
+#: src/components/course-list.tsx:119
+msgid "Mark as occupied"
+msgstr ""
+
+#: src/components/course-list.tsx:119
+msgid "Mark available"
+msgstr ""
 
 #: src/components/settings-panel.tsx:90
 msgid "Max Overlap"
 msgstr "მაქსიმალური გადაფარვა"
 
+#: src/components/schedule-results.tsx:345
+msgid "Min Gaps"
+msgstr ""
+
 #: src/components/settings-panel.tsx:94
 msgid "mins"
 msgstr "წთ"
 
-#: src/components/schedule-results.tsx:248
+#: src/components/schedule-results.tsx:411
+msgid "More export options"
+msgstr ""
+
+#: src/App.tsx:365
+msgid "More options"
+msgstr ""
+
+#: src/components/schedule-results.tsx:359
 msgid "Navigate"
 msgstr ""
 
@@ -352,6 +540,10 @@ msgstr ""
 msgid "No 9 AM"
 msgstr ""
 
+#: src/App.tsx:565
+msgid "No advertising, tracking pixels, Google Analytics, Meta pixels, or any other third-party scripts are used."
+msgstr "სერვისში არ გამოიყენება რეკლამები, თრექინგ (tracking) პიქსელები, Google Analytics, Meta პიქსელები ან მესამე პირთა ნებისმიერი სხვა სკრიპტი."
+
 #: src/components/settings-panel.tsx:111
 msgid "No classes before 10 AM"
 msgstr ""
@@ -360,26 +552,43 @@ msgstr ""
 msgid "No classes before 9 AM"
 msgstr ""
 
-#: src/components/schedule-results.tsx:233
+#: src/App.tsx:557
+msgid "No IP addresses, device information, or analytics data are stored or transmitted by us."
+msgstr "ჩვენ არ ვინახავთ და არ გადავცემთ IP მისამართებს, მოწყობილობის შესახებ ინფორმაციასა თუ ანალიტიკურ მონაცემებს."
+
+#: src/App.tsx:556
+msgid "No names, emails, student IDs, or any other identifiers."
+msgstr "არ გროვდება სახელები, ელექტრონული ფოსტის მისამართები, სტუდენტის საიდენტიფიკაციო ნომრები (ID) ან სხვა სახის მაიდენტიფიცირებელი ინფორმაცია."
+
+#: src/components/schedule-results.tsx:63
+msgid "No pinned schedules to export"
+msgstr ""
+
+#: src/components/schedule-results.tsx:318
 msgid "No reminder"
 msgstr ""
 
-#: src/components/schedule-results.tsx:332
+#: src/App.tsx:343
+#: src/App.tsx:385
+msgid "No schedules to print"
+msgstr ""
+
+#: src/components/schedule-results.tsx:499
 msgid "No valid neighbors found — all alternative groups conflict."
 msgstr ""
 
-#: src/components/schedule-results.tsx:151
+#: src/components/schedule-results.tsx:236
 msgid "No Valid Schedules Found!"
 msgstr "ვალიდური ცხრილი ვერ მოიძებნა!"
 
-#: src/components/schedule-results.tsx:44
-#: src/components/schedule-results.tsx:205
+#: src/components/schedule-results.tsx:86
+#: src/components/schedule-results.tsx:290
 msgid "None"
 msgstr ""
 
 #. placeholder {0}: idx + 1
-#: src/components/schedule-results.tsx:262
-#: src/components/schedule-results.tsx:270
+#: src/components/schedule-results.tsx:384
+#: src/components/schedule-results.tsx:392
 msgid "Option {0}"
 msgstr "ვარიანტი {0}"
 
@@ -392,46 +601,69 @@ msgid "Override time bounds, set commute, and mark busy periods for each day."
 msgstr ""
 
 #. placeholder {0}: courses.length
-#: src/components/course-list.tsx:80
+#: src/components/course-list.tsx:210
 msgid "Parsed Courses ({0})"
 msgstr "ამოცნობილი კურსები ({0})"
 
-#: src/App.tsx:357
+#: src/App.tsx:451
 msgid "Paste shared hash here…"
 msgstr ""
 
-#: src/components/schedule-results.tsx:249
+#: src/components/schedule-results.tsx:107
+msgid "PDF opened in new window"
+msgstr ""
+
+#: src/components/schedule-results.tsx:360
 msgid "Pin"
 msgstr ""
 
-#: src/components/schedule-results.tsx:275
-#: src/components/schedule-results.tsx:276
+#: src/components/schedule-results.tsx:397
+#: src/components/schedule-results.tsx:398
 msgid "Pin this schedule"
 msgstr "ცხრილის ჩამაგრება"
 
-#: src/App.tsx:287
-#: src/App.tsx:287
+#: src/App.tsx:390
+msgid "Print"
+msgstr ""
+
+#: src/App.tsx:345
+#: src/App.tsx:345
 msgid "Print schedule"
+msgstr ""
+
+#: src/App.tsx:341
+#: src/App.tsx:383
+msgid "Print window opened"
 msgstr ""
 
 #: src/components/settings-panel.tsx:157
 msgid "Prioritize Free"
 msgstr "თავისუფალი დღის პრიორიტეტი"
 
-#. placeholder {0}: course.courseName
+#: src/App.tsx:503
+#: src/App.tsx:510
+#: src/App.tsx:523
+msgid "Privacy Policy"
+msgstr "კონფიდენციალურობის პოლიტიკა"
+
+#: src/App.tsx:572
+msgid "Questions? Open an issue at <0>github.com/USLTD/btu-timetable/issues</0> or email the maintainer via the repository."
+msgstr "კითხვების არსებობის შემთხვევაში, გთხოვთ, შექმნათ მოთხოვნა (issue) მისამართზე: <0>github.com/USLTD/btu-timetable/issues</0> ან დაუკავშირდეთ პროექტის მხარდამჭერს რეპოზიტორის მეშვეობით."
+
 #: src/components/course-list.tsx:51
-msgid "Re-include {0}"
-msgstr ""
+#~ msgid "Re-include {0}"
+#~ msgstr ""
 
 #: src/components/course-list.tsx:50
-msgid "Re-include in \"What if\""
-msgstr ""
+#~ msgid "Re-include in \"What if\""
+#~ msgstr ""
 
-#: src/App.tsx:298
+#: src/App.tsx:356
+#: src/App.tsx:377
 msgid "Redo"
 msgstr ""
 
-#: src/App.tsx:296
+#: src/App.tsx:354
 msgid "Redo (Ctrl+Y)"
 msgstr ""
 
@@ -443,6 +675,10 @@ msgstr ""
 msgid "Reset"
 msgstr ""
 
+#: src/components/course-list.tsx:135
+msgid "Reset all"
+msgstr ""
+
 #: src/components/settings-panel.tsx:279
 msgid "Reset to default"
 msgstr ""
@@ -451,16 +687,32 @@ msgstr ""
 msgid "Reset to full range"
 msgstr ""
 
-#: src/components/schedule-results.tsx:162
+#: src/components/schedule-results.tsx:337
+msgid "Results"
+msgstr ""
+
+#: src/components/file-upload.tsx:42
+msgid "Save the timetable page as HTML"
+msgstr ""
+
+#: src/components/schedule-results.tsx:247
 msgid "Schedule Comparison"
 msgstr ""
 
-#: src/components/schedule-results.tsx:179
-#: src/components/schedule-results.tsx:347
+#: src/components/schedule-results.tsx:264
+#: src/components/schedule-results.tsx:514
 msgid "Score"
 msgstr ""
 
-#: src/components/calendar-view.tsx:202
+#: src/components/schedule-results.tsx:349
+msgid "Score Range"
+msgstr ""
+
+#: src/App.tsx:538
+msgid "Scroll to top"
+msgstr ""
+
+#: src/components/calendar-view.tsx:223
 msgid "Selected Groups"
 msgstr "არჩეული ჯგუფები"
 
@@ -468,76 +720,132 @@ msgstr "არჩეული ჯგუფები"
 #~ msgid "Semester:"
 #~ msgstr "სემესტრი:"
 
-#: src/App.tsx:283
+#: src/App.tsx:332
 msgid "Share (copy URL)"
 msgstr ""
 
-#: src/App.tsx:283
+#: src/App.tsx:332
 msgid "Share settings"
 msgstr ""
 
-#: src/components/schedule-results.tsx:328
+#: src/components/schedule-results.tsx:484
+msgid "Show Calendar"
+msgstr ""
+
+#. placeholder {0}: sorted.length
+#: src/components/schedule-results.tsx:369
+msgid "Show Schedules ({0})"
+msgstr ""
+
+#: src/components/schedule-results.tsx:495
 msgid "Similar Schedules (1-group swap)"
 msgstr ""
 
-#: src/components/file-upload.tsx:31
+#: src/App.tsx:500
+msgid "Source Code"
+msgstr "კოდის წყარო"
+
+#: src/components/file-upload.tsx:33
 msgid "Supports: Raw BTU HTML, Clean HTML, JSON, CSV, Markdown"
 msgstr "მხარდაჭერილი: BTU HTML, გასუფთავებული HTML, JSON, CSV, Markdown"
 
-#: src/components/schedule-results.tsx:247
+#: src/App.tsx:506
+#: src/App.tsx:514
+#: src/App.tsx:525
+msgid "Terms of Service"
+msgstr "სარგებლობის წესები და პირობები"
+
+#: src/App.tsx:561
+msgid "The App uses your browser's localStorage and IndexedDB (via the PWA service worker) to save your course list, constraints, and pinned schedules and enable offline functionality. You can clear this data at any time via your browser settings. We have no access to it."
+msgstr "აპლიკაცია იყენებს თქვენი ბრაუზერის ლოკალურ მეხსიერებასა (localStorage) და IndexedDB-ს (PWA service worker-ის მეშვეობით) თქვენი კურსების სიის, შეზღუდვებისა და ფიქსირებული ცხრილების შესანახად და ოფლაინ რეჟიმში ფუნქციონირების უზრუნველსაყოფად. თქვენ ნებისმიერ დროს შეგიძლიათ აღნიშნული მონაცემების წაშლა თქვენი ბრაუზერის პარამეტრებიდან. ჩვენ ამ მონაცემებზე წვდომა არ გვაქვს."
+
+#: src/App.tsx:586
+msgid "The Service is a free, open-source Progressive Web App that helps students of Business and Technology University (BTU) generate optimal timetables from data exported from the BTU portal. All computation occurs locally in your browser."
+msgstr "სერვისი წარმოადგენს უფასო, ღია საწყისი კოდის მქონე პროგრესულ ვებ-აპლიკაციას, რომელიც ბიზნესისა და ტექნოლოგიების უნივერსიტეტის (BTU) სტუდენტებს ეხმარება BTU-ს პორტალიდან ექსპორტირებული მონაცემების საფუძველზე ოპტიმალური სასწავლო ცხრილების გენერირებაში. ყველა გამოთვლითი პროცესი ხორციელდება ლოკალურად, უშუალოდ თქვენს ბრაუზერში."
+
+#: src/App.tsx:568
+msgid "The Service is intended for university students. We do not knowingly collect data from anyone under 18."
+msgstr "წინამდებარე სერვისი განკუთვნილია უნივერსიტეტის სტუდენტებისთვის. ჩვენ მიზანმიმართულად არ ვაგროვებთ მონაცემებს 18 წლამდე ასაკის პირთა შესახებ."
+
+#: src/App.tsx:599
+msgid "THE SERVICE IS PROVIDED “AS IS” AND “AS AVAILABLE” WITHOUT ANY WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED."
+msgstr "სერვისი მოწოდებულია „როგორც არის“ (AS IS) და „როგორც ხელმისაწვდომია“ (AS AVAILABLE) პრინციპით, ნებისმიერი სახის, პირდაპირი თუ ირიბი, გარანტიის გარეშე."
+
+#: src/App.tsx:595
+msgid "The source code is licensed under the MIT License (see LICENSE file in the GitHub repository)."
+msgstr "საწყისი კოდი ლიცენზირებულია MIT ლიცენზიის საფუძველზე (იხილეთ LICENSE ფაილი GitHub-ის რეპოზიტორში)."
+
+#: src/components/schedule-results.tsx:358
 msgid "Theme"
 msgstr ""
 
-#: src/App.tsx:301
+#: src/App.tsx:359
 msgid "Theme: {theme}"
 msgstr "თემა: {theme}"
 
-#: src/App.tsx:314
+#: src/App.tsx:602
+msgid "These Terms are governed by the laws of Georgia (country), without regard to conflict-of-law principles. Any disputes shall be resolved in the courts of Tbilisi, Georgia."
+msgstr "წინამდებარე პირობები რეგულირდება და განიმარტება საქართველოს კანონმდებლობის შესაბამისად, საერთაშორისო კერძო სამართლის კოლიზიური ნორმების გამორიცხვით. ნებისმიერი დავა დაექვემდებარება და გადაწყდება საქართველოს სასამართლოებში, ქალაქ თბილისში."
+
+#: src/App.tsx:562
+msgid "Third-Party Services"
+msgstr "მესამე პირთა სერვისები"
+
+#: src/App.tsx:573
+msgid "This policy was last updated on 23 February 2026."
+msgstr "წინამდებარე პოლიტიკა უკანასკნელად განახლდა 2026 წლის 23 თებერვალს."
+
+#: src/App.tsx:404
 msgid "Tip: Install the"
 msgstr ""
 
-#: src/App.tsx:320
+#: src/App.tsx:410
 msgid "to export timetable pages directly from BTU's website."
 msgstr ""
 
-#: src/components/schedule-results.tsx:143
+#: src/components/schedule-results.tsx:228
 msgid "To prevent your browser from crashing, the app stopped early. Results shown are the best from the checked batch."
 msgstr "ბრაუზერის გათიშვის თავიდან ასაცილებლად, აპლიკაცია ადრე შეჩერდა. ნაჩვენებია საუკეთესო შედეგები შემოწმებული ნაწილიდან."
 
-#: src/App.tsx:301
+#: src/App.tsx:359
 msgid "Toggle theme"
 msgstr ""
 
-#: src/components/schedule-results.tsx:142
+#: src/components/schedule-results.tsx:227
 msgid "Too many permutations!"
 msgstr "ძალიან ბევრი კომბინაციაა!"
 
-#: src/components/schedule-results.tsx:225
+#: src/components/schedule-results.tsx:310
 msgid "Top Suggested Schedules"
 msgstr "რეკომენდებული ცხრილები"
 
-#: src/App.tsx:262
+#: src/App.tsx:311
 msgid "Ultimate Schedule Optimizer"
 msgstr "ცხრილის ოპტიმიზატორი"
 
-#: src/App.tsx:293
+#: src/App.tsx:351
+#: src/App.tsx:373
 msgid "Undo"
 msgstr ""
 
-#: src/App.tsx:291
+#: src/App.tsx:349
 msgid "Undo (Ctrl+Z)"
 msgstr ""
 
-#: src/components/schedule-results.tsx:250
+#: src/components/schedule-results.tsx:361
 msgid "Undo/Redo"
 msgstr ""
 
-#: src/components/calendar-view.tsx:188
+#: src/components/course-list.tsx:109
+msgid "Unlock"
+msgstr ""
+
+#: src/components/calendar-view.tsx:209
 msgid "Unlock Group"
 msgstr ""
 
-#: src/components/schedule-results.tsx:275
-#: src/components/schedule-results.tsx:276
+#: src/components/schedule-results.tsx:397
+#: src/components/schedule-results.tsx:398
 msgid "Unpin"
 msgstr "ჩამაგრების მოხსნა"
 
@@ -545,24 +853,68 @@ msgstr "ჩამაგრების მოხსნა"
 msgid "Update available"
 msgstr ""
 
-#: src/App.tsx:308
+#: src/App.tsx:398
 msgid "Upload course files, dial in your precise constraints, and find your perfect week."
 msgstr "ატვირთეთ კურსის ფაილები, დააყენეთ შეზღუდვები და იპოვეთ იდეალური კვირა."
 
+#: src/components/file-upload.tsx:46
+msgid "Upload here"
+msgstr ""
+
+#: src/App.tsx:587
+msgid "User Responsibilities"
+msgstr "მომხმარებლის ვალდებულებები"
+
 #. placeholder {0}: si + 1
-#: src/components/schedule-results.tsx:345
+#: src/components/schedule-results.tsx:512
 msgid "Variant {0}"
+msgstr ""
+
+#: src/App.tsx:600
+msgid "We are not affiliated with BTU and make no representations about the accuracy or completeness of generated schedules. We shall not be liable for any direct, indirect, incidental, special, consequential, or exemplary damages arising from your use of the Service, including but not limited to missed classes, scheduling conflicts, or academic consequences."
+msgstr "ჩვენ არ ვართ აფილირებული BTU-სთან და არ ვიძლევით გარანტიას გენერირებული ცხრილების სიზუსტესა თუ სისრულეზე. ჩვენ არ დაგვეკისრება პასუხისმგებლობა არანაირ პირდაპირ, ირიბ, შემთხვევით, სპეციალურ, თანმდევ თუ სადამსჯელო ზიანზე."
+
+#: src/App.tsx:554
+msgid "We collect <0>no personal data</0> of any kind."
+msgstr "ჩვენ <0>არ ვაგროვებთ</0> რაიმე სახის პერსონალურ მონაცემს."
+
+#: src/App.tsx:604
+msgid "We may revise these Terms at any time. The updated version will be posted here with a new effective date. Your continued use constitutes acceptance."
+msgstr "ჩვენ უფლებას ვიტოვებთ, ნებისმიერ დროს შევიტანოთ ცვლილებები წინამდებარე პირობებში. განახლებული ვერსია გამოქვეყნდება ამავე გვერდზე, ძალაში შესვლის ახალი თარიღის მითითებით."
+
+#: src/App.tsx:570
+msgid "We may update this Privacy Policy occasionally. We will post the new version with a new effective date. Continued use after changes constitutes acceptance."
+msgstr "წინამდებარე კონფიდენციალურობის პოლიტიკა შესაძლოა პერიოდულად განახლდეს. ახალი ვერსია გამოქვეყნდება ძალაში შესვლის შესაბამისი თარიღის მითითებით."
+
+#: src/components/file-upload.tsx:52
+msgid "We'll find the optimal combination"
 msgstr ""
 
 #: src/components/settings-panel.tsx:146
 msgid "Weekly Day Constraints (Click to cycle)"
 msgstr "კვირის დღეების შეზღუდვები (დააწკაპუნეთ შესაცვლელად)"
 
-#: src/components/schedule-results.tsx:120
+#: src/App.tsx:582
+msgid "Welcome to Easy BTU Timetable (the “Service”), provided by USLTD at <0>timetable.usltd.ge</0>."
+msgstr "კეთილი იყოს თქვენი მობრძანება Easy BTU Timetable-ზე (შემდგომში „სერვისი“), რომელსაც უზრუნველყოფს USLTD ვებსაიტზე: <0>timetable.usltd.ge</0>."
+
+#: src/components/schedule-results.tsx:205
 msgid "Why were some combinations rejected?"
 msgstr ""
 
-#: src/components/schedule-results.tsx:307
-#: src/components/schedule-results.tsx:312
+#: src/components/schedule-results.tsx:467
+#: src/components/schedule-results.tsx:472
 msgid "wk"
 msgstr "კვ"
+
+#: src/App.tsx:591
+msgid "You acknowledge that the Service is provided “as is” and may contain inaccuracies."
+msgstr "თქვენ აცნობიერებთ და ეთანხმებით, რომ სერვისი მოწოდებულია „როგორც არის\" პრინციპით და შესაძლოა შეიცავდეს უზუსტობებს."
+
+#: src/App.tsx:589
+msgid "You are responsible for verifying that any generated schedule complies with BTU rules and your actual course requirements."
+msgstr "თქვენ თავად ხართ პასუხისმგებელი გადაამოწმოთ, შეესაბამება თუ არა გენერირებული ცხრილი BTU-ს ოფიციალურ წესებსა და თქვენი კურსის რეალურ მოთხოვნებს."
+
+#: src/App.tsx:590
+msgid "You must not use the Service for any unlawful purpose."
+msgstr "თქვენ არ უნდა გამოიყენოთ სერვისი რაიმე კანონსაწინააღმდეგო მიზნით."

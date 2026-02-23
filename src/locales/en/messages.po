@@ -16,28 +16,28 @@ msgstr ""
 #. placeholder {0}: r.course
 #. placeholder {1}: r.group
 #. placeholder {2}: localizedDayName(r.day, i18n.locale, 'short')
-#: src/components/schedule-results.tsx:99
+#: src/components/schedule-results.tsx:184
 msgid "\"{0}\" ({1}) exceeds max classes on {2}"
 msgstr "\"{0}\" ({1}) exceeds max classes on {2}"
 
 #. placeholder {0}: r.course
 #. placeholder {1}: r.group
 #. placeholder {2}: localizedDayName(r.day, i18n.locale, 'short')
-#: src/components/schedule-results.tsx:96
+#: src/components/schedule-results.tsx:181
 msgid "\"{0}\" ({1}) falls on disabled day {2}"
 msgstr "\"{0}\" ({1}) falls on disabled day {2}"
 
 #. placeholder {0}: r.course
 #. placeholder {1}: r.group
 #. placeholder {2}: localizedDayName(r.day, i18n.locale, 'short')
-#: src/components/schedule-results.tsx:97
+#: src/components/schedule-results.tsx:182
 msgid "\"{0}\" ({1}) is outside allowed hours on {2}"
 msgstr "\"{0}\" ({1}) is outside allowed hours on {2}"
 
 #. placeholder {0}: r.course
 #. placeholder {1}: r.group
 #. placeholder {2}: localizedDayName(r.day, i18n.locale, 'short')
-#: src/components/schedule-results.tsx:98
+#: src/components/schedule-results.tsx:183
 msgid "\"{0}\" ({1}) overlaps a busy period on {2}"
 msgstr "\"{0}\" ({1}) overlaps a busy period on {2}"
 
@@ -45,13 +45,33 @@ msgstr "\"{0}\" ({1}) overlaps a busy period on {2}"
 #. placeholder {1}: r.group
 #. placeholder {2}: r.conflictCourse
 #. placeholder {3}: r.conflictGroup
-#: src/components/schedule-results.tsx:100
+#: src/components/schedule-results.tsx:185
 msgid "\"{0}\" ({1}) overlaps with \"{2}\" ({3})"
 msgstr "\"{0}\" ({1}) overlaps with \"{2}\" ({3})"
+
+#. placeholder {0}: format.toUpperCase()
+#. placeholder {1}: idx + 1
+#: src/components/schedule-results.tsx:113
+msgid "{0} exported — Option {1}"
+msgstr "{0} exported — Option {1}"
+
+#. placeholder {0}: course.groups.length - excludedCount
+#. placeholder {1}: course.groups.length
+#: src/components/course-list.tsx:70
+msgid "{0}/{1}"
+msgstr "{0}/{1}"
+
+#: src/App.tsx:564
+msgid "<0>Hosting:</0> GitHub Pages (static files only). GitHub's own privacy policy applies to any server logs they may keep; we do not receive or control them."
+msgstr "<0>Hosting:</0> GitHub Pages (static files only). GitHub's own privacy policy applies to any server logs they may keep; we do not receive or control them."
 
 #: src/components/update-toast.tsx:17
 msgid "A new version is ready. Reload to update."
 msgstr "A new version is ready. Reload to update."
+
+#: src/App.tsx:583
+msgid "Acceptance of Terms"
+msgstr "Acceptance of Terms"
 
 #: src/components/settings-panel.tsx:306
 msgid "Add busy period"
@@ -65,33 +85,49 @@ msgstr "Add busy period"
 msgid "Advanced Per-Day Settings"
 msgstr "Advanced Per-Day Settings"
 
-#: src/components/schedule-results.tsx:152
+#: src/App.tsx:596
+msgid "All BTU logos, course names, and related materials remain the property of BTU. The App merely processes user-supplied data."
+msgstr "All BTU logos, course names, and related materials remain the property of BTU. The App merely processes user-supplied data."
+
+#: src/components/schedule-results.tsx:237
 msgid "All combinations violate your limits. Try relaxing some constraints!"
 msgstr "All combinations violate your limits. Try relaxing some constraints!"
 
-#: src/components/calendar-view.tsx:175
+#: src/App.tsx:558
+msgid "All course data, preferences, busy periods, and generated schedules are processed <0>entirely in your browser</0> using JavaScript and never leave your device."
+msgstr "All course data, preferences, busy periods, and generated schedules are processed <0>entirely in your browser</0> using JavaScript and never leave your device."
+
+#: src/components/calendar-view.tsx:196
 msgid "All sessions:"
 msgstr "All sessions:"
 
+#: src/App.tsx:524
+msgid "and"
+msgstr "and"
+
 #. placeholder {0}: rejections.length - 12
-#: src/components/schedule-results.tsx:132
+#: src/components/schedule-results.tsx:217
 msgid "and {0} more"
 msgstr "and {0} more"
 
-#: src/components/course-list.tsx:65
+#: src/components/course-list.tsx:68
 msgid "Any group"
 msgstr "Any group"
 
-#: src/App.tsx:363
+#: src/App.tsx:457
 msgid "Apply"
 msgstr "Apply"
 
-#: src/App.tsx:318
+#: src/components/schedule-results.tsx:341
+msgid "Best Free Days"
+msgstr "Best Free Days"
+
+#: src/App.tsx:408
 msgid "BTU Helper Userscript"
 msgstr "BTU Helper Userscript"
 
-#: src/components/calendar-view.tsx:256
-#: src/components/calendar-view.tsx:346
+#: src/components/calendar-view.tsx:282
+#: src/components/calendar-view.tsx:372
 msgid "Busy"
 msgstr "Busy"
 
@@ -107,15 +143,35 @@ msgstr "By 4 PM"
 msgid "By 5 PM"
 msgstr "By 5 PM"
 
-#: src/components/schedule-results.tsx:175
+#: src/App.tsx:584
+msgid "By accessing or using the Service, you agree to be bound by these Terms. If you do not agree, please do not use the Service."
+msgstr "By accessing or using the Service, you agree to be bound by these Terms. If you do not agree, please do not use the Service."
+
+#: src/App.tsx:522
+msgid "By using this app, you agree to our"
+msgstr "By using this app, you agree to our"
+
+#: src/components/schedule-results.tsx:260
 msgid "Campus Days"
 msgstr "Campus Days"
 
-#: src/components/schedule-results.tsx:303
+#: src/components/schedule-results.tsx:463
 msgid "Campus Days:"
 msgstr "Campus Days:"
 
-#: src/App.tsx:271
+#: src/App.tsx:603
+msgid "Changes to Terms"
+msgstr "Changes to Terms"
+
+#: src/App.tsx:569
+msgid "Changes to This Policy"
+msgstr "Changes to This Policy"
+
+#: src/App.tsx:567
+msgid "Children's Privacy"
+msgstr "Children's Privacy"
+
+#: src/App.tsx:320
 msgid "Choose language"
 msgstr "Choose language"
 
@@ -123,11 +179,11 @@ msgstr "Choose language"
 msgid "Classes Per Day (Min - Max)"
 msgstr "Classes Per Day (Min - Max)"
 
-#: src/components/course-list.tsx:82
+#: src/components/course-list.tsx:212
 msgid "Clear"
 msgstr "Clear"
 
-#: src/App.tsx:373
+#: src/App.tsx:467
 msgid "Click to copy"
 msgstr "Click to copy"
 
@@ -135,51 +191,59 @@ msgstr "Click to copy"
 msgid "Click to cycle: Neutral → Prefer → Avoid"
 msgstr "Click to cycle: Neutral → Prefer → Avoid"
 
-#: src/components/file-upload.tsx:30
+#: src/components/file-upload.tsx:32
 msgid "Click to upload or drag & drop schedule files"
 msgstr "Click to upload or drag & drop schedule files"
 
-#: src/components/calendar-view.tsx:193
-#: src/components/schedule-results.tsx:166
+#: src/components/calendar-view.tsx:214
+#: src/components/schedule-results.tsx:251
 msgid "Close"
 msgstr "Close"
 
-#: src/components/schedule-results.tsx:352
+#: src/components/schedule-results.tsx:519
 msgid "commute"
 msgstr "commute"
 
-#: src/components/schedule-results.tsx:178
+#: src/components/schedule-results.tsx:263
 msgid "Commute"
 msgstr "Commute"
 
-#: src/components/schedule-results.tsx:307
+#: src/components/schedule-results.tsx:467
 #: src/components/settings-panel.tsx:265
 msgid "Commute:"
 msgstr "Commute:"
 
 #. placeholder {0}: formatDuration(legMinutes)
-#: src/components/calendar-view.tsx:291
-#: src/components/calendar-view.tsx:301
+#: src/components/calendar-view.tsx:317
+#: src/components/calendar-view.tsx:327
 msgid "Commute: {0}"
 msgstr "Commute: {0}"
 
-#: src/components/schedule-results.tsx:288
+#: src/components/schedule-results.tsx:448
 msgid "Compare"
 msgstr "Compare"
 
-#: src/components/schedule-results.tsx:288
+#: src/components/schedule-results.tsx:448
 msgid "Compare schedules"
 msgstr "Compare schedules"
 
-#: src/App.tsx:376
+#: src/App.tsx:605
+msgid "Contact"
+msgstr "Contact"
+
+#: src/App.tsx:571
+msgid "Contact Us"
+msgstr "Contact Us"
+
+#: src/App.tsx:470
 msgid "Copied!"
 msgstr "Copied!"
 
-#: src/components/course-list.tsx:99
+#: src/components/course-list.tsx:230
 msgid "Course list"
 msgstr "Course list"
 
-#: src/components/course-list.tsx:111
+#: src/components/course-list.tsx:243
 msgid "Crunching numbers..."
 msgstr "Crunching numbers..."
 
@@ -188,12 +252,12 @@ msgid "Daily Round-Trip Commute"
 msgstr "Daily Round-Trip Commute"
 
 #. placeholder {0}: localizedDayName(r.day, i18n.locale, 'short')
-#: src/components/schedule-results.tsx:101
+#: src/components/schedule-results.tsx:186
 msgid "Day {0} doesn't meet minimum classes"
 msgstr "Day {0} doesn't meet minimum classes"
 
-#: src/components/schedule-results.tsx:303
-#: src/components/schedule-results.tsx:350
+#: src/components/schedule-results.tsx:463
+#: src/components/schedule-results.tsx:517
 msgid "days"
 msgstr "days"
 
@@ -201,11 +265,15 @@ msgstr "days"
 msgid "Default Allowed Time Range (All Days)"
 msgstr "Default Allowed Time Range (All Days)"
 
-#: src/components/calendar-view.tsx:353
+#: src/components/calendar-view.tsx:379
 msgid "Delete this busy period"
 msgstr "Delete this busy period"
 
-#: src/components/schedule-results.tsx:193
+#: src/App.tsx:585
+msgid "Description of Service"
+msgstr "Description of Service"
+
+#: src/components/schedule-results.tsx:278
 msgid "Different Groups"
 msgstr "Different Groups"
 
@@ -213,7 +281,11 @@ msgstr "Different Groups"
 msgid "Disabled"
 msgstr "Disabled"
 
-#: src/App.tsx:324
+#: src/App.tsx:598
+msgid "Disclaimers and Limitation of Liability"
+msgstr "Disclaimers and Limitation of Liability"
+
+#: src/App.tsx:418
 msgid "Dismiss"
 msgstr "Dismiss"
 
@@ -225,122 +297,238 @@ msgstr "Done by 4 PM"
 msgid "Done by 5 PM"
 msgstr "Done by 5 PM"
 
+#: src/components/file-upload.tsx:47
+msgid "Drop the file above or click to browse"
+msgstr "Drop the file above or click to browse"
+
+#: src/App.tsx:552
+msgid "Easy BTU Timetable (“we”, “us”, or “the App”) operates the website <0>timetable.usltd.ge</0> and the associated Progressive Web App (the “Service”)."
+msgstr "Easy BTU Timetable (“we”, “us”, or “the App”) operates the website <0>timetable.usltd.ge</0> and the associated Progressive Web App (the “Service”)."
+
+#: src/App.tsx:551
+#: src/App.tsx:581
+msgid "Effective date: 23 February 2026"
+msgstr "Effective date: 23 February 2026"
+
 #: src/components/settings-panel.tsx:157
 msgid "Enabled"
 msgstr "Enabled"
 
-#. placeholder {0}: course.courseName
 #: src/components/course-list.tsx:51
-msgid "Exclude {0}"
-msgstr "Exclude {0}"
+#~ msgid "Exclude {0}"
+#~ msgstr "Exclude {0}"
 
 #: src/components/course-list.tsx:50
-msgid "Exclude in \"What if\" mode"
-msgstr "Exclude in \"What if\" mode"
+#~ msgid "Exclude in \"What if\" mode"
+#~ msgstr "Exclude in \"What if\" mode"
 
-#: src/components/schedule-results.tsx:281
+#. placeholder {0}: stats.pinned
+#: src/components/schedule-results.tsx:329
+msgid "Export {0} Pinned"
+msgstr "Export {0} Pinned"
+
+#: src/components/schedule-results.tsx:405
 msgid "Export as .ics"
 msgstr "Export as .ics"
 
-#: src/components/schedule-results.tsx:282
+#: src/components/schedule-results.tsx:406
 msgid "Export as ICS"
 msgstr "Export as ICS"
 
-#: src/App.tsx:350
+#: src/components/file-upload.tsx:41
+msgid "Export from BTU"
+msgstr "Export from BTU"
+
+#: src/App.tsx:444
 msgid "Export Hash"
 msgstr "Export Hash"
 
-#: src/components/schedule-results.tsx:294
+#. placeholder {0}: pinned.length
+#: src/components/schedule-results.tsx:68
+msgid "Exported {0} pinned schedule(s)"
+msgstr "Exported {0} pinned schedule(s)"
+
+#: src/components/schedule-results.tsx:454
 msgid "Find similar schedules"
 msgstr "Find similar schedules"
 
-#: src/components/schedule-results.tsx:294
+#: src/components/schedule-results.tsx:454
 msgid "Find similar schedules (1-group swap)"
 msgstr "Find similar schedules (1-group swap)"
 
-#: src/components/schedule-results.tsx:176
+#: src/App.tsx:606
+msgid "For questions, please open an issue at <0>github.com/USLTD/btu-timetable</0>."
+msgstr "For questions, please open an issue at <0>github.com/USLTD/btu-timetable</0>."
+
+#: src/components/schedule-results.tsx:261
 msgid "Free Days"
 msgstr "Free Days"
 
-#: src/components/schedule-results.tsx:317
+#: src/components/schedule-results.tsx:477
 msgid "Free:"
 msgstr "Free:"
 
-#: src/components/schedule-results.tsx:351
+#: src/components/schedule-results.tsx:518
 msgid "gaps"
 msgstr "gaps"
 
-#: src/components/schedule-results.tsx:177
+#: src/components/schedule-results.tsx:262
 msgid "Gaps"
 msgstr "Gaps"
 
-#: src/components/schedule-results.tsx:312
+#: src/components/schedule-results.tsx:472
 msgid "Gaps:"
 msgstr "Gaps:"
 
-#: src/components/schedule-results.tsx:246
+#: src/components/schedule-results.tsx:357
 msgid "Generate"
 msgstr "Generate"
 
-#: src/components/course-list.tsx:111
+#: src/components/course-list.tsx:243
 msgid "Generate Best Schedules"
 msgstr "Generate Best Schedules"
 
-#: src/components/calendar-view.tsx:173
+#: src/components/file-upload.tsx:51
+msgid "Get your schedule"
+msgstr "Get your schedule"
+
+#: src/App.tsx:601
+msgid "Governing Law"
+msgstr "Governing Law"
+
+#: src/components/calendar-view.tsx:194
 msgid "Group:"
 msgstr "Group:"
 
-#: src/components/schedule-results.tsx:232
+#: src/components/course-list.tsx:93
+msgid "Groups"
+msgstr "Groups"
+
+#: src/components/schedule-results.tsx:484
+msgid "Hide Calendar"
+msgstr "Hide Calendar"
+
+#: src/components/schedule-results.tsx:369
+msgid "Hide Schedules"
+msgstr "Hide Schedules"
+
+#. placeholder {0}: idx + 1
+#: src/components/schedule-results.tsx:101
+msgid "HTML exported — Option {0}"
+msgstr "HTML exported — Option {0}"
+
+#. placeholder {0}: idx + 1
+#: src/components/schedule-results.tsx:94
+msgid "ICS exported — Option {0}"
+msgstr "ICS exported — Option {0}"
+
+#: src/components/schedule-results.tsx:317
 msgid "ICS reminder"
 msgstr "ICS reminder"
 
-#: src/App.tsx:345
+#: src/components/schedule-results.tsx:115
+msgid "Image export failed"
+msgstr "Image export failed"
+
+#: src/App.tsx:439
 msgid "Import Hash"
 msgstr "Import Hash"
 
-#: src/App.tsx:278
-#: src/App.tsx:278
+#: src/App.tsx:553
+msgid "Information We Collect"
+msgstr "Information We Collect"
+
+#: src/App.tsx:327
+#: src/App.tsx:327
 msgid "Install App"
 msgstr "Install App"
 
 #: src/components/settings-panel.tsx:177
-msgid "Instructor Preferences"
-msgstr "Instructor Preferences"
+#~ msgid "Instructor Preferences"
+#~ msgstr "Instructor Preferences"
 
 #: src/components/calendar-view.tsx:174
-msgid "Instructor:"
-msgstr "Instructor:"
+#~ msgid "Instructor:"
+#~ msgstr "Instructor:"
 
-#: src/App.tsx:270
+#: src/App.tsx:593
+msgid "Intellectual Property"
+msgstr "Intellectual Property"
+
+#: src/App.tsx:319
 msgid "Language"
 msgstr "Language"
 
-#: src/App.tsx:283
+#: src/components/settings-panel.tsx:177
+msgid "Lecturer Preferences"
+msgstr "Lecturer Preferences"
+
+#: src/components/calendar-view.tsx:195
+msgid "Lecturer:"
+msgstr "Lecturer:"
+
+#: src/App.tsx:259
+msgid "Link copied to clipboard!"
+msgstr "Link copied to clipboard!"
+
+#: src/App.tsx:332
 msgid "Link copied!"
 msgstr "Link copied!"
 
-#. placeholder {0}: course.courseName
-#: src/components/course-list.tsx:63
-msgid "Lock group for {0}"
-msgstr "Lock group for {0}"
+#: src/App.tsx:560
+msgid "Local Storage and PWA Caching"
+msgstr "Local Storage and PWA Caching"
 
-#: src/components/calendar-view.tsx:188
+#: src/components/course-list.tsx:63
+#~ msgid "Lock group for {0}"
+#~ msgstr "Lock group for {0}"
+
+#: src/components/calendar-view.tsx:209
 msgid "Lock This Group"
 msgstr "Lock This Group"
 
 #: src/components/course-list.tsx:62
-msgid "Lock to a specific group"
-msgstr "Lock to a specific group"
+#~ msgid "Lock to a specific group"
+#~ msgstr "Lock to a specific group"
+
+#: src/components/course-list.tsx:109
+msgid "Lock to this group only"
+msgstr "Lock to this group only"
+
+#. placeholder {0}: course.courseName
+#: src/components/course-list.tsx:82
+msgid "Manage groups for {0}"
+msgstr "Manage groups for {0}"
+
+#: src/components/course-list.tsx:119
+msgid "Mark as occupied"
+msgstr "Mark as occupied"
+
+#: src/components/course-list.tsx:119
+msgid "Mark available"
+msgstr "Mark available"
 
 #: src/components/settings-panel.tsx:90
 msgid "Max Overlap"
 msgstr "Max Overlap"
 
+#: src/components/schedule-results.tsx:345
+msgid "Min Gaps"
+msgstr "Min Gaps"
+
 #: src/components/settings-panel.tsx:94
 msgid "mins"
 msgstr "mins"
 
-#: src/components/schedule-results.tsx:248
+#: src/components/schedule-results.tsx:411
+msgid "More export options"
+msgstr "More export options"
+
+#: src/App.tsx:365
+msgid "More options"
+msgstr "More options"
+
+#: src/components/schedule-results.tsx:359
 msgid "Navigate"
 msgstr "Navigate"
 
@@ -352,6 +540,10 @@ msgstr "No 8 AM"
 msgid "No 9 AM"
 msgstr "No 9 AM"
 
+#: src/App.tsx:565
+msgid "No advertising, tracking pixels, Google Analytics, Meta pixels, or any other third-party scripts are used."
+msgstr "No advertising, tracking pixels, Google Analytics, Meta pixels, or any other third-party scripts are used."
+
 #: src/components/settings-panel.tsx:111
 msgid "No classes before 10 AM"
 msgstr "No classes before 10 AM"
@@ -360,26 +552,43 @@ msgstr "No classes before 10 AM"
 msgid "No classes before 9 AM"
 msgstr "No classes before 9 AM"
 
-#: src/components/schedule-results.tsx:233
+#: src/App.tsx:557
+msgid "No IP addresses, device information, or analytics data are stored or transmitted by us."
+msgstr "No IP addresses, device information, or analytics data are stored or transmitted by us."
+
+#: src/App.tsx:556
+msgid "No names, emails, student IDs, or any other identifiers."
+msgstr "No names, emails, student IDs, or any other identifiers."
+
+#: src/components/schedule-results.tsx:63
+msgid "No pinned schedules to export"
+msgstr "No pinned schedules to export"
+
+#: src/components/schedule-results.tsx:318
 msgid "No reminder"
 msgstr "No reminder"
 
-#: src/components/schedule-results.tsx:332
+#: src/App.tsx:343
+#: src/App.tsx:385
+msgid "No schedules to print"
+msgstr "No schedules to print"
+
+#: src/components/schedule-results.tsx:499
 msgid "No valid neighbors found — all alternative groups conflict."
 msgstr "No valid neighbors found — all alternative groups conflict."
 
-#: src/components/schedule-results.tsx:151
+#: src/components/schedule-results.tsx:236
 msgid "No Valid Schedules Found!"
 msgstr "No Valid Schedules Found!"
 
-#: src/components/schedule-results.tsx:44
-#: src/components/schedule-results.tsx:205
+#: src/components/schedule-results.tsx:86
+#: src/components/schedule-results.tsx:290
 msgid "None"
 msgstr "None"
 
 #. placeholder {0}: idx + 1
-#: src/components/schedule-results.tsx:262
-#: src/components/schedule-results.tsx:270
+#: src/components/schedule-results.tsx:384
+#: src/components/schedule-results.tsx:392
 msgid "Option {0}"
 msgstr "Option {0}"
 
@@ -392,46 +601,69 @@ msgid "Override time bounds, set commute, and mark busy periods for each day."
 msgstr "Override time bounds, set commute, and mark busy periods for each day."
 
 #. placeholder {0}: courses.length
-#: src/components/course-list.tsx:80
+#: src/components/course-list.tsx:210
 msgid "Parsed Courses ({0})"
 msgstr "Parsed Courses ({0})"
 
-#: src/App.tsx:357
+#: src/App.tsx:451
 msgid "Paste shared hash here…"
 msgstr "Paste shared hash here…"
 
-#: src/components/schedule-results.tsx:249
+#: src/components/schedule-results.tsx:107
+msgid "PDF opened in new window"
+msgstr "PDF opened in new window"
+
+#: src/components/schedule-results.tsx:360
 msgid "Pin"
 msgstr "Pin"
 
-#: src/components/schedule-results.tsx:275
-#: src/components/schedule-results.tsx:276
+#: src/components/schedule-results.tsx:397
+#: src/components/schedule-results.tsx:398
 msgid "Pin this schedule"
 msgstr "Pin this schedule"
 
-#: src/App.tsx:287
-#: src/App.tsx:287
+#: src/App.tsx:390
+msgid "Print"
+msgstr "Print"
+
+#: src/App.tsx:345
+#: src/App.tsx:345
 msgid "Print schedule"
 msgstr "Print schedule"
+
+#: src/App.tsx:341
+#: src/App.tsx:383
+msgid "Print window opened"
+msgstr "Print window opened"
 
 #: src/components/settings-panel.tsx:157
 msgid "Prioritize Free"
 msgstr "Prioritize Free"
 
-#. placeholder {0}: course.courseName
+#: src/App.tsx:503
+#: src/App.tsx:510
+#: src/App.tsx:523
+msgid "Privacy Policy"
+msgstr "Privacy Policy"
+
+#: src/App.tsx:572
+msgid "Questions? Open an issue at <0>github.com/USLTD/btu-timetable/issues</0> or email the maintainer via the repository."
+msgstr "Questions? Open an issue at <0>github.com/USLTD/btu-timetable/issues</0> or email the maintainer via the repository."
+
 #: src/components/course-list.tsx:51
-msgid "Re-include {0}"
-msgstr "Re-include {0}"
+#~ msgid "Re-include {0}"
+#~ msgstr "Re-include {0}"
 
 #: src/components/course-list.tsx:50
-msgid "Re-include in \"What if\""
-msgstr "Re-include in \"What if\""
+#~ msgid "Re-include in \"What if\""
+#~ msgstr "Re-include in \"What if\""
 
-#: src/App.tsx:298
+#: src/App.tsx:356
+#: src/App.tsx:377
 msgid "Redo"
 msgstr "Redo"
 
-#: src/App.tsx:296
+#: src/App.tsx:354
 msgid "Redo (Ctrl+Y)"
 msgstr "Redo (Ctrl+Y)"
 
@@ -443,6 +675,10 @@ msgstr "Reload"
 msgid "Reset"
 msgstr "Reset"
 
+#: src/components/course-list.tsx:135
+msgid "Reset all"
+msgstr "Reset all"
+
 #: src/components/settings-panel.tsx:279
 msgid "Reset to default"
 msgstr "Reset to default"
@@ -451,16 +687,32 @@ msgstr "Reset to default"
 msgid "Reset to full range"
 msgstr "Reset to full range"
 
-#: src/components/schedule-results.tsx:162
+#: src/components/schedule-results.tsx:337
+msgid "Results"
+msgstr "Results"
+
+#: src/components/file-upload.tsx:42
+msgid "Save the timetable page as HTML"
+msgstr "Save the timetable page as HTML"
+
+#: src/components/schedule-results.tsx:247
 msgid "Schedule Comparison"
 msgstr "Schedule Comparison"
 
-#: src/components/schedule-results.tsx:179
-#: src/components/schedule-results.tsx:347
+#: src/components/schedule-results.tsx:264
+#: src/components/schedule-results.tsx:514
 msgid "Score"
 msgstr "Score"
 
-#: src/components/calendar-view.tsx:202
+#: src/components/schedule-results.tsx:349
+msgid "Score Range"
+msgstr "Score Range"
+
+#: src/App.tsx:538
+msgid "Scroll to top"
+msgstr "Scroll to top"
+
+#: src/components/calendar-view.tsx:223
 msgid "Selected Groups"
 msgstr "Selected Groups"
 
@@ -468,76 +720,132 @@ msgstr "Selected Groups"
 #~ msgid "Semester:"
 #~ msgstr "Semester:"
 
-#: src/App.tsx:283
+#: src/App.tsx:332
 msgid "Share (copy URL)"
 msgstr "Share (copy URL)"
 
-#: src/App.tsx:283
+#: src/App.tsx:332
 msgid "Share settings"
 msgstr "Share settings"
 
-#: src/components/schedule-results.tsx:328
+#: src/components/schedule-results.tsx:484
+msgid "Show Calendar"
+msgstr "Show Calendar"
+
+#. placeholder {0}: sorted.length
+#: src/components/schedule-results.tsx:369
+msgid "Show Schedules ({0})"
+msgstr "Show Schedules ({0})"
+
+#: src/components/schedule-results.tsx:495
 msgid "Similar Schedules (1-group swap)"
 msgstr "Similar Schedules (1-group swap)"
 
-#: src/components/file-upload.tsx:31
+#: src/App.tsx:500
+msgid "Source Code"
+msgstr "Source Code"
+
+#: src/components/file-upload.tsx:33
 msgid "Supports: Raw BTU HTML, Clean HTML, JSON, CSV, Markdown"
 msgstr "Supports: Raw BTU HTML, Clean HTML, JSON, CSV, Markdown"
 
-#: src/components/schedule-results.tsx:247
+#: src/App.tsx:506
+#: src/App.tsx:514
+#: src/App.tsx:525
+msgid "Terms of Service"
+msgstr "Terms of Service"
+
+#: src/App.tsx:561
+msgid "The App uses your browser's localStorage and IndexedDB (via the PWA service worker) to save your course list, constraints, and pinned schedules and enable offline functionality. You can clear this data at any time via your browser settings. We have no access to it."
+msgstr "The App uses your browser's localStorage and IndexedDB (via the PWA service worker) to save your course list, constraints, and pinned schedules and enable offline functionality. You can clear this data at any time via your browser settings. We have no access to it."
+
+#: src/App.tsx:586
+msgid "The Service is a free, open-source Progressive Web App that helps students of Business and Technology University (BTU) generate optimal timetables from data exported from the BTU portal. All computation occurs locally in your browser."
+msgstr "The Service is a free, open-source Progressive Web App that helps students of Business and Technology University (BTU) generate optimal timetables from data exported from the BTU portal. All computation occurs locally in your browser."
+
+#: src/App.tsx:568
+msgid "The Service is intended for university students. We do not knowingly collect data from anyone under 18."
+msgstr "The Service is intended for university students. We do not knowingly collect data from anyone under 18."
+
+#: src/App.tsx:599
+msgid "THE SERVICE IS PROVIDED “AS IS” AND “AS AVAILABLE” WITHOUT ANY WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED."
+msgstr "THE SERVICE IS PROVIDED “AS IS” AND “AS AVAILABLE” WITHOUT ANY WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED."
+
+#: src/App.tsx:595
+msgid "The source code is licensed under the MIT License (see LICENSE file in the GitHub repository)."
+msgstr "The source code is licensed under the MIT License (see LICENSE file in the GitHub repository)."
+
+#: src/components/schedule-results.tsx:358
 msgid "Theme"
 msgstr "Theme"
 
-#: src/App.tsx:301
+#: src/App.tsx:359
 msgid "Theme: {theme}"
 msgstr "Theme: {theme}"
 
-#: src/App.tsx:314
+#: src/App.tsx:602
+msgid "These Terms are governed by the laws of Georgia (country), without regard to conflict-of-law principles. Any disputes shall be resolved in the courts of Tbilisi, Georgia."
+msgstr "These Terms are governed by the laws of Georgia (country), without regard to conflict-of-law principles. Any disputes shall be resolved in the courts of Tbilisi, Georgia."
+
+#: src/App.tsx:562
+msgid "Third-Party Services"
+msgstr "Third-Party Services"
+
+#: src/App.tsx:573
+msgid "This policy was last updated on 23 February 2026."
+msgstr "This policy was last updated on 23 February 2026."
+
+#: src/App.tsx:404
 msgid "Tip: Install the"
 msgstr "Tip: Install the"
 
-#: src/App.tsx:320
+#: src/App.tsx:410
 msgid "to export timetable pages directly from BTU's website."
 msgstr "to export timetable pages directly from BTU's website."
 
-#: src/components/schedule-results.tsx:143
+#: src/components/schedule-results.tsx:228
 msgid "To prevent your browser from crashing, the app stopped early. Results shown are the best from the checked batch."
 msgstr "To prevent your browser from crashing, the app stopped early. Results shown are the best from the checked batch."
 
-#: src/App.tsx:301
+#: src/App.tsx:359
 msgid "Toggle theme"
 msgstr "Toggle theme"
 
-#: src/components/schedule-results.tsx:142
+#: src/components/schedule-results.tsx:227
 msgid "Too many permutations!"
 msgstr "Too many permutations!"
 
-#: src/components/schedule-results.tsx:225
+#: src/components/schedule-results.tsx:310
 msgid "Top Suggested Schedules"
 msgstr "Top Suggested Schedules"
 
-#: src/App.tsx:262
+#: src/App.tsx:311
 msgid "Ultimate Schedule Optimizer"
 msgstr "Ultimate Schedule Optimizer"
 
-#: src/App.tsx:293
+#: src/App.tsx:351
+#: src/App.tsx:373
 msgid "Undo"
 msgstr "Undo"
 
-#: src/App.tsx:291
+#: src/App.tsx:349
 msgid "Undo (Ctrl+Z)"
 msgstr "Undo (Ctrl+Z)"
 
-#: src/components/schedule-results.tsx:250
+#: src/components/schedule-results.tsx:361
 msgid "Undo/Redo"
 msgstr "Undo/Redo"
 
-#: src/components/calendar-view.tsx:188
+#: src/components/course-list.tsx:109
+msgid "Unlock"
+msgstr "Unlock"
+
+#: src/components/calendar-view.tsx:209
 msgid "Unlock Group"
 msgstr "Unlock Group"
 
-#: src/components/schedule-results.tsx:275
-#: src/components/schedule-results.tsx:276
+#: src/components/schedule-results.tsx:397
+#: src/components/schedule-results.tsx:398
 msgid "Unpin"
 msgstr "Unpin"
 
@@ -545,24 +853,68 @@ msgstr "Unpin"
 msgid "Update available"
 msgstr "Update available"
 
-#: src/App.tsx:308
+#: src/App.tsx:398
 msgid "Upload course files, dial in your precise constraints, and find your perfect week."
 msgstr "Upload course files, dial in your precise constraints, and find your perfect week."
 
+#: src/components/file-upload.tsx:46
+msgid "Upload here"
+msgstr "Upload here"
+
+#: src/App.tsx:587
+msgid "User Responsibilities"
+msgstr "User Responsibilities"
+
 #. placeholder {0}: si + 1
-#: src/components/schedule-results.tsx:345
+#: src/components/schedule-results.tsx:512
 msgid "Variant {0}"
 msgstr "Variant {0}"
+
+#: src/App.tsx:600
+msgid "We are not affiliated with BTU and make no representations about the accuracy or completeness of generated schedules. We shall not be liable for any direct, indirect, incidental, special, consequential, or exemplary damages arising from your use of the Service, including but not limited to missed classes, scheduling conflicts, or academic consequences."
+msgstr "We are not affiliated with BTU and make no representations about the accuracy or completeness of generated schedules. We shall not be liable for any direct, indirect, incidental, special, consequential, or exemplary damages arising from your use of the Service, including but not limited to missed classes, scheduling conflicts, or academic consequences."
+
+#: src/App.tsx:554
+msgid "We collect <0>no personal data</0> of any kind."
+msgstr "We collect <0>no personal data</0> of any kind."
+
+#: src/App.tsx:604
+msgid "We may revise these Terms at any time. The updated version will be posted here with a new effective date. Your continued use constitutes acceptance."
+msgstr "We may revise these Terms at any time. The updated version will be posted here with a new effective date. Your continued use constitutes acceptance."
+
+#: src/App.tsx:570
+msgid "We may update this Privacy Policy occasionally. We will post the new version with a new effective date. Continued use after changes constitutes acceptance."
+msgstr "We may update this Privacy Policy occasionally. We will post the new version with a new effective date. Continued use after changes constitutes acceptance."
+
+#: src/components/file-upload.tsx:52
+msgid "We'll find the optimal combination"
+msgstr "We'll find the optimal combination"
 
 #: src/components/settings-panel.tsx:146
 msgid "Weekly Day Constraints (Click to cycle)"
 msgstr "Weekly Day Constraints (Click to cycle)"
 
-#: src/components/schedule-results.tsx:120
+#: src/App.tsx:582
+msgid "Welcome to Easy BTU Timetable (the “Service”), provided by USLTD at <0>timetable.usltd.ge</0>."
+msgstr "Welcome to Easy BTU Timetable (the “Service”), provided by USLTD at <0>timetable.usltd.ge</0>."
+
+#: src/components/schedule-results.tsx:205
 msgid "Why were some combinations rejected?"
 msgstr "Why were some combinations rejected?"
 
-#: src/components/schedule-results.tsx:307
-#: src/components/schedule-results.tsx:312
+#: src/components/schedule-results.tsx:467
+#: src/components/schedule-results.tsx:472
 msgid "wk"
 msgstr "wk"
+
+#: src/App.tsx:591
+msgid "You acknowledge that the Service is provided “as is” and may contain inaccuracies."
+msgstr "You acknowledge that the Service is provided “as is” and may contain inaccuracies."
+
+#: src/App.tsx:589
+msgid "You are responsible for verifying that any generated schedule complies with BTU rules and your actual course requirements."
+msgstr "You are responsible for verifying that any generated schedule complies with BTU rules and your actual course requirements."
+
+#: src/App.tsx:590
+msgid "You must not use the Service for any unlawful purpose."
+msgstr "You must not use the Service for any unlawful purpose."

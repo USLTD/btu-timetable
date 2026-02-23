@@ -1,5 +1,5 @@
 ﻿import { useState, useCallback, useEffect, useMemo } from 'react';
-import { Calendar as CalendarIcon, Sun, Moon, Monitor, Download, Share2, Import, Copy, Check, Printer, Undo2, Redo2, Puzzle, X, MoreHorizontal } from 'lucide-react';
+import { Calendar as CalendarIcon, Sun, Moon, Monitor, Download, Share2, Import, Copy, Check, Printer, Undo2, Redo2, Puzzle, X, MoreHorizontal, ArrowUp } from 'lucide-react';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { usePwaInstall } from './lib/use-pwa-install.ts';
 import { encodeState, importHash, shareToUrl } from './lib/url-state.ts';
@@ -16,6 +16,7 @@ import { FileUpload } from './components/file-upload.tsx';
 import { CourseList } from './components/course-list.tsx';
 import { ScheduleResults } from './components/schedule-results.tsx';
 import { ResponsiveDialog } from './components/responsive-dialog.tsx';
+import { exportToPrintablePDF } from './lib/html-export.ts';
 const DEFAULT_DAY_SETTING = { min: 480, max: 1260 };
 const INITIAL_DAY_SETTINGS: DaySettings = {
   1: { pref: 'enabled', ...DEFAULT_DAY_SETTING },
@@ -59,6 +60,18 @@ export default function App() {
   const maxResults = 20;
   const { theme, cycleTheme } = useTheme();
   const { toast } = useToast();
+
+  // Consent banner
+  const [consentDismissed, setConsentDismissed] = useState(() => localStorage.getItem('consent-dismissed') === '1');
+  const dismissConsent = useCallback(() => { setConsentDismissed(true); localStorage.setItem('consent-dismissed', '1'); }, []);
+
+  // Scroll-to-top FAB
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  useEffect(() => {
+    const handler = () => setShowScrollTop(window.scrollY > 400);
+    window.addEventListener('scroll', handler, { passive: true });
+    return () => window.removeEventListener('scroll', handler);
+  }, []);
 
   const themeIcon = theme === 'dark' ? <Moon className="w-5 h-5" /> : theme === 'light' ? <Sun className="w-5 h-5" /> : <Monitor className="w-5 h-5" />;
   const { canInstall, install } = usePwaInstall();
@@ -321,7 +334,15 @@ export default function App() {
                 {shared ? <Check className="w-5 h-5" /> : <Share2 className="w-5 h-5" />}
               </button>
               {/* Desktop-only: Undo, Redo, Print */}
-              <button onClick={() => window.print()} title={t`Print schedule`} aria-label={t`Print schedule`}
+              <button onClick={() => {
+                if (schedules.length > 0) {
+                  const target = schedules[focusedSchedule] ?? schedules[0];
+                  exportToPrintablePDF(target.schedule, focusedSchedule + 1);
+                  toast(t`Print window opened`);
+                } else {
+                  toast(t`No schedules to print`, 'info');
+                }
+              }} title={t`Print schedule`} aria-label={t`Print schedule`}
                 className="hidden sm:inline-flex p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors no-print focus-visible:ring-2 focus-visible:ring-blue-500">
                 <Printer className="w-5 h-5" />
               </button>
@@ -355,7 +376,16 @@ export default function App() {
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30">
                       <Redo2 className="w-4 h-4" /> {t`Redo`}
                     </button>
-                    <button onClick={() => { window.print(); setShowToolbarMenu(false); }}
+                    <button onClick={() => {
+                      if (schedules.length > 0) {
+                        const target = schedules[focusedSchedule] ?? schedules[0];
+                        exportToPrintablePDF(target.schedule, focusedSchedule + 1);
+                        toast(t`Print window opened`);
+                      } else {
+                        toast(t`No schedules to print`, 'info');
+                      }
+                      setShowToolbarMenu(false);
+                    }}
                       className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
                       <Printer className="w-4 h-4" /> {t`Print`}
                     </button>
@@ -467,23 +497,49 @@ export default function App() {
             <span>2026 © Luka Mamukashvili</span>
             <span>·</span>
             <a href="https://github.com/USLTD/btu-timetable" target="_blank" rel="noopener noreferrer"
-              className="hover:text-blue-500 dark:hover:text-blue-400 underline transition-colors">Source Code</a>
+              className="hover:text-blue-500 dark:hover:text-blue-400 underline transition-colors"><Trans>Source Code</Trans></a>
             <span>·</span>
             <button onClick={() => setShowPrivacy(true)}
-              className="hover:text-blue-500 dark:hover:text-blue-400 underline transition-colors">Privacy Policy</button>
+              className="hover:text-blue-500 dark:hover:text-blue-400 underline transition-colors"><Trans>Privacy Policy</Trans></button>
             <span>·</span>
             <button onClick={() => setShowTerms(true)}
-              className="hover:text-blue-500 dark:hover:text-blue-400 underline transition-colors">Terms of Service</button>
+              className="hover:text-blue-500 dark:hover:text-blue-400 underline transition-colors"><Trans>Terms of Service</Trans></button>
           </div>
         </footer>
 
-        <ResponsiveDialog open={showPrivacy} onClose={() => setShowPrivacy(false)} title="Privacy Policy">
+        <ResponsiveDialog open={showPrivacy} onClose={() => setShowPrivacy(false)} title={t`Privacy Policy`}>
           <PrivacyContent />
         </ResponsiveDialog>
 
-        <ResponsiveDialog open={showTerms} onClose={() => setShowTerms(false)} title="Terms of Service">
+        <ResponsiveDialog open={showTerms} onClose={() => setShowTerms(false)} title={t`Terms of Service`}>
           <TermsContent />
         </ResponsiveDialog>
+
+        {/* Consent banner */}
+        {!consentDismissed && (
+          <div className="fixed bottom-0 inset-x-0 z-40 bg-gray-900/95 dark:bg-gray-800/95 backdrop-blur text-white text-sm px-4 py-3 flex items-center justify-between gap-3 no-print">
+            <p className="flex-1 min-w-0">
+              <Trans>By using this app, you agree to our</Trans>{' '}
+              <button onClick={() => setShowPrivacy(true)} className="underline text-blue-300 hover:text-blue-200"><Trans>Privacy Policy</Trans></button>{' '}
+              <Trans>and</Trans>{' '}
+              <button onClick={() => setShowTerms(true)} className="underline text-blue-300 hover:text-blue-200"><Trans>Terms of Service</Trans></button>.
+            </p>
+            <button onClick={dismissConsent} className="shrink-0 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 rounded text-xs font-semibold transition-colors">
+              OK
+            </button>
+          </div>
+        )}
+
+        {/* Scroll-to-top FAB */}
+        {showScrollTop && (
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="fixed bottom-6 right-6 z-30 p-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg transition-all no-print"
+            aria-label={t`Scroll to top`}
+          >
+            <ArrowUp className="w-5 h-5" />
+          </button>
+        )}
       </div>
     </div>
   );
@@ -492,29 +548,29 @@ export default function App() {
 function PrivacyContent() {
   return (
     <div className="space-y-4">
-      <p className="text-gray-500 dark:text-gray-400 italic">Effective date: 23 February 2026</p>
-      <p>Easy BTU Timetable (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;the App&rdquo;) operates the website <a href="https://timetable.usltd.ge" className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">timetable.usltd.ge</a> and the associated Progressive Web App (the &ldquo;Service&rdquo;).</p>
-      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Information We Collect</h3>
-      <p>We collect <strong>no personal data</strong> of any kind.</p>
+      <p className="text-gray-500 dark:text-gray-400 italic"><Trans>Effective date: 23 February 2026</Trans></p>
+      <p><Trans>Easy BTU Timetable (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;the App&rdquo;) operates the website <a href="https://timetable.usltd.ge" className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">timetable.usltd.ge</a> and the associated Progressive Web App (the &ldquo;Service&rdquo;).</Trans></p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Information We Collect</Trans></h3>
+      <p><Trans>We collect <strong>no personal data</strong> of any kind.</Trans></p>
       <ul className="list-disc pl-5 space-y-1">
-        <li>No names, emails, student IDs, or any other identifiers.</li>
-        <li>No IP addresses, device information, or analytics data are stored or transmitted by us.</li>
-        <li>All course data, preferences, busy periods, and generated schedules are processed <strong>entirely in your browser</strong> using JavaScript and never leave your device.</li>
+        <li><Trans>No names, emails, student IDs, or any other identifiers.</Trans></li>
+        <li><Trans>No IP addresses, device information, or analytics data are stored or transmitted by us.</Trans></li>
+        <li><Trans>All course data, preferences, busy periods, and generated schedules are processed <strong>entirely in your browser</strong> using JavaScript and never leave your device.</Trans></li>
       </ul>
-      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Local Storage and PWA Caching</h3>
-      <p>The App uses your browser&apos;s localStorage and IndexedDB (via the PWA service worker) to save your course list, constraints, and pinned schedules and enable offline functionality. You can clear this data at any time via your browser settings. We have no access to it.</p>
-      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Third-Party Services</h3>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Local Storage and PWA Caching</Trans></h3>
+      <p><Trans>The App uses your browser&apos;s localStorage and IndexedDB (via the PWA service worker) to save your course list, constraints, and pinned schedules and enable offline functionality. You can clear this data at any time via your browser settings. We have no access to it.</Trans></p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Third-Party Services</Trans></h3>
       <ul className="list-disc pl-5 space-y-1">
-        <li><strong>Hosting:</strong> GitHub Pages (static files only). GitHub&apos;s own privacy policy applies to any server logs they may keep; we do not receive or control them.</li>
-        <li>No advertising, tracking pixels, Google Analytics, Meta pixels, or any other third-party scripts are used.</li>
+        <li><Trans><strong>Hosting:</strong> GitHub Pages (static files only). GitHub&apos;s own privacy policy applies to any server logs they may keep; we do not receive or control them.</Trans></li>
+        <li><Trans>No advertising, tracking pixels, Google Analytics, Meta pixels, or any other third-party scripts are used.</Trans></li>
       </ul>
-      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Children&apos;s Privacy</h3>
-      <p>The Service is intended for university students. We do not knowingly collect data from anyone under 18.</p>
-      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Changes to This Policy</h3>
-      <p>We may update this Privacy Policy occasionally. We will post the new version with a new effective date. Continued use after changes constitutes acceptance.</p>
-      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Contact Us</h3>
-      <p>Questions? Open an issue at <a href="https://github.com/USLTD/btu-timetable/issues" className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">github.com/USLTD/btu-timetable/issues</a> or email the maintainer via the repository.</p>
-      <p className="text-gray-500 dark:text-gray-400 text-xs italic">This policy was last updated on 23 February 2026.</p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Children&apos;s Privacy</Trans></h3>
+      <p><Trans>The Service is intended for university students. We do not knowingly collect data from anyone under 18.</Trans></p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Changes to This Policy</Trans></h3>
+      <p><Trans>We may update this Privacy Policy occasionally. We will post the new version with a new effective date. Continued use after changes constitutes acceptance.</Trans></p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Contact Us</Trans></h3>
+      <p><Trans>Questions? Open an issue at <a href="https://github.com/USLTD/btu-timetable/issues" className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">github.com/USLTD/btu-timetable/issues</a> or email the maintainer via the repository.</Trans></p>
+      <p className="text-gray-500 dark:text-gray-400 text-xs italic"><Trans>This policy was last updated on 23 February 2026.</Trans></p>
     </div>
   );
 }
@@ -522,32 +578,32 @@ function PrivacyContent() {
 function TermsContent() {
   return (
     <div className="space-y-4">
-      <p className="text-gray-500 dark:text-gray-400 italic">Effective date: 23 February 2026</p>
-      <p>Welcome to Easy BTU Timetable (the &ldquo;Service&rdquo;), provided by USLTD at <a href="https://timetable.usltd.ge" className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">timetable.usltd.ge</a>.</p>
-      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Acceptance of Terms</h3>
-      <p>By accessing or using the Service, you agree to be bound by these Terms. If you do not agree, please do not use the Service.</p>
-      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Description of Service</h3>
-      <p>The Service is a free, open-source Progressive Web App that helps students of Business and Technology University (BTU) generate optimal timetables from data exported from the BTU portal. All computation occurs locally in your browser.</p>
-      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">User Responsibilities</h3>
+      <p className="text-gray-500 dark:text-gray-400 italic"><Trans>Effective date: 23 February 2026</Trans></p>
+      <p><Trans>Welcome to Easy BTU Timetable (the &ldquo;Service&rdquo;), provided by USLTD at <a href="https://timetable.usltd.ge" className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">timetable.usltd.ge</a>.</Trans></p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Acceptance of Terms</Trans></h3>
+      <p><Trans>By accessing or using the Service, you agree to be bound by these Terms. If you do not agree, please do not use the Service.</Trans></p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Description of Service</Trans></h3>
+      <p><Trans>The Service is a free, open-source Progressive Web App that helps students of Business and Technology University (BTU) generate optimal timetables from data exported from the BTU portal. All computation occurs locally in your browser.</Trans></p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>User Responsibilities</Trans></h3>
       <ul className="list-disc pl-5 space-y-1">
-        <li>You are responsible for verifying that any generated schedule complies with BTU rules and your actual course requirements.</li>
-        <li>You must not use the Service for any unlawful purpose.</li>
-        <li>You acknowledge that the Service is provided &ldquo;as is&rdquo; and may contain inaccuracies.</li>
+        <li><Trans>You are responsible for verifying that any generated schedule complies with BTU rules and your actual course requirements.</Trans></li>
+        <li><Trans>You must not use the Service for any unlawful purpose.</Trans></li>
+        <li><Trans>You acknowledge that the Service is provided &ldquo;as is&rdquo; and may contain inaccuracies.</Trans></li>
       </ul>
-      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Intellectual Property</h3>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Intellectual Property</Trans></h3>
       <ul className="list-disc pl-5 space-y-1">
-        <li>The source code is licensed under the MIT License (see LICENSE file in the GitHub repository).</li>
-        <li>All BTU logos, course names, and related materials remain the property of BTU. The App merely processes user-supplied data.</li>
+        <li><Trans>The source code is licensed under the MIT License (see LICENSE file in the GitHub repository).</Trans></li>
+        <li><Trans>All BTU logos, course names, and related materials remain the property of BTU. The App merely processes user-supplied data.</Trans></li>
       </ul>
-      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Disclaimers and Limitation of Liability</h3>
-      <p className="uppercase text-xs">THE SERVICE IS PROVIDED &ldquo;AS IS&rdquo; AND &ldquo;AS AVAILABLE&rdquo; WITHOUT ANY WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED.</p>
-      <p>We are not affiliated with BTU and make no representations about the accuracy or completeness of generated schedules. We shall not be liable for any direct, indirect, incidental, special, consequential, or exemplary damages arising from your use of the Service, including but not limited to missed classes, scheduling conflicts, or academic consequences.</p>
-      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Governing Law</h3>
-      <p>These Terms are governed by the laws of Georgia (country), without regard to conflict-of-law principles. Any disputes shall be resolved in the courts of Tbilisi, Georgia.</p>
-      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Changes to Terms</h3>
-      <p>We may revise these Terms at any time. The updated version will be posted here with a new effective date. Your continued use constitutes acceptance.</p>
-      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Contact</h3>
-      <p>For questions, please open an issue at <a href="https://github.com/USLTD/btu-timetable" className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">github.com/USLTD/btu-timetable</a>.</p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Disclaimers and Limitation of Liability</Trans></h3>
+      <p className="uppercase text-xs"><Trans>THE SERVICE IS PROVIDED &ldquo;AS IS&rdquo; AND &ldquo;AS AVAILABLE&rdquo; WITHOUT ANY WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED.</Trans></p>
+      <p><Trans>We are not affiliated with BTU and make no representations about the accuracy or completeness of generated schedules. We shall not be liable for any direct, indirect, incidental, special, consequential, or exemplary damages arising from your use of the Service, including but not limited to missed classes, scheduling conflicts, or academic consequences.</Trans></p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Governing Law</Trans></h3>
+      <p><Trans>These Terms are governed by the laws of Georgia (country), without regard to conflict-of-law principles. Any disputes shall be resolved in the courts of Tbilisi, Georgia.</Trans></p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Changes to Terms</Trans></h3>
+      <p><Trans>We may revise these Terms at any time. The updated version will be posted here with a new effective date. Your continued use constitutes acceptance.</Trans></p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Contact</Trans></h3>
+      <p><Trans>For questions, please open an issue at <a href="https://github.com/USLTD/btu-timetable" className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">github.com/USLTD/btu-timetable</a>.</Trans></p>
       <p className="text-gray-500 dark:text-gray-400 text-xs italic">&copy; 2026 USLTD &ndash; MIT Licensed Open Source Project</p>
     </div>
   );

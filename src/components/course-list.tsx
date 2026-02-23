@@ -74,10 +74,10 @@ function GroupPopover({ course, index, onLockGroup, onExcludeGroups }: {
       <button
         onClick={() => setOpen(!open)}
         className={`text-xs border rounded px-2 py-1.5 flex items-center gap-1 min-h-[36px] transition-colors ${hasLocked
-            ? 'border-amber-300 dark:border-amber-600 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300'
-            : excludedCount > 0
-              ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
-              : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+          ? 'border-amber-300 dark:border-amber-600 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300'
+          : excludedCount > 0
+            ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
+            : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'
           }`}
         aria-label={t`Manage groups for ${course.courseName}`}
       >
@@ -88,7 +88,7 @@ function GroupPopover({ course, index, onLockGroup, onExcludeGroups }: {
       </button>
 
       {open && (
-        <div className="absolute left-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-50 min-w-[220px] py-1 max-h-[300px] overflow-y-auto">
+        <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-50 min-w-[220px] max-w-[calc(100vw-2rem)] py-1 max-h-[300px] overflow-y-auto">
           <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
             {t`Groups`}
           </div>
@@ -108,8 +108,8 @@ function GroupPopover({ course, index, onLockGroup, onExcludeGroups }: {
                   onClick={() => handleLock(g.name)}
                   title={isLocked ? t`Unlock` : t`Lock to this group only`}
                   className={`p-1 rounded transition-colors shrink-0 ${isLocked
-                      ? 'text-amber-500 bg-amber-100 dark:bg-amber-900/30'
-                      : 'text-gray-300 dark:text-gray-600 hover:text-amber-500'
+                    ? 'text-amber-500 bg-amber-100 dark:bg-amber-900/30'
+                    : 'text-gray-300 dark:text-gray-600 hover:text-amber-500'
                     }`}
                 >
                   <Lock className="w-3.5 h-3.5" />
@@ -118,8 +118,8 @@ function GroupPopover({ course, index, onLockGroup, onExcludeGroups }: {
                   onClick={() => handleExclude(g.name)}
                   title={isExcluded ? t`Mark available` : t`Mark as occupied`}
                   className={`p-1 rounded transition-colors shrink-0 ${isExcluded
-                      ? 'text-red-500 bg-red-100 dark:bg-red-900/30'
-                      : 'text-gray-300 dark:text-gray-600 hover:text-red-500'
+                    ? 'text-red-500 bg-red-100 dark:bg-red-900/30'
+                    : 'text-gray-300 dark:text-gray-600 hover:text-red-500'
                     }`}
                 >
                   <Ban className="w-3.5 h-3.5" />
@@ -151,39 +151,52 @@ function SortableCourseItem({ course, index, onToggle, onLockGroup, onExcludeGro
 }) {
   const { ref, isDragging } = useSortable({ id: course.courseName, index });
   return (
-    <div ref={ref} className={`flex items-center gap-1 ${isDragging ? 'opacity-50' : ''}`} role="listitem">
-      <div className="cursor-grab text-gray-400 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-400 touch-none p-1">
+    <div ref={ref} className={`group flex items-center gap-1.5 sm:gap-1 ${isDragging ? 'opacity-50' : ''}`} role="listitem">
+      {/* Drag handle */}
+      <div className="cursor-grab text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400 touch-none shrink-0">
         <GripVertical className="w-4 h-4" />
       </div>
-      <button
-        onClick={() => onToggle(index)}
-        className={`border px-3 py-1.5 rounded-full text-sm flex items-center gap-1.5 transition-colors cursor-pointer ${isWhatIfExcluded
-          ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700 opacity-80'
-          : course.isActive
-            ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-700'
-            : 'bg-gray-50 dark:bg-gray-800 text-gray-500 dark:text-gray-500 border-gray-200 dark:border-gray-700 opacity-70'
-          }`}
-      >
-        {course.isActive ? <CheckCircle className="w-4 h-4" /> : <div className="w-4 h-4 rounded-full border-2 border-gray-400 dark:border-gray-600" />}
-        <span className={course.isActive ? 'font-medium' : 'line-through'}>
-          {course.subjectCode ? <span className="font-mono text-xs opacity-70 mr-1">{course.subjectCode}</span> : ''}
-          {course.courseName}
-        </span>
-        {course.lockedGroup && <Lock className="w-3 h-3 text-amber-500" />}
-        {!course.lockedGroup && (course.excludedGroups?.length ?? 0) > 0 && <Ban className="w-3 h-3 text-red-400" />}
-      </button>
-      {course.isActive && (
-        <button
-          onClick={() => onToggleWhatIf(course.courseName)}
-          title={isWhatIfExcluded ? 'Re-include' : 'Exclude in \"What if\" mode'}
-          className={`p-1 rounded transition-colors ${isWhatIfExcluded ? 'text-amber-500' : 'text-gray-300 dark:text-gray-600 hover:text-amber-400'}`}
-        >
-          <EyeOff className="w-3.5 h-3.5" />
+
+      {/* Course card — full-width on mobile, pill on desktop */}
+      <div className={`flex-1 flex items-center gap-2 sm:gap-1.5 min-w-0 border rounded-lg sm:rounded-full px-3 sm:px-3 py-2.5 sm:py-1.5 text-sm transition-colors cursor-pointer ${isWhatIfExcluded
+        ? 'bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-700 opacity-80'
+        : course.isActive
+          ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 border-blue-200 dark:border-blue-700'
+          : 'bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-500 border-gray-200 dark:border-gray-700 opacity-60'
+        }`}>
+        {/* Toggle checkbox area */}
+        <button onClick={() => onToggle(index)} className="shrink-0 flex items-center" aria-label={course.isActive ? 'Deactivate' : 'Activate'}>
+          {course.isActive ? <CheckCircle className="w-4 h-4 text-blue-500 dark:text-blue-400" /> : <div className="w-4 h-4 rounded-full border-2 border-gray-300 dark:border-gray-600" />}
         </button>
-      )}
-      {course.isActive && course.groups.length > 1 && (
-        <GroupPopover course={course} index={index} onLockGroup={onLockGroup} onExcludeGroups={onExcludeGroups} />
-      )}
+
+        {/* Course name — takes remaining space */}
+        <button onClick={() => onToggle(index)} className="flex-1 min-w-0 text-left">
+          <span className={`block truncate ${course.isActive ? 'font-medium' : 'line-through'}`}>
+            {course.subjectCode && <span className="font-mono text-[11px] opacity-60 mr-1">{course.subjectCode}</span>}
+            {course.courseName}
+          </span>
+        </button>
+
+        {/* Status badges */}
+        {course.lockedGroup && <Lock className="w-3 h-3 text-amber-500 shrink-0" />}
+        {!course.lockedGroup && (course.excludedGroups?.length ?? 0) > 0 && <Ban className="w-3 h-3 text-red-400 shrink-0" />}
+
+        {/* Actions — visible on mobile, on-hover on desktop */}
+        <div className="flex items-center gap-0.5 shrink-0">
+          {course.isActive && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onToggleWhatIf(course.courseName); }}
+              title={isWhatIfExcluded ? 'Re-include' : 'Exclude in "What if" mode'}
+              className={`p-1 rounded transition-colors ${isWhatIfExcluded ? 'text-amber-500' : 'text-gray-300 dark:text-gray-600 sm:opacity-0 sm:group-hover:opacity-100 hover:text-amber-400'}`}
+            >
+              <EyeOff className="w-3.5 h-3.5" />
+            </button>
+          )}
+          {course.isActive && course.groups.length > 1 && (
+            <GroupPopover course={course} index={index} onLockGroup={onLockGroup} onExcludeGroups={onExcludeGroups} />
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -213,7 +226,8 @@ export function CourseList({ courses, loading, onToggle, onClear, onGenerate, on
           onReorder(reordered.map((c, i) => ({ ...c, order: i })));
         }}
       >
-        <div className="flex flex-wrap gap-2 mb-6" role="list" aria-label={t`Course list`}>
+        {/* Vertical list on mobile, wrap on desktop */}
+        <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 mb-6" role="list" aria-label={t`Course list`}>
           {courses.map((c, i) => (
             <SortableCourseItem key={c.courseName} course={c} index={i} onToggle={onToggle} onLockGroup={onLockGroup}
               onExcludeGroups={onExcludeGroups}
