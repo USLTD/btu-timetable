@@ -23,7 +23,7 @@ export default defineConfig({
     VitePWA({
       registerType: "prompt",
       devOptions: {
-        enabled: false, // enables SW in dev so PWA install prompt works on localhost
+        enabled: false,
       },
       workbox: {
         // Precache all app assets (JS chunks include locale catalogs & worker)
