@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import { lingui } from '@lingui/vite-plugin'
 
-const BASE_URL = process.env.BASE_URL || '/btu-timetable/'
+const BASE_URL = '/';
 
 // https://vite.dev/config/
 export default defineConfig({
