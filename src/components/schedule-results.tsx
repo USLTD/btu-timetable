@@ -178,12 +178,12 @@ export function ScheduleResults({ schedules, daySettings, dailyCommute, classesP
     for (const r of rejections) {
       let key = '';
       switch (r.type) {
-        case 'day_disabled': key = t`"${r.course}" (${r.group}) falls on disabled day ${localizedDayName(r.day, i18n.locale, 'short')}`; break;
-        case 'outside_hours': key = t`"${r.course}" (${r.group}) is outside allowed hours on ${localizedDayName(r.day, i18n.locale, 'short')}`; break;
-        case 'busy_period': key = t`"${r.course}" (${r.group}) overlaps a busy period on ${localizedDayName(r.day, i18n.locale, 'short')}`; break;
-        case 'too_many_classes': key = t`"${r.course}" (${r.group}) exceeds max classes on ${localizedDayName(r.day, i18n.locale, 'short')}`; break;
+        case 'day_disabled': key = t`"${r.course}" (${r.group}) falls on disabled day ${localizedDayName(r.day, i18n.locale, 'long')}`; break;
+        case 'outside_hours': key = t`"${r.course}" (${r.group}) is outside allowed hours on ${localizedDayName(r.day, i18n.locale, 'long')}`; break;
+        case 'busy_period': key = t`"${r.course}" (${r.group}) overlaps a busy period on ${localizedDayName(r.day, i18n.locale, 'long')}`; break;
+        case 'too_many_classes': key = t`"${r.course}" (${r.group}) exceeds max classes on ${localizedDayName(r.day, i18n.locale, 'long')}`; break;
         case 'overlap': key = t`"${r.course}" (${r.group}) overlaps with "${r.conflictCourse}" (${r.conflictGroup})`; break;
-        case 'min_classes': key = t`Day ${localizedDayName(r.day, i18n.locale, 'short')} doesn't meet minimum classes`; break;
+        case 'min_classes': key = t`Day ${localizedDayName(r.day, i18n.locale, 'long')} doesn't meet minimum classes`; break;
       }
       counts[key] = (counts[key] || 0) + 1;
     }

@@ -138,7 +138,7 @@ export function CalendarView({ scheduleData, daySettings, dailyCommute, onAddBus
             className={`px-3 py-1.5 rounded-lg text-sm font-semibold whitespace-nowrap transition-colors ${mobileDay === idx
               ? 'bg-blue-600 text-white'
               : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
-              }`}>{localizedDayName(dayNum, locale, 'short')}</button>
+              }`}>{localizedDayName(dayNum, locale, 'long')}</button>
         ))}
       </div>
 

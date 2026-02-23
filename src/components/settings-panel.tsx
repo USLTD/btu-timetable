@@ -103,23 +103,23 @@ export function SettingsPanel({
             <div className="flex items-center gap-1 text-xs flex-wrap">
               <button onClick={() => updateGlobalTime(540, globalTime.max)}
                 className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-                title={t`No classes before 9 AM`}>
-                <Trans>No 8 AM</Trans>
+                title={t`Start from 9:00`}>
+                <Trans>From 9:00</Trans>
               </button>
               <button onClick={() => updateGlobalTime(600, globalTime.max)}
                 className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-                title={t`No classes before 10 AM`}>
-                <Trans>No 9 AM</Trans>
+                title={t`Start from 10:00`}>
+                <Trans>From 10:00</Trans>
               </button>
               <button onClick={() => updateGlobalTime(globalTime.min, 1020)}
                 className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-                title={t`Done by 5 PM`}>
-                <Trans>By 5 PM</Trans>
+                title={t`End by 17:00`}>
+                <Trans>Until 17:00</Trans>
               </button>
               <button onClick={() => updateGlobalTime(globalTime.min, 960)}
                 className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
-                title={t`Done by 4 PM`}>
-                <Trans>By 4 PM</Trans>
+                title={t`End by 16:00`}>
+                <Trans>Until 16:00</Trans>
               </button>
               <button onClick={() => updateGlobalTime(480, 1260)}
                 className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
