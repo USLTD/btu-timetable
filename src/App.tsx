@@ -312,7 +312,7 @@ export default function App() {
               <Puzzle className="w-4 h-4 shrink-0" />
               <span className="flex-1">
                 <Trans>Tip: Install the</Trans>{' '}
-                <a href="http://userscripts.usltd.ge/btu-timetable-helper.user.js"
+                <a href="https://userscripts.usltd.ge/btu-timetable-helper.user.js"
                   target="_blank" rel="noopener noreferrer"
                   className="font-medium underline hover:text-amber-900 dark:hover:text-amber-200 transition-colors">
                   <Trans>BTU Helper Userscript</Trans>
