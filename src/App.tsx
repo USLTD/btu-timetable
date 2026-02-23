@@ -41,8 +41,19 @@ export default function App() {
   const [rejections, setRejections] = useState<RejectionReason[]>([]);
   const [whatIfExclusions, setWhatIfExclusions] = useState<Set<string>>(new Set());
   const [focusedSchedule, setFocusedSchedule] = useState(0);
+
+
+  // Initialize state based on manual dismissal OR the global variable injected by the userscript
+  const [showUserscriptHint, setShowUserscriptHint] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    const manuallyDismissed = localStorage.getItem('dismissed-userscript-hint') === '1';
+    const userscriptActive = !!(window as any).__BTU_USERSCRIPT_ACTIVE;
+    return !manuallyDismissed && !userscriptActive;
+  });
+
   const maxResults = 20;
   const { theme, cycleTheme } = useTheme();
+
   const themeIcon = theme === 'dark' ? <Moon className="w-5 h-5" /> : theme === 'light' ? <Sun className="w-5 h-5" /> : <Monitor className="w-5 h-5" />;
   const { canInstall, install } = usePwaInstall();
   const scheduler = useSchedulerWorker();
@@ -252,6 +263,19 @@ export default function App() {
     }).catch(() => { });
   }, [exportHash]);
 
+  // Listen for the custom event in case React loads faster than the userscript executes
+  useEffect(() => {
+    const handleDetected = () => setShowUserscriptHint(false);
+    window.addEventListener('btu-userscript-detected', handleDetected);
+
+    // Safety check for race conditions
+    if (typeof window !== 'undefined' && (window as any).__BTU_USERSCRIPT_ACTIVE) {
+      setShowUserscriptHint(false);
+    }
+
+    return () => window.removeEventListener('btu-userscript-detected', handleDetected);
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 md:p-8 font-sans transition-colors" role="main">
       <div className="max-w-6xl mx-auto">
@@ -307,7 +331,7 @@ export default function App() {
           <p className="text-gray-600 dark:text-gray-400 mb-4 no-print">
             <Trans>Upload course files, dial in your precise constraints, and find your perfect week.</Trans>
           </p>
-          {!localStorage.getItem('hide-userscript-hint') && (
+          {showUserscriptHint && (
             <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 text-sm text-amber-800 dark:text-amber-300 no-print">
               <Puzzle className="w-4 h-4 shrink-0" />
               <span className="flex-1">
@@ -319,7 +343,10 @@ export default function App() {
                 </a>{' '}
                 <Trans>to export timetable pages directly from BTU's website.</Trans>
               </span>
-              <button onClick={(e) => { (e.currentTarget.parentElement as HTMLElement).remove(); localStorage.setItem('hide-userscript-hint', '1'); }}
+              <button onClick={() => {
+                localStorage.setItem('dismissed-userscript-hint', '1');
+                setShowUserscriptHint(false); }
+              }
                 className="p-1 rounded hover:bg-amber-100 dark:hover:bg-amber-800/40 transition-colors shrink-0"
                 aria-label={t`Dismiss`}>
                 <X className="w-3.5 h-3.5" />
