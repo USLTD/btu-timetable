@@ -11,6 +11,11 @@ function toICalDateTime(d: Date, h: number, m: number): string {
   return `${toICalDate(d)}T${pad(h)}${pad(m)}00`;
 }
 
+/** Format a Date as UTC timestamp for DTSTAMP: YYYYMMDDTHHmmssZ */
+function toICalUTC(d: Date): string {
+  return `${d.getUTCFullYear()}${pad(d.getUTCMonth() + 1)}${pad(d.getUTCDate())}T${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}${pad(d.getUTCSeconds())}Z`;
+}
+
 /** Escape special characters for iCalendar text values. */
 function escapeICalText(text: string): string {
   return text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
@@ -40,6 +45,19 @@ function firstOccurrence(start: Date, dayNum: DayNumber): Date {
 
 /** Default semester length in weeks */
 const SEMESTER_WEEKS = 15;
+
+const BUILDING_A_ADDRESS = '82 Ilia Chavchavadze Avenue, Tbilisi 0179';
+const BUILDING_B_ADDRESS = 'N 82 Ilia Chavchavadze Avenue, Tbilisi 0162';
+
+/** Determine the full location string from a room code. */
+function roomToLocation(room: string): string {
+  if (!room) return '';
+  const trimmed = room.trim();
+  if (trimmed.toUpperCase().startsWith('B')) {
+    return `${trimmed}, ${BUILDING_B_ADDRESS}`;
+  }
+  return `${trimmed}, ${BUILDING_A_ADDRESS}`;
+}
 
 export function generateICS(schedule: ScheduleItem[], reminderMinutes?: number): string {
   // Use next Monday as the reference week
@@ -75,11 +93,13 @@ export function generateICS(schedule: ScheduleItem[], reminderMinutes?: number):
       const summary = escapeICalText(
         (item.course.subjectCode ? item.course.subjectCode + ' ' : '') + item.course.courseName
       );
-      const location = escapeICalText(t.room || '');
-      const description = escapeICalText(`${item.group.name} — ${item.group.instructor}`);
+      const location = escapeICalText(roomToLocation(t.room || ''));
+      const description = escapeICalText(`${item.group.name} — ${item.group.lecturer}`);
+      const dtstamp = toICalUTC(now);
 
       lines.push(
         'BEGIN:VEVENT',
+        `DTSTAMP:${dtstamp}`,
         `DTSTART:${dtStart}`,
         `DTEND:${dtEnd}`,
         `RRULE:FREQ=WEEKLY;COUNT=${SEMESTER_WEEKS}`,

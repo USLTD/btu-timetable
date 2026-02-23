@@ -1,8 +1,10 @@
-import { Trash2, CheckCircle, Lock, GripVertical, EyeOff } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Trash2, CheckCircle, Lock, GripVertical, EyeOff, ChevronDown, Ban, X } from 'lucide-react';
 import { DragDropProvider } from '@dnd-kit/react';
 import { useSortable } from '@dnd-kit/react/sortable';
 import { Trans, useLingui } from '@lingui/react/macro';
 import type { Course } from '../types.ts';
+
 interface CourseListProps {
   courses: Course[];
   loading: boolean;
@@ -10,19 +12,144 @@ interface CourseListProps {
   onClear: () => void;
   onGenerate: () => void;
   onLockGroup: (courseIdx: number, groupName: string | undefined) => void;
+  onExcludeGroups: (courseIdx: number, excludedGroups: string[]) => void;
   onReorder: (courses: Course[]) => void;
   whatIfExclusions: Set<string>;
   onToggleWhatIf: (courseName: string) => void;
 }
-function SortableCourseItem({ course, index, onToggle, onLockGroup, isWhatIfExcluded, onToggleWhatIf }: {
+
+function GroupPopover({ course, index, onLockGroup, onExcludeGroups }: {
+  course: Course; index: number;
+  onLockGroup: (i: number, g: string | undefined) => void;
+  onExcludeGroups: (i: number, excluded: string[]) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  const { t } = useLingui();
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  const excluded = course.excludedGroups ?? [];
+  const excludedCount = excluded.length;
+  const hasLocked = !!course.lockedGroup;
+
+  const handleLock = (groupName: string) => {
+    if (course.lockedGroup === groupName) {
+      onLockGroup(index, undefined);
+    } else {
+      onLockGroup(index, groupName);
+      // Remove from excluded if locking it
+      if (excluded.includes(groupName)) {
+        onExcludeGroups(index, excluded.filter(g => g !== groupName));
+      }
+    }
+  };
+
+  const handleExclude = (groupName: string) => {
+    // Can't exclude a locked group — unlock first
+    if (course.lockedGroup === groupName) {
+      onLockGroup(index, undefined);
+    }
+    if (excluded.includes(groupName)) {
+      onExcludeGroups(index, excluded.filter(g => g !== groupName));
+    } else {
+      onExcludeGroups(index, [...excluded, groupName]);
+    }
+  };
+
+  // Label for the trigger button
+  let label = t`Any group`;
+  if (hasLocked) label = course.lockedGroup!;
+  else if (excludedCount > 0) label = t`${course.groups.length - excludedCount}/${course.groups.length}`;
+
+  return (
+    <div className="relative" ref={ref}>
+      <button
+        onClick={() => setOpen(!open)}
+        className={`text-xs border rounded px-2 py-1.5 flex items-center gap-1 min-h-[36px] transition-colors ${hasLocked
+            ? 'border-amber-300 dark:border-amber-600 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300'
+            : excludedCount > 0
+              ? 'border-red-300 dark:border-red-600 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-300'
+              : 'border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'
+          }`}
+        aria-label={t`Manage groups for ${course.courseName}`}
+      >
+        {hasLocked && <Lock className="w-3 h-3 shrink-0" />}
+        {!hasLocked && excludedCount > 0 && <Ban className="w-3 h-3 shrink-0" />}
+        <span className="truncate max-w-24 sm:max-w-32">{label}</span>
+        <ChevronDown className="w-3 h-3 shrink-0" />
+      </button>
+
+      {open && (
+        <div className="absolute left-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-50 min-w-[220px] py-1 max-h-[300px] overflow-y-auto">
+          <div className="px-3 py-1.5 text-xs font-semibold text-gray-500 dark:text-gray-400 border-b border-gray-100 dark:border-gray-700">
+            {t`Groups`}
+          </div>
+          {course.groups.map(g => {
+            const isLocked = course.lockedGroup === g.name;
+            const isExcluded = excluded.includes(g.name);
+            return (
+              <div key={g.name} className={`flex items-center gap-1.5 px-3 py-2 text-sm ${isExcluded ? 'bg-red-50/50 dark:bg-red-900/10' : isLocked ? 'bg-amber-50/50 dark:bg-amber-900/10' : ''
+                }`}>
+                <div className="flex-1 min-w-0">
+                  <div className={`font-medium truncate ${isExcluded ? 'line-through text-gray-400 dark:text-gray-500' : 'text-gray-700 dark:text-gray-300'}`}>
+                    {g.name}
+                  </div>
+                  <div className="text-xs text-gray-400 dark:text-gray-500 truncate">{g.lecturer}</div>
+                </div>
+                <button
+                  onClick={() => handleLock(g.name)}
+                  title={isLocked ? t`Unlock` : t`Lock to this group only`}
+                  className={`p-1 rounded transition-colors shrink-0 ${isLocked
+                      ? 'text-amber-500 bg-amber-100 dark:bg-amber-900/30'
+                      : 'text-gray-300 dark:text-gray-600 hover:text-amber-500'
+                    }`}
+                >
+                  <Lock className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  onClick={() => handleExclude(g.name)}
+                  title={isExcluded ? t`Mark available` : t`Mark as occupied`}
+                  className={`p-1 rounded transition-colors shrink-0 ${isExcluded
+                      ? 'text-red-500 bg-red-100 dark:bg-red-900/30'
+                      : 'text-gray-300 dark:text-gray-600 hover:text-red-500'
+                    }`}
+                >
+                  <Ban className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            );
+          })}
+          {(hasLocked || excludedCount > 0) && (
+            <button
+              onClick={() => { onLockGroup(index, undefined); onExcludeGroups(index, []); }}
+              className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 border-t border-gray-100 dark:border-gray-700"
+            >
+              <X className="w-3 h-3" /> {t`Reset all`}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function SortableCourseItem({ course, index, onToggle, onLockGroup, onExcludeGroups, isWhatIfExcluded, onToggleWhatIf }: {
   course: Course; index: number;
   onToggle: (i: number) => void;
   onLockGroup: (i: number, g: string | undefined) => void;
+  onExcludeGroups: (i: number, excluded: string[]) => void;
   isWhatIfExcluded: boolean;
   onToggleWhatIf: (name: string) => void;
 }) {
   const { ref, isDragging } = useSortable({ id: course.courseName, index });
-  const { t } = useLingui();
   return (
     <div ref={ref} className={`flex items-center gap-1 ${isDragging ? 'opacity-50' : ''}`} role="listitem">
       <div className="cursor-grab text-gray-400 dark:text-gray-600 hover:text-gray-600 dark:hover:text-gray-400 touch-none p-1">
@@ -43,35 +170,25 @@ function SortableCourseItem({ course, index, onToggle, onLockGroup, isWhatIfExcl
           {course.courseName}
         </span>
         {course.lockedGroup && <Lock className="w-3 h-3 text-amber-500" />}
+        {!course.lockedGroup && (course.excludedGroups?.length ?? 0) > 0 && <Ban className="w-3 h-3 text-red-400" />}
       </button>
       {course.isActive && (
         <button
           onClick={() => onToggleWhatIf(course.courseName)}
-          title={isWhatIfExcluded ? t`Re-include in "What if"` : t`Exclude in "What if" mode`}
-          aria-label={isWhatIfExcluded ? t`Re-include ${course.courseName}` : t`Exclude ${course.courseName}`}
+          title={isWhatIfExcluded ? 'Re-include' : 'Exclude in \"What if\" mode'}
           className={`p-1 rounded transition-colors ${isWhatIfExcluded ? 'text-amber-500' : 'text-gray-300 dark:text-gray-600 hover:text-amber-400'}`}
         >
           <EyeOff className="w-3.5 h-3.5" />
         </button>
       )}
       {course.isActive && course.groups.length > 1 && (
-        <select
-          value={course.lockedGroup ?? ''}
-          onChange={e => onLockGroup(index, e.target.value || undefined)}
-          className="text-xs border dark:border-gray-600 rounded px-1 py-0.5 bg-white dark:bg-gray-800 dark:text-gray-300 max-w-30 truncate"
-          title={t`Lock to a specific group`}
-          aria-label={t`Lock group for ${course.courseName}`}
-        >
-          <option value="">{t`Any group`}</option>
-          {course.groups.map(g => (
-            <option key={g.name} value={g.name}>{g.name} - {g.instructor}</option>
-          ))}
-        </select>
+        <GroupPopover course={course} index={index} onLockGroup={onLockGroup} onExcludeGroups={onExcludeGroups} />
       )}
     </div>
   );
 }
-export function CourseList({ courses, loading, onToggle, onClear, onGenerate, onLockGroup, onReorder, whatIfExclusions, onToggleWhatIf }: CourseListProps) {
+
+export function CourseList({ courses, loading, onToggle, onClear, onGenerate, onLockGroup, onExcludeGroups, onReorder, whatIfExclusions, onToggleWhatIf }: CourseListProps) {
   if (courses.length === 0) return null;
   const { t } = useLingui();
   return (
@@ -99,6 +216,7 @@ export function CourseList({ courses, loading, onToggle, onClear, onGenerate, on
         <div className="flex flex-wrap gap-2 mb-6" role="list" aria-label={t`Course list`}>
           {courses.map((c, i) => (
             <SortableCourseItem key={c.courseName} course={c} index={i} onToggle={onToggle} onLockGroup={onLockGroup}
+              onExcludeGroups={onExcludeGroups}
               isWhatIfExcluded={whatIfExclusions.has(c.courseName)} onToggleWhatIf={onToggleWhatIf} />
           ))}
         </div>

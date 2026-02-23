@@ -1,4 +1,4 @@
-import type { BusyPeriod, Course, DayNumber, DaySettings, GapSegment, Group, InstructorPref, MinMax, RejectionReason, ScheduleItem, SchedulerResult, ScoredSchedule, TimeSlot } from '../types.ts';
+import type { BusyPeriod, Course, DayNumber, DaySettings, GapSegment, Group, LecturerPref, MinMax, RejectionReason, ScheduleItem, SchedulerResult, ScoredSchedule, TimeSlot } from '../types.ts';
 import { parseTime } from './time.ts';
 
 function hasOverlap(schedule: ScheduleItem[], newGroup: Group, overlapLimit: number): { overlaps: boolean; conflictItem?: ScheduleItem } {
@@ -34,11 +34,11 @@ export interface SchedulerOptions {
   maxOverlap: number;
   dailyCommute: MinMax;
   maxResults: number;
-  instructorPrefs?: InstructorPref[];
+  lecturerPrefs?: LecturerPref[];
 }
 
 export function generateSchedules(courses: Course[], options: SchedulerOptions): SchedulerResult {
-  const { daySettings, classesPerDay, maxOverlap, dailyCommute, maxResults, instructorPrefs } = options;
+  const { daySettings, classesPerDay, maxOverlap, dailyCommute, maxResults, lecturerPrefs } = options;
 
   // Feature 8: sort by order field
   const activeCourses = courses.filter(c => c.isActive).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
@@ -75,9 +75,10 @@ export function generateSchedules(courses: Course[], options: SchedulerOptions):
     const course = activeCourses[courseIdx];
 
     // Feature 5: group locking — only try the locked group if set
+    // Multi-group exclusion: filter out excluded groups
     const candidates = course.lockedGroup
       ? course.groups.filter(g => g.name === course.lockedGroup)
-      : course.groups;
+      : course.groups.filter(g => !course.excludedGroups?.includes(g.name));
 
     for (const group of candidates) {
       let isInvalid = false;
@@ -120,7 +121,7 @@ export function generateSchedules(courses: Course[], options: SchedulerOptions):
 
   dfs(0, [], { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0 });
 
-  const scored = allValid.map(sched => scoreSchedule(sched, daySettings, dailyCommute, instructorPrefs));
+  const scored = allValid.map(sched => scoreSchedule(sched, daySettings, dailyCommute, lecturerPrefs));
   scored.sort((a, b) => b.score - a.score);
 
   return { schedules: scored.slice(0, maxResults), limitReached, rejections };
@@ -136,7 +137,7 @@ export function trySimilar(
   options: SchedulerOptions,
   maxNeighbors = 10,
 ): ScoredSchedule[] {
-  const { daySettings, classesPerDay, maxOverlap, dailyCommute, instructorPrefs } = options;
+  const { daySettings, classesPerDay, maxOverlap, dailyCommute, lecturerPrefs } = options;
   const neighbors: ScoredSchedule[] = [];
 
   for (let i = 0; i < base.schedule.length; i++) {
@@ -185,7 +186,7 @@ export function trySimilar(
       }
       if (!valid) continue;
 
-      neighbors.push(scoreSchedule(candidate, daySettings, dailyCommute, instructorPrefs));
+      neighbors.push(scoreSchedule(candidate, daySettings, dailyCommute, lecturerPrefs));
     }
   }
 
@@ -193,7 +194,7 @@ export function trySimilar(
   return neighbors.slice(0, maxNeighbors);
 }
 
-function scoreSchedule(sched: ScheduleItem[], daySettings: DaySettings, dailyCommute: MinMax, instructorPrefs?: InstructorPref[]): ScoredSchedule {
+function scoreSchedule(sched: ScheduleItem[], daySettings: DaySettings, dailyCommute: MinMax, lecturerPrefs?: LecturerPref[]): ScoredSchedule {
   const daysTracker: Record<number, { start: number; end: number; original: TimeSlot }[]> = {};
   for (const item of sched) {
     for (const t of item.group.times) {
@@ -244,10 +245,10 @@ function scoreSchedule(sched: ScheduleItem[], daySettings: DaySettings, dailyCom
   score -= totalCommuteTime * 500;
   score -= (totalGapTime / 60) * 50;
 
-  // Feature 6: instructor preference scoring
-  if (instructorPrefs && instructorPrefs.length > 0) {
+  // Feature 6: lecturer preference scoring
+  if (lecturerPrefs && lecturerPrefs.length > 0) {
     for (const item of sched) {
-      const pref = instructorPrefs.find(p => p.instructor === item.group.instructor);
+      const pref = lecturerPrefs.find(p => p.lecturer === item.group.lecturer);
       if (pref) {
         if (pref.weight === 'prefer') score += 200;
         else if (pref.weight === 'avoid') score -= 300;

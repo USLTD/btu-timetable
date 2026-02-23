@@ -1,5 +1,23 @@
 import { useSyncExternalStore, useCallback, useRef } from 'react';
 
+// --- One-time migration: instructor → lecturer ---
+(function migrateInstructorToLecturer() {
+  try {
+    const OLD_KEY = 'app-instructor-prefs';
+    const NEW_KEY = 'app-lecturer-prefs';
+    const raw = localStorage.getItem(OLD_KEY);
+    if (raw && !localStorage.getItem(NEW_KEY)) {
+      const parsed = JSON.parse(raw) as { instructor?: string; lecturer?: string; weight: string }[];
+      const migrated = parsed.map(p => ({
+        lecturer: p.lecturer ?? p.instructor ?? '',
+        weight: p.weight,
+      }));
+      localStorage.setItem(NEW_KEY, JSON.stringify(migrated));
+    }
+    localStorage.removeItem(OLD_KEY);
+  } catch { /* ignore */ }
+})();
+
 // --- Low-level helpers ---
 
 export function loadState<T>(key: string): T | undefined {

@@ -1,41 +1,41 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useSyncExternalStore, useCallback } from 'react';
 import { usePersistedState } from './storage.ts';
 
 export type Theme = 'light' | 'dark' | 'system';
 
 function applyTheme(resolved: 'light' | 'dark') {
   document.documentElement.classList.toggle('dark', resolved === 'dark');
+  // Update meta theme-color to match
+  const meta = document.querySelector('meta[name="theme-color"]');
+  if (meta) meta.setAttribute('content', resolved === 'dark' ? '#1f2937' : '#2563eb');
 }
 
-function getSystemTheme(): 'light' | 'dark' {
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+// --- useSyncExternalStore for system preference ---
+
+const DARK_MQ = '(prefers-color-scheme: dark)';
+
+function subscribeSystemTheme(callback: () => void): () => void {
+  const mql = window.matchMedia(DARK_MQ);
+  mql.addEventListener('change', callback);
+  return () => mql.removeEventListener('change', callback);
+}
+
+function getSystemSnapshot(): 'light' | 'dark' {
+  return window.matchMedia(DARK_MQ).matches ? 'dark' : 'light';
+}
+
+function getServerSnapshot(): 'light' | 'dark' {
+  return 'light';
 }
 
 export function useTheme() {
   const [theme, setTheme] = usePersistedState<Theme>('app-theme', 'system');
-  const [resolvedTheme, setResolved] = useState<'light' | 'dark'>(
-    theme === 'system' ? getSystemTheme() : theme
-  );
+  const systemTheme = useSyncExternalStore(subscribeSystemTheme, getSystemSnapshot, getServerSnapshot);
 
-  useEffect(() => {
-    if (theme !== 'system') {
-      setResolved(theme);
-      applyTheme(theme);
-      return;
-    }
-    const resolved = getSystemTheme();
-    setResolved(resolved);
-    applyTheme(resolved);
+  const resolvedTheme: 'light' | 'dark' = theme === 'system' ? systemTheme : theme;
 
-    const mq = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = (e: MediaQueryListEvent) => {
-      const r = e.matches ? 'dark' : 'light';
-      setResolved(r);
-      applyTheme(r);
-    };
-    mq.addEventListener('change', handler);
-    return () => mq.removeEventListener('change', handler);
-  }, [theme]);
+  // Apply whenever resolved theme changes
+  applyTheme(resolvedTheme);
 
   const cycleTheme = useCallback(() => {
     setTheme(prev => {
@@ -46,4 +46,3 @@ export function useTheme() {
 
   return { theme, setTheme, resolvedTheme, cycleTheme };
 }
-

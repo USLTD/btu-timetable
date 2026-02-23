@@ -1,9 +1,9 @@
 ﻿import { useState, useCallback, useEffect, useMemo } from 'react';
-import { Calendar as CalendarIcon, Sun, Moon, Monitor, Download, Share2, Import, Copy, Check, Printer, Undo2, Redo2, Puzzle, X } from 'lucide-react';
+import { Calendar as CalendarIcon, Sun, Moon, Monitor, Download, Share2, Import, Copy, Check, Printer, Undo2, Redo2, Puzzle, X, MoreHorizontal } from 'lucide-react';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { usePwaInstall } from './lib/use-pwa-install.ts';
 import { encodeState, importHash, shareToUrl } from './lib/url-state.ts';
-import type { Course, DayNumber, DayPref, DaySetting, DaySettings, InstructorPref, MinMax, RejectionReason, ScoredSchedule } from './types.ts';
+import type { Course, DayNumber, DayPref, DaySetting, DaySettings, LecturerPref, MinMax, RejectionReason, ScoredSchedule } from './types.ts';
 import { parseFiles } from './lib/parsers.ts';
 import { usePersistedState } from './lib/storage.ts';
 import { useTheme } from './lib/use-theme.ts';
@@ -14,6 +14,7 @@ import { SettingsPanel } from './components/settings-panel.tsx';
 import { FileUpload } from './components/file-upload.tsx';
 import { CourseList } from './components/course-list.tsx';
 import { ScheduleResults } from './components/schedule-results.tsx';
+import { ResponsiveDialog } from './components/responsive-dialog.tsx';
 const DEFAULT_DAY_SETTING = { min: 480, max: 1260 };
 const INITIAL_DAY_SETTINGS: DaySettings = {
   1: { pref: 'enabled', ...DEFAULT_DAY_SETTING },
@@ -32,7 +33,7 @@ export default function App() {
   const [maxOverlap, setMaxOverlap] = usePersistedState<number>('app-max-overlap', 5);
   const [globalTime, setGlobalTime] = usePersistedState<MinMax>('app-global-time', { min: 480, max: 1260 });
   const [daySettings, setDaySettings] = usePersistedState<DaySettings>('app-day-settings', INITIAL_DAY_SETTINGS);
-  const [instructorPrefs, setInstructorPrefs] = usePersistedState<InstructorPref[]>('app-instructor-prefs', []);
+  const [lecturerPrefs, setLecturerPrefs] = usePersistedState<LecturerPref[]>('app-lecturer-prefs', []);
   const [loading, setLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [showAdvanced, setShowAdvanced] = useState(false);
@@ -41,6 +42,9 @@ export default function App() {
   const [rejections, setRejections] = useState<RejectionReason[]>([]);
   const [whatIfExclusions, setWhatIfExclusions] = useState<Set<string>>(new Set());
   const [focusedSchedule, setFocusedSchedule] = useState(0);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showToolbarMenu, setShowToolbarMenu] = useState(false);
 
 
   // Initialize state based on manual dismissal OR the global variable injected by the userscript
@@ -60,8 +64,8 @@ export default function App() {
 
   // Undo/redo for settings
   const settingsSnapshot = useMemo(() => ({
-    daySettings, globalTime, classesPerDay, maxOverlap, dailyCommute, instructorPrefs,
-  }), [daySettings, globalTime, classesPerDay, maxOverlap, dailyCommute, instructorPrefs]);
+    daySettings, globalTime, classesPerDay, maxOverlap, dailyCommute, lecturerPrefs,
+  }), [daySettings, globalTime, classesPerDay, maxOverlap, dailyCommute, lecturerPrefs]);
 
   const restoreSettings = useCallback((s: typeof settingsSnapshot) => {
     setDaySettings(s.daySettings);
@@ -69,8 +73,8 @@ export default function App() {
     setClassesPerDay(s.classesPerDay);
     setMaxOverlap(s.maxOverlap);
     setDailyCommute(s.dailyCommute);
-    setInstructorPrefs(s.instructorPrefs);
-  }, [setDaySettings, setGlobalTime, setClassesPerDay, setMaxOverlap, setDailyCommute, setInstructorPrefs]);
+    setLecturerPrefs(s.lecturerPrefs);
+  }, [setDaySettings, setGlobalTime, setClassesPerDay, setMaxOverlap, setDailyCommute, setLecturerPrefs]);
 
   const { undo, redo, canUndo, canRedo } = useUndoRedo(settingsSnapshot, restoreSettings);
   const toggleDayPref = useCallback((dayNum: DayNumber) => {
@@ -108,6 +112,11 @@ export default function App() {
     updated[courseIdx] = { ...updated[courseIdx], lockedGroup: groupName };
     setCourses(updated);
   };
+  const handleExcludeGroups = (courseIdx: number, excludedGroups: string[]) => {
+    const updated = [...courses];
+    updated[courseIdx] = { ...updated[courseIdx], excludedGroups };
+    setCourses(updated);
+  };
   const handleReorder = (reordered: Course[]) => {
     setCourses(reordered);
   };
@@ -132,7 +141,7 @@ export default function App() {
         ? courses.map(c => whatIfExclusions.has(c.courseName) ? { ...c, isActive: false } : c)
         : courses;
       const result = await scheduler.run(effectiveCourses, {
-        daySettings, classesPerDay, maxOverlap, dailyCommute, maxResults, instructorPrefs,
+        daySettings, classesPerDay, maxOverlap, dailyCommute, maxResults, lecturerPrefs,
       });
       setSchedules(result.schedules);
       setLimitWarning(result.limitReached);
@@ -226,8 +235,8 @@ export default function App() {
   const [shared, setShared] = useState(false);
 
   const buildShareableState = useCallback(() => ({
-    courses, daySettings, globalTime, classesPerDay, maxOverlap, dailyCommute, instructorPrefs,
-  }), [courses, daySettings, globalTime, classesPerDay, maxOverlap, dailyCommute, instructorPrefs]);
+    courses, daySettings, globalTime, classesPerDay, maxOverlap, dailyCommute, lecturerPrefs,
+  }), [courses, daySettings, globalTime, classesPerDay, maxOverlap, dailyCommute, lecturerPrefs]);
 
   const handleShare = useCallback(() => {
     shareToUrl(buildShareableState());
@@ -308,17 +317,18 @@ export default function App() {
                 className={`p-2 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${shared ? 'text-green-500' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>
                 {shared ? <Check className="w-5 h-5" /> : <Share2 className="w-5 h-5" />}
               </button>
+              {/* Desktop-only: Undo, Redo, Print */}
               <button onClick={() => window.print()} title={t`Print schedule`} aria-label={t`Print schedule`}
-                className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors no-print focus-visible:ring-2 focus-visible:ring-blue-500">
+                className="hidden sm:inline-flex p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors no-print focus-visible:ring-2 focus-visible:ring-blue-500">
                 <Printer className="w-5 h-5" />
               </button>
               <button onClick={undo} disabled={!canUndo} title={t`Undo (Ctrl+Z)`}
-                className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-30 no-print"
+                className="hidden sm:inline-flex p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-30 no-print"
                 aria-label={t`Undo`}>
                 <Undo2 className="w-5 h-5" />
               </button>
               <button onClick={redo} disabled={!canRedo} title={t`Redo (Ctrl+Y)`}
-                className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-30 no-print"
+                className="hidden sm:inline-flex p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-30 no-print"
                 aria-label={t`Redo`}>
                 <Redo2 className="w-5 h-5" />
               </button>
@@ -326,6 +336,29 @@ export default function App() {
                 className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500">
                 {themeIcon}
               </button>
+              {/* Mobile overflow menu */}
+              <div className="relative sm:hidden">
+                <button onClick={() => setShowToolbarMenu(!showToolbarMenu)} aria-label={t`More options`}
+                  className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                  <MoreHorizontal className="w-5 h-5" />
+                </button>
+                {showToolbarMenu && (
+                  <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-50 min-w-[140px] py-1">
+                    <button onClick={() => { undo(); setShowToolbarMenu(false); }} disabled={!canUndo}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30">
+                      <Undo2 className="w-4 h-4" /> {t`Undo`}
+                    </button>
+                    <button onClick={() => { redo(); setShowToolbarMenu(false); }} disabled={!canRedo}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30">
+                      <Redo2 className="w-4 h-4" /> {t`Redo`}
+                    </button>
+                    <button onClick={() => { window.print(); setShowToolbarMenu(false); }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <Printer className="w-4 h-4" /> {t`Print`}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
           <p className="text-gray-600 dark:text-gray-400 mb-4 no-print">
@@ -345,7 +378,8 @@ export default function App() {
               </span>
               <button onClick={() => {
                 localStorage.setItem('dismissed-userscript-hint', '1');
-                setShowUserscriptHint(false); }
+                setShowUserscriptHint(false);
+              }
               }
                 className="p-1 rounded hover:bg-amber-100 dark:hover:bg-amber-800/40 transition-colors shrink-0"
                 aria-label={t`Dismiss`}>
@@ -361,7 +395,7 @@ export default function App() {
               globalTime={globalTime} updateGlobalTime={updateGlobalTime}
               daySettings={daySettings} toggleDayPref={toggleDayPref} updateDayTime={updateDayTime} updateDaySetting={updateDaySetting}
               showAdvanced={showAdvanced} setShowAdvanced={setShowAdvanced}
-              courses={courses} instructorPrefs={instructorPrefs} setInstructorPrefs={setInstructorPrefs}
+              courses={courses} lecturerPrefs={lecturerPrefs} setLecturerPrefs={setLecturerPrefs}
             />
           </div>
           {/* Import / Export hash controls */}
@@ -409,7 +443,7 @@ export default function App() {
             <CourseList
               courses={courses} loading={loading}
               onToggle={toggleCourse} onClear={handleClear} onGenerate={handleGenerate}
-              onLockGroup={handleLockGroup} onReorder={handleReorder}
+              onLockGroup={handleLockGroup} onExcludeGroups={handleExcludeGroups} onReorder={handleReorder}
               whatIfExclusions={whatIfExclusions} onToggleWhatIf={toggleWhatIf}
             />
           </div>
@@ -417,7 +451,7 @@ export default function App() {
         <ScheduleResults
           schedules={schedules} daySettings={daySettings} dailyCommute={dailyCommute}
           classesPerDay={classesPerDay} maxOverlap={maxOverlap} maxResults={maxResults}
-          instructorPrefs={instructorPrefs}
+          lecturerPrefs={lecturerPrefs}
           hasSearched={hasSearched} loading={loading} limitWarning={limitWarning}
           rejections={rejections} courses={courses}
           onTogglePin={handleTogglePin}
@@ -425,10 +459,93 @@ export default function App() {
           onRemoveBusyPeriod={removeBusyPeriod}
         />
 
-        <footer className="mt-8 pb-4 text-center text-xs text-gray-400 dark:text-gray-500 no-print">
-          2026 © Luka Mamukashvili
+        <footer className="mt-8 pb-4 text-center text-xs text-gray-400 dark:text-gray-500 no-print space-y-1">
+          <div className="flex items-center justify-center gap-2 flex-wrap">
+            <span>2026 © Luka Mamukashvili</span>
+            <span>·</span>
+            <a href="https://github.com/USLTD/btu-timetable" target="_blank" rel="noopener noreferrer"
+              className="hover:text-blue-500 dark:hover:text-blue-400 underline transition-colors">Source Code</a>
+            <span>·</span>
+            <button onClick={() => setShowPrivacy(true)}
+              className="hover:text-blue-500 dark:hover:text-blue-400 underline transition-colors">Privacy Policy</button>
+            <span>·</span>
+            <button onClick={() => setShowTerms(true)}
+              className="hover:text-blue-500 dark:hover:text-blue-400 underline transition-colors">Terms of Service</button>
+          </div>
         </footer>
+
+        <ResponsiveDialog open={showPrivacy} onClose={() => setShowPrivacy(false)} title="Privacy Policy">
+          <PrivacyContent />
+        </ResponsiveDialog>
+
+        <ResponsiveDialog open={showTerms} onClose={() => setShowTerms(false)} title="Terms of Service">
+          <TermsContent />
+        </ResponsiveDialog>
       </div>
+    </div>
+  );
+}
+
+function PrivacyContent() {
+  return (
+    <div className="space-y-4">
+      <p className="text-gray-500 dark:text-gray-400 italic">Effective date: 23 February 2026</p>
+      <p>Easy BTU Timetable (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;the App&rdquo;) operates the website <a href="https://timetable.usltd.ge" className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">timetable.usltd.ge</a> and the associated Progressive Web App (the &ldquo;Service&rdquo;).</p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Information We Collect</h3>
+      <p>We collect <strong>no personal data</strong> of any kind.</p>
+      <ul className="list-disc pl-5 space-y-1">
+        <li>No names, emails, student IDs, or any other identifiers.</li>
+        <li>No IP addresses, device information, or analytics data are stored or transmitted by us.</li>
+        <li>All course data, preferences, busy periods, and generated schedules are processed <strong>entirely in your browser</strong> using JavaScript and never leave your device.</li>
+      </ul>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Local Storage and PWA Caching</h3>
+      <p>The App uses your browser&apos;s localStorage and IndexedDB (via the PWA service worker) to save your course list, constraints, and pinned schedules and enable offline functionality. You can clear this data at any time via your browser settings. We have no access to it.</p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Third-Party Services</h3>
+      <ul className="list-disc pl-5 space-y-1">
+        <li><strong>Hosting:</strong> GitHub Pages (static files only). GitHub&apos;s own privacy policy applies to any server logs they may keep; we do not receive or control them.</li>
+        <li>No advertising, tracking pixels, Google Analytics, Meta pixels, or any other third-party scripts are used.</li>
+      </ul>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Children&apos;s Privacy</h3>
+      <p>The Service is intended for university students. We do not knowingly collect data from anyone under 18.</p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Changes to This Policy</h3>
+      <p>We may update this Privacy Policy occasionally. We will post the new version with a new effective date. Continued use after changes constitutes acceptance.</p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Contact Us</h3>
+      <p>Questions? Open an issue at <a href="https://github.com/USLTD/btu-timetable/issues" className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">github.com/USLTD/btu-timetable/issues</a> or email the maintainer via the repository.</p>
+      <p className="text-gray-500 dark:text-gray-400 text-xs italic">This policy was last updated on 23 February 2026.</p>
+    </div>
+  );
+}
+
+function TermsContent() {
+  return (
+    <div className="space-y-4">
+      <p className="text-gray-500 dark:text-gray-400 italic">Effective date: 23 February 2026</p>
+      <p>Welcome to Easy BTU Timetable (the &ldquo;Service&rdquo;), provided by USLTD at <a href="https://timetable.usltd.ge" className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">timetable.usltd.ge</a>.</p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Acceptance of Terms</h3>
+      <p>By accessing or using the Service, you agree to be bound by these Terms. If you do not agree, please do not use the Service.</p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Description of Service</h3>
+      <p>The Service is a free, open-source Progressive Web App that helps students of Business and Technology University (BTU) generate optimal timetables from data exported from the BTU portal. All computation occurs locally in your browser.</p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">User Responsibilities</h3>
+      <ul className="list-disc pl-5 space-y-1">
+        <li>You are responsible for verifying that any generated schedule complies with BTU rules and your actual course requirements.</li>
+        <li>You must not use the Service for any unlawful purpose.</li>
+        <li>You acknowledge that the Service is provided &ldquo;as is&rdquo; and may contain inaccuracies.</li>
+      </ul>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Intellectual Property</h3>
+      <ul className="list-disc pl-5 space-y-1">
+        <li>The source code is licensed under the MIT License (see LICENSE file in the GitHub repository).</li>
+        <li>All BTU logos, course names, and related materials remain the property of BTU. The App merely processes user-supplied data.</li>
+      </ul>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Disclaimers and Limitation of Liability</h3>
+      <p className="uppercase text-xs">THE SERVICE IS PROVIDED &ldquo;AS IS&rdquo; AND &ldquo;AS AVAILABLE&rdquo; WITHOUT ANY WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED.</p>
+      <p>We are not affiliated with BTU and make no representations about the accuracy or completeness of generated schedules. We shall not be liable for any direct, indirect, incidental, special, consequential, or exemplary damages arising from your use of the Service, including but not limited to missed classes, scheduling conflicts, or academic consequences.</p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Governing Law</h3>
+      <p>These Terms are governed by the laws of Georgia (country), without regard to conflict-of-law principles. Any disputes shall be resolved in the courts of Tbilisi, Georgia.</p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Changes to Terms</h3>
+      <p>We may revise these Terms at any time. The updated version will be posted here with a new effective date. Your continued use constitutes acceptance.</p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100">Contact</h3>
+      <p>For questions, please open an issue at <a href="https://github.com/USLTD/btu-timetable" className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">github.com/USLTD/btu-timetable</a>.</p>
+      <p className="text-gray-500 dark:text-gray-400 text-xs italic">&copy; 2026 USLTD &ndash; MIT Licensed Open Source Project</p>
     </div>
   );
 }

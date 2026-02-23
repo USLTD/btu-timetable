@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Settings, ChevronDown, ChevronUp, Star, X, Plus, Trash2, Car } from 'lucide-react';
 import { Trans, useLingui } from '@lingui/react/macro';
 import { RangeSlider } from './range-slider.tsx';
-import type { BusyPeriod, Course, DayNumber, DayPref, DaySetting, DaySettings, InstructorPref, InstructorWeight, MinMax } from '../types.ts';
+import type { BusyPeriod, Course, DayNumber, DayPref, DaySetting, DaySettings, LecturerPref, LecturerWeight, MinMax } from '../types.ts';
 import { localizedDayName } from '../lib/constants.ts';
 import { formatTime } from '../lib/time.ts';
 
@@ -22,8 +22,8 @@ interface SettingsPanelProps {
   showAdvanced: boolean;
   setShowAdvanced: (v: boolean) => void;
   courses: Course[];
-  instructorPrefs: InstructorPref[];
-  setInstructorPrefs: (v: InstructorPref[]) => void;
+  lecturerPrefs: LecturerPref[];
+  setLecturerPrefs: (v: LecturerPref[]) => void;
 }
 
 export function SettingsPanel({
@@ -33,26 +33,26 @@ export function SettingsPanel({
   globalTime, updateGlobalTime,
   daySettings, toggleDayPref, updateDayTime, updateDaySetting,
   showAdvanced, setShowAdvanced,
-  courses, instructorPrefs, setInstructorPrefs,
+  courses, lecturerPrefs, setLecturerPrefs,
 }: SettingsPanelProps) {
-  const [showInstructors, setShowInstructors] = useState(false);
+  const [showLecturers, setShowLecturers] = useState(false);
   const { t, i18n } = useLingui();
   const locale = i18n.locale;
 
-  // Collect unique instructors from loaded courses
-  const allInstructors = [...new Set(courses.flatMap(c => c.groups.map(g => g.instructor)))].filter(Boolean).sort();
+  // Collect unique lecturers from loaded courses
+  const allLecturers = [...new Set(courses.flatMap(c => c.groups.map(g => g.lecturer)))].filter(Boolean).sort();
 
-  const getInstructorWeight = (name: string): InstructorWeight => {
-    return instructorPrefs.find(p => p.instructor === name)?.weight ?? 'neutral';
+  const getLecturerWeight = (name: string): LecturerWeight => {
+    return lecturerPrefs.find(p => p.lecturer === name)?.weight ?? 'neutral';
   };
 
-  const cycleInstructorPref = (name: string) => {
-    const current = getInstructorWeight(name);
-    const order: InstructorWeight[] = ['neutral', 'prefer', 'avoid'];
+  const cycleLecturerPref = (name: string) => {
+    const current = getLecturerWeight(name);
+    const order: LecturerWeight[] = ['neutral', 'prefer', 'avoid'];
     const next = order[(order.indexOf(current) + 1) % 3];
-    const filtered = instructorPrefs.filter(p => p.instructor !== name);
-    if (next !== 'neutral') filtered.push({ instructor: name, weight: next });
-    setInstructorPrefs(filtered);
+    const filtered = lecturerPrefs.filter(p => p.lecturer !== name);
+    if (next !== 'neutral') filtered.push({ lecturer: name, weight: next });
+    setLecturerPrefs(filtered);
   };
 
   return (
@@ -168,23 +168,23 @@ export function SettingsPanel({
       </div>
 
       {/* Instructor Preferences (Feature 6) */}
-      {allInstructors.length > 0 && (
+      {allLecturers.length > 0 && (
         <div className="border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm overflow-hidden bg-white dark:bg-gray-800">
-          <button onClick={() => setShowInstructors(!showInstructors)}
+          <button onClick={() => setShowLecturers(!showLecturers)}
             className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 flex justify-between items-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
             <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
               <Star className="w-4 h-4" />
-              <Trans>Instructor Preferences</Trans>
-              {instructorPrefs.length > 0 && <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-1.5 rounded-full">{instructorPrefs.length}</span>}
+              <Trans>Lecturer Preferences</Trans>
+              {lecturerPrefs.length > 0 && <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-1.5 rounded-full">{lecturerPrefs.length}</span>}
             </div>
-            {showInstructors ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
+            {showLecturers ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
           </button>
-          {showInstructors && (
+          {showLecturers && (
             <div className="p-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
               <p className="text-xs text-gray-500 dark:text-gray-400 pb-2 border-b dark:border-gray-700"><Trans>Click to cycle: Neutral → Prefer → Avoid</Trans></p>
               <div className="flex flex-wrap gap-2">
-                {allInstructors.map(name => {
-                  const weight = getInstructorWeight(name);
+                {allLecturers.map(name => {
+                  const weight = getLecturerWeight(name);
                   const cls = weight === 'prefer'
                     ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-300 dark:border-green-700'
                     : weight === 'avoid'
@@ -192,7 +192,7 @@ export function SettingsPanel({
                       : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600';
                   const icon = weight === 'prefer' ? <Star className="w-3 h-3 fill-current" /> : weight === 'avoid' ? <X className="w-3 h-3" /> : null;
                   return (
-                    <button key={name} onClick={() => cycleInstructorPref(name)}
+                    <button key={name} onClick={() => cycleLecturerPref(name)}
                       className={`border px-2 py-1 rounded-full text-xs flex items-center gap-1 transition-colors ${cls}`}>
                       {icon} {name}
                     </button>

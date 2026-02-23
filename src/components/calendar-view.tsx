@@ -171,7 +171,7 @@ export function CalendarView({ scheduleData, daySettings, dailyCommute, onAddBus
             </div>
             <div className="space-y-1 text-gray-600 dark:text-gray-300">
               <div><span className="font-semibold"><Trans>Group:</Trans></span> {item.group.name}</div>
-              <div><span className="font-semibold"><Trans>Instructor:</Trans></span> {item.group.instructor}</div>
+              <div><span className="font-semibold"><Trans>Lecturer:</Trans></span> {item.group.lecturer}</div>
               <div className="font-semibold mt-1"><Trans>All sessions:</Trans></div>
               {item.group.times.map((gt, gi) => (
                 <div key={gi} className="pl-2">{localizedDayName(gt.day, locale, 'short')} {gt.time} — {gt.room}</div>
@@ -209,7 +209,7 @@ export function CalendarView({ scheduleData, daySettings, dailyCommute, onAddBus
                 {item.course.subjectCode ? <span className="text-gray-500 dark:text-gray-400 font-mono text-xs">{item.course.subjectCode}<br /></span> : ''}
                 {item.course.courseName}
               </div>
-              <div className="text-gray-600 dark:text-gray-400 text-xs">{item.group.name} — {item.group.instructor}</div>
+              <div className="text-gray-600 dark:text-gray-400 text-xs">{item.group.name} — {item.group.lecturer}</div>
             </div>
           );
         })}

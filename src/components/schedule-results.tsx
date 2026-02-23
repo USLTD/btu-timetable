@@ -1,10 +1,12 @@
-import { useState, useCallback, useRef } from 'react';
-import { Calendar as CalendarIcon, Clock, AlertCircle, Download, Star, Timer, GitCompareArrows, Shuffle, Info, Bell, ChevronDown, ChevronUp, Pencil } from 'lucide-react';
+import { useState, useCallback, useRef, useEffect } from 'react';
+import { Calendar as CalendarIcon, Clock, AlertCircle, Download, Star, Timer, GitCompareArrows, Shuffle, Info, Bell, ChevronDown, ChevronUp, Pencil, FileText, Image, Printer } from 'lucide-react';
 import { Trans, useLingui } from '@lingui/react/macro';
-import type { BusyPeriod, Course, DayNumber, DaySettings, InstructorPref, MinMax, RejectionReason, ScoredSchedule } from '../types.ts';
+import type { BusyPeriod, Course, DayNumber, DaySettings, LecturerPref, MinMax, RejectionReason, ScoredSchedule } from '../types.ts';
 import { CalendarView } from './calendar-view.tsx';
 import { localizedDayName } from '../lib/constants.ts';
 import { generateICS, downloadICS } from '../lib/ics-export.ts';
+import { generateScheduleHTML, downloadHTML, exportToPrintablePDF } from '../lib/html-export.ts';
+import { exportAsImage, type ImageFormat } from '../lib/image-export.ts';
 import { trySimilar } from '../lib/scheduler.ts';
 import { formatDuration } from '../lib/time.ts';
 
@@ -15,7 +17,7 @@ interface ScheduleResultsProps {
   classesPerDay: MinMax;
   maxOverlap: number;
   maxResults: number;
-  instructorPrefs?: InstructorPref[];
+  lecturerPrefs?: LecturerPref[];
   hasSearched: boolean;
   loading: boolean;
   limitWarning: boolean;
@@ -28,7 +30,7 @@ interface ScheduleResultsProps {
   onRemoveBusyPeriod?: (dayNum: DayNumber, bpIdx: number) => void;
 }
 
-export function ScheduleResults({ schedules, daySettings, dailyCommute, classesPerDay, maxOverlap, maxResults, instructorPrefs, hasSearched, loading, limitWarning, rejections, courses, onTogglePin, onRenameSchedule, onLockGroup, onAddBusyPeriod, onRemoveBusyPeriod }: ScheduleResultsProps) {
+export function ScheduleResults({ schedules, daySettings, dailyCommute, classesPerDay, maxOverlap, maxResults, lecturerPrefs, hasSearched, loading, limitWarning, rejections, courses, onTogglePin, onRenameSchedule, onLockGroup, onAddBusyPeriod, onRemoveBusyPeriod }: ScheduleResultsProps) {
   const [reminderMinutes, setReminderMinutes] = useState(15);
   const [compareA, setCompareA] = useState<number | null>(null);
   const [compareB, setCompareB] = useState<number | null>(null);
@@ -37,6 +39,20 @@ export function ScheduleResults({ schedules, daySettings, dailyCommute, classesP
   const [editingLabel, setEditingLabel] = useState<number | null>(null);
   const labelInputRef = useRef<HTMLInputElement>(null);
   const { t, i18n } = useLingui();
+  const [openExportMenu, setOpenExportMenu] = useState<number | null>(null);
+  const exportMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close export menu on outside click
+  useEffect(() => {
+    if (openExportMenu === null) return;
+    const handler = (e: MouseEvent) => {
+      if (exportMenuRef.current && !exportMenuRef.current.contains(e.target as Node)) {
+        setOpenExportMenu(null);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [openExportMenu]);
 
   /** Format the free days list using ICU-localized day names */
   const formatFreeDays = (res: ScoredSchedule): string => {
@@ -48,6 +64,23 @@ export function ScheduleResults({ schedules, daySettings, dailyCommute, classesP
   const handleExportICS = (res: ScoredSchedule, idx: number) => {
     const ics = generateICS(res.schedule, reminderMinutes);
     downloadICS(ics, `schedule-option-${idx + 1}.ics`);
+    setOpenExportMenu(null);
+  };
+
+  const handleExportHTML = (res: ScoredSchedule, idx: number) => {
+    const html = generateScheduleHTML(res.schedule, `BTU Schedule — Option ${idx + 1}`);
+    downloadHTML(html, `schedule-option-${idx + 1}.html`);
+    setOpenExportMenu(null);
+  };
+
+  const handleExportPDF = (res: ScoredSchedule, idx: number) => {
+    exportToPrintablePDF(res.schedule, idx + 1);
+    setOpenExportMenu(null);
+  };
+
+  const handleExportImage = async (res: ScoredSchedule, idx: number, format: ImageFormat) => {
+    await exportAsImage(res.schedule, idx + 1, format);
+    setOpenExportMenu(null);
   };
 
   const handleTrySimilar = useCallback((idx: number, res: ScoredSchedule) => {
@@ -62,7 +95,7 @@ export function ScheduleResults({ schedules, daySettings, dailyCommute, classesP
       maxOverlap,
       dailyCommute,
       maxResults,
-      instructorPrefs,
+      lecturerPrefs,
     };
     const similar = trySimilar(res, courses, options);
     setSimilarResults(prev => ({ ...prev, [idx]: similar }));
@@ -277,12 +310,50 @@ export function ScheduleResults({ schedules, daySettings, dailyCommute, classesP
                       className={`p-2 rounded transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${res.pinned ? 'text-yellow-500' : 'text-gray-300 dark:text-gray-600 hover:text-yellow-400'}`}>
                       <Star className={`w-5 h-5 ${res.pinned ? 'fill-current' : ''}`} />
                     </button>
-                    {/* ICS export */}
-                    <button onClick={() => handleExportICS(res, idx)} title={t`Export as .ics`}
-                      aria-label={t`Export as ICS`}
-                      className="p-2 rounded text-gray-400 dark:text-gray-500 hover:text-blue-500 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500">
-                      <Download className="w-5 h-5" />
-                    </button>
+                    {/* Export button-dropdown */}
+                    <div className="relative" ref={openExportMenu === originalIdx ? exportMenuRef : undefined}>
+                      <div className="flex items-center">
+                        <button onClick={() => handleExportICS(res, idx)} title={t`Export as .ics`}
+                          aria-label={t`Export as ICS`}
+                          className="p-2 rounded-l text-gray-400 dark:text-gray-500 hover:text-blue-500 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 border-r border-gray-200 dark:border-gray-600">
+                          <Download className="w-5 h-5" />
+                        </button>
+                        <button onClick={() => setOpenExportMenu(openExportMenu === originalIdx ? null : originalIdx)}
+                          aria-label={t`More export options`}
+                          className="p-2 rounded-r text-gray-400 dark:text-gray-500 hover:text-blue-500 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500">
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                      {openExportMenu === originalIdx && (
+                        <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-50 min-w-[160px] py-1">
+                          <button onClick={() => handleExportICS(res, idx)}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <Download className="w-4 h-4" /> ICS
+                          </button>
+                          <button onClick={() => handleExportHTML(res, idx)}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <FileText className="w-4 h-4" /> HTML
+                          </button>
+                          <button onClick={() => handleExportPDF(res, idx)}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <Printer className="w-4 h-4" /> PDF
+                          </button>
+                          <div className="border-t border-gray-200 dark:border-gray-600 my-1" />
+                          <button onClick={() => handleExportImage(res, idx, 'png')}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <Image className="w-4 h-4" /> PNG
+                          </button>
+                          <button onClick={() => handleExportImage(res, idx, 'jpeg')}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <Image className="w-4 h-4" /> JPEG
+                          </button>
+                          <button onClick={() => handleExportImage(res, idx, 'svg')}
+                            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                            <Image className="w-4 h-4" /> SVG
+                          </button>
+                        </div>
+                      )}
+                    </div>
                     {/* Compare toggle */}
                     <button onClick={() => toggleCompare(idx)}
                       title={t`Compare`} aria-label={t`Compare schedules`}

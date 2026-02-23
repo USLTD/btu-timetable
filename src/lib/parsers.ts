@@ -52,10 +52,10 @@ export function parseRawBTUHtml(doc: Document, fileName: string): Course | null 
 
   groupNodes.forEach(node => {
     const groupName = node.textContent?.trim() ?? '';
-    let instructor = "Unknown";
+    let lecturer = "Unknown";
     const instNode = node.parentElement?.querySelector('.glyphicon-user');
     if (instNode?.nextSibling?.textContent) {
-      instructor = instNode.nextSibling.textContent.trim();
+      lecturer = instNode.nextSibling.textContent.trim();
     }
 
     const tr = node.closest('tr');
@@ -83,7 +83,7 @@ export function parseRawBTUHtml(doc: Document, fileName: string): Course | null 
       });
     }
     if (times.length > 0) {
-      groups.push({ name: groupName, instructor, times });
+      groups.push({ name: groupName, lecturer, times });
     }
   });
 
@@ -102,7 +102,7 @@ export function parseCleanHtmlExport(doc: Document): Course[] {
 
     const groupMap = new Map<string, Group>();
     let currentGroup = '';
-    let currentInstructor = '';
+    let currentLecturer = '';
 
     table.querySelectorAll('tbody tr').forEach(row => {
       const tds = row.querySelectorAll('td');
@@ -111,7 +111,7 @@ export function parseCleanHtmlExport(doc: Document): Course[] {
       let colOffset = 0;
       if (tds.length >= 5) {
         currentGroup = tds[0].textContent?.trim() ?? '';
-        currentInstructor = tds[1].textContent?.trim() ?? '';
+        currentLecturer = tds[1].textContent?.trim() ?? '';
         colOffset = 2;
       } else if (tds.length >= 3) {
         colOffset = 0;
@@ -126,7 +126,7 @@ export function parseCleanHtmlExport(doc: Document): Course[] {
       if (!currentGroup || !DAY_MAP[dayTxt]) return;
 
       if (!groupMap.has(currentGroup)) {
-        groupMap.set(currentGroup, { name: currentGroup, instructor: currentInstructor, times: [] });
+        groupMap.set(currentGroup, { name: currentGroup, lecturer: currentLecturer, times: [] });
       }
       groupMap.get(currentGroup)!.times.push({ day: DAY_MAP[dayTxt], time: timeTxt, room: roomTxt });
     });
@@ -159,7 +159,7 @@ export function parseJsonExport(text: string): Course[] {
     }
     const course = courseMap.get(courseName)!;
     if (!course.groups.has(entry.groupName)) {
-      course.groups.set(entry.groupName, { name: entry.groupName, instructor: entry.instructor, times: [] });
+      course.groups.set(entry.groupName, { name: entry.groupName, lecturer: entry.lecturer, times: [] });
     }
     const group = course.groups.get(entry.groupName)!;
     for (const sched of entry.schedules) {
@@ -209,7 +209,7 @@ export function parseCsvExport(text: string): Course[] {
   for (let i = 1; i < lines.length; i++) {
     const cols = parseCSVRow(lines[i]);
     if (cols.length < 6) continue;
-    const [courseTitle, groupName, instructor, dayRaw, time, room] = cols;
+    const [courseTitle, groupName, lecturer, dayRaw, time, room] = cols;
     const { subjectCode, courseName } = parseCourseTitleString(courseTitle);
     const dayTxt = dayRaw.replace(/\s+/g, '').trim();
     if (!DAY_MAP[dayTxt]) continue;
@@ -219,7 +219,7 @@ export function parseCsvExport(text: string): Course[] {
     }
     const course = courseMap.get(courseName)!;
     if (!course.groups.has(groupName)) {
-      course.groups.set(groupName, { name: groupName, instructor, times: [] });
+      course.groups.set(groupName, { name: groupName, lecturer, times: [] });
     }
     course.groups.get(groupName)!.times.push({ day: DAY_MAP[dayTxt], time, room });
   }
@@ -246,23 +246,23 @@ export function parseMarkdownExport(text: string): Course[] {
 
   const groupMap = new Map<string, Group>();
   let currentGroup = '';
-  let currentInstructor = '';
+  let currentLecturer = '';
 
   for (const row of dataRows) {
     const cols = row.split('|').map(c => c.trim()).filter(c => c !== '');
     if (cols.length < 5) continue;
-    const [group, instructor, dayRaw, time, room] = cols;
+    const [group, lecturer, dayRaw, time, room] = cols;
 
     if (group) {
       currentGroup = group;
-      currentInstructor = instructor;
+      currentLecturer = lecturer;
     }
 
     const dayTxt = dayRaw.replace(/\s+/g, '').trim();
     if (!currentGroup || !DAY_MAP[dayTxt]) continue;
 
     if (!groupMap.has(currentGroup)) {
-      groupMap.set(currentGroup, { name: currentGroup, instructor: currentInstructor, times: [] });
+      groupMap.set(currentGroup, { name: currentGroup, lecturer: currentLecturer, times: [] });
     }
     groupMap.get(currentGroup)!.times.push({ day: DAY_MAP[dayTxt], time, room });
   }

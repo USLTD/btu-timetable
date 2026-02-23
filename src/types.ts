@@ -9,7 +9,7 @@ export interface TimeSlot {
 
 export interface Group {
   name: string;
-  instructor: string;
+  lecturer: string;
   times: TimeSlot[];
 }
 
@@ -19,6 +19,7 @@ export interface Course {
   groups: Group[];
   isActive: boolean;
   lockedGroup?: string;     // Feature 5: pre-selected group name
+  excludedGroups?: string[]; // Mark groups as occupied/unavailable
   order?: number;           // Feature 8: drag-and-drop ordering
 }
 
@@ -59,11 +60,11 @@ export interface GapSegment {
   end: number;
 }
 
-export type InstructorWeight = 'prefer' | 'neutral' | 'avoid';
+export type LecturerWeight = 'prefer' | 'neutral' | 'avoid';
 
-export interface InstructorPref {
-  instructor: string;
-  weight: InstructorWeight;
+export interface LecturerPref {
+  lecturer: string;
+  weight: LecturerWeight;
 }
 
 export interface ScoredSchedule {
@@ -101,6 +102,6 @@ export interface SchedulerResult {
 export interface ExportedGroupJSON {
   courseTitle: string;
   groupName: string;
-  instructor: string;
+  lecturer: string;
   schedules: { day: string; time: string; room: string }[];
 }

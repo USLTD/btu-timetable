@@ -1,6 +1,6 @@
 import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
 import { saveState } from './storage.ts';
-import type { Course, DaySettings, InstructorPref, MinMax } from '../types.ts';
+import type { Course, DaySettings, LecturerPref, MinMax } from '../types.ts';
 
 /** The subset of app state that is shareable via URL */
 export interface ShareableState {
@@ -10,7 +10,7 @@ export interface ShareableState {
   classesPerDay: MinMax;
   maxOverlap: number;
   dailyCommute: MinMax;
-  instructorPrefs: InstructorPref[];
+  lecturerPrefs: LecturerPref[];
 }
 
 /** localStorage key → ShareableState field mapping */
@@ -21,7 +21,7 @@ const KEY_MAP: { key: string; field: keyof ShareableState }[] = [
   { key: 'app-classes-per-day', field: 'classesPerDay' },
   { key: 'app-max-overlap', field: 'maxOverlap' },
   { key: 'app-commute', field: 'dailyCommute' },
-  { key: 'app-instructor-prefs', field: 'instructorPrefs' },
+  { key: 'app-lecturer-prefs', field: 'lecturerPrefs' },
 ];
 
 const HASH_PREFIX = '#share=';
@@ -31,12 +31,41 @@ export function encodeState(state: ShareableState): string {
   return compressToEncodedURIComponent(JSON.stringify(state));
 }
 
+/** Migrate old-format state (instructor → lecturer) if needed */
+function migrateState(raw: Record<string, unknown>): ShareableState {
+  const state = raw as unknown as ShareableState & { instructorPrefs?: { instructor?: string; weight: string }[] };
+
+  // Migrate instructorPrefs → lecturerPrefs
+  if (!state.lecturerPrefs && state.instructorPrefs) {
+    state.lecturerPrefs = state.instructorPrefs.map(p => ({
+      lecturer: (p as any).lecturer ?? p.instructor ?? '',
+      weight: p.weight as any,
+    }));
+    delete state.instructorPrefs;
+  }
+
+  // Migrate Group.instructor → Group.lecturer in courses
+  if (state.courses) {
+    for (const course of state.courses) {
+      for (const group of course.groups) {
+        const g = group as any;
+        if (g.instructor !== undefined && g.lecturer === undefined) {
+          g.lecturer = g.instructor;
+          delete g.instructor;
+        }
+      }
+    }
+  }
+
+  return state;
+}
+
 /** Decode a compressed string back into shareable state (returns null on failure) */
 export function decodeState(encoded: string): ShareableState | null {
   try {
     const json = decompressFromEncodedURIComponent(encoded);
     if (!json) return null;
-    return JSON.parse(json) as ShareableState;
+    return migrateState(JSON.parse(json));
   } catch {
     return null;
   }

@@ -22,6 +22,17 @@
   <link rel="icon" type="image/png" sizes="32x32" href="https://timetable.usltd.ge/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="https://timetable.usltd.ge/favicon-16x16.png">
   <title>Easy BTU Timetable</title>
+  <script>
+    // Blocking: apply theme before first paint to prevent FOWT
+    (function(){
+      try {
+        var t = JSON.parse(localStorage.getItem('app-theme') || '"system"');
+        var dark = t === 'dark' || (t === 'system' && matchMedia('(prefers-color-scheme:dark)').matches);
+        if (dark) document.documentElement.classList.add('dark');
+        document.querySelector('meta[name="theme-color"]').content = dark ? '#1f2937' : '#2563eb';
+      } catch(e) {}
+    })();
+  </script>
 </head>
 
 <body>
