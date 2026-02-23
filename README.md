@@ -2,7 +2,7 @@
 
 Offline-first schedule optimizer for [BTU (Business and Technology University)](https://btu.edu.ge/) students. Upload your course data, set constraints, and find the best timetable for your week — all in the browser.
 
-**[Try it live →](https://usltd.github.io/easy-btu-timetable/)**
+**[Try it live →](https://timetable.usltd.ge/)**
 
 ## Features
 
