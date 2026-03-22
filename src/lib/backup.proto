@@ -1,0 +1,78 @@
+syntax = "proto3";
+package timetable;
+
+message LocalizedString {
+  string en = 1;
+  string ka = 2;
+}
+
+message BackupEnvelope {
+  uint32 schema_version = 1;
+  BackupPayload payload = 2;
+}
+
+message BackupPayload {
+  repeated Course courses = 1;
+  repeated DaySettingEntry day_settings = 2;
+  MinMax global_time = 3;
+  MinMax classes_per_day = 4;
+  uint32 max_overlap = 5;
+  MinMax daily_commute = 6;
+  repeated LecturerPref lecturer_prefs = 7;
+  string time_format = 8;
+}
+
+message Course {
+  string course_name = 1;
+  string subject_code = 2;
+  repeated Group groups = 3;
+  bool is_active = 4;
+  string locked_group = 5;
+  repeated string excluded_groups = 6;
+  uint32 order = 7;
+  LocalizedString course_name_localized = 8;
+  LocalizedString subject_code_localized = 9;
+}
+
+message Group {
+  string name = 1;
+  string lecturer = 2;
+  repeated TimeSlot times = 3;
+  LocalizedString name_localized = 4;
+  LocalizedString lecturer_localized = 5;
+}
+
+message TimeSlot {
+  uint32 day = 1;
+  string time = 2;
+  string room = 3;
+  LocalizedString room_localized = 4;
+}
+
+message LecturerPref {
+  string lecturer = 1;
+  string weight = 2;
+}
+
+message MinMax {
+  float min = 1;
+  float max = 2;
+}
+
+message DaySettingEntry {
+  uint32 day = 1;
+  DaySetting setting = 2;
+}
+
+message DaySetting {
+  string pref = 1;
+  uint32 min = 2;
+  uint32 max = 3;
+  repeated BusyPeriod busy_periods = 4;
+  optional float commute = 5;
+}
+
+message BusyPeriod {
+  uint32 start = 1;
+  uint32 end = 2;
+}

@@ -1,18 +1,20 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Drawer } from 'vaul';
-import { X } from 'lucide-react';
-import { useMobile } from '../lib/use-mobile.ts';
+import type { ComponentChildren } from "preact";
+import { useEffect, useRef, useState } from "preact/hooks";
+import { Drawer } from "vaul";
+import { X } from "lucide-preact";
+import { useIsMobile } from "@/hooks/use-is-mobile";
+import { cx } from "@/lib/cx";
 
 interface ResponsiveDialogProps {
     open: boolean;
     onClose: () => void;
     title: string;
-    children: ReactNode;
+    children: ComponentChildren;
 }
 
 /** Adaptive dialog: bottom drawer on mobile, animated overlay modal on desktop. */
 export function ResponsiveDialog({ open, onClose, title, children }: ResponsiveDialogProps) {
-    const isMobile = useMobile();
+    const isMobile = useIsMobile();
     const overlayRef = useRef<HTMLDivElement>(null);
     const [visible, setVisible] = useState(false);
     const [animating, setAnimating] = useState(false);
@@ -20,25 +22,40 @@ export function ResponsiveDialog({ open, onClose, title, children }: ResponsiveD
     // Manage open/close animation lifecycle for desktop modal
     useEffect(() => {
         if (isMobile) return;
+        let rafId: number | null = null;
+        let timerId: number | null = null;
         if (open) {
             setVisible(true);
             // Trigger enter animation on next frame
-            requestAnimationFrame(() => setAnimating(true));
+            rafId = requestAnimationFrame(() => setAnimating(true));
         } else if (visible) {
             // Start exit animation
             setAnimating(false);
-            const timer = setTimeout(() => setVisible(false), 200);
-            return () => clearTimeout(timer);
+            timerId = window.setTimeout(() => setVisible(false), 200);
         }
-    }, [open, isMobile]);
+        return () => {
+            if (rafId !== null) cancelAnimationFrame(rafId);
+            if (timerId !== null) clearTimeout(timerId);
+        };
+    }, [open, isMobile, visible]);
 
     // Lock body scroll when desktop modal is open
     useEffect(() => {
-        if (isMobile || !visible) return;
+        if (isMobile || !open) return;
         const prev = document.body.style.overflow;
-        document.body.style.overflow = 'hidden';
-        return () => { document.body.style.overflow = prev; };
-    }, [visible, isMobile]);
+        const prevPaddingRight = document.body.style.paddingRight;
+
+        // Calculate scrollbar width to prevent layout shift
+        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+
+        document.body.style.overflow = "hidden";
+        document.body.style.paddingRight = `${scrollbarWidth}px`;
+
+        return () => {
+            document.body.style.overflow = prev;
+            document.body.style.paddingRight = prevPaddingRight;
+        };
+    }, [open, isMobile]);
 
     // Close on Escape key for desktop modal
     useEffect(() => {
@@ -76,18 +93,18 @@ export function ResponsiveDialog({ open, onClose, title, children }: ResponsiveD
 
     if (isMobile) {
         return (
-            <Drawer.Root open={open} onOpenChange={(o) => { if (!o) onClose(); }}>
+            <Drawer.Root open={open} onOpenChange={(o: boolean) => { if (!o) onClose(); }}>
                 <Drawer.Portal>
-                    <Drawer.Overlay className="fixed inset-0 bg-black/40 z-50" />
-                    <Drawer.Content className="bg-white dark:bg-gray-900 flex flex-col rounded-t-2xl mt-24 fixed bottom-0 left-0 right-0 z-50 max-h-[90vh]">
-                        <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-gray-300 dark:bg-gray-600 mt-3" />
-                        <div className="px-4 pt-4 pb-2 flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
-                            <Drawer.Title className="text-lg font-bold text-gray-800 dark:text-gray-100">{title}</Drawer.Title>
-                            <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                                <X className="w-5 h-5 text-gray-500" />
+                    <Drawer.Overlay class={styles.mobileOverlay} />
+                    <Drawer.Content class={styles.mobileContent}>
+                        <div class={styles.mobileHandle} />
+                        <div class={styles.mobileHeader}>
+                            <Drawer.Title class={styles.mobileTitle}>{title}</Drawer.Title>
+                            <button type="button" onClick={onClose} class={styles.closeButton} aria-label="Close dialog">
+                                <X class={styles.closeIcon} />
                             </button>
                         </div>
-                        <div className="px-4 py-4 overflow-y-auto flex-1 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                        <div class={styles.mobileBody}>
                             {children}
                         </div>
                     </Drawer.Content>
@@ -103,22 +120,48 @@ export function ResponsiveDialog({ open, onClose, title, children }: ResponsiveD
         <div
             ref={overlayRef}
             onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
-            className={`fixed inset-0 z-50 flex items-center justify-center transition-all duration-200 ${animating ? 'bg-black/40' : 'bg-black/0'}`}
+            onKeyDown={(e) => { if (e.key === "Escape") onClose(); }}
+            class={cx(styles.desktopOverlay, animating ? styles.desktopOverlayActive : styles.desktopOverlayIdle)}
             role="dialog"
             aria-modal="true"
             aria-label={title}
+            tabIndex={-1}
         >
-            <div className={`bg-white dark:bg-gray-900 rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] border border-gray-200 dark:border-gray-700 mx-4 flex flex-col transition-all duration-200 ${animating ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-95 translate-y-4'}`}>
-                <div className="px-6 pt-5 pb-3 flex items-center justify-between border-b border-gray-200 dark:border-gray-700 shrink-0">
-                    <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">{title}</h2>
-                    <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                        <X className="w-5 h-5 text-gray-500" />
+            <div class={cx(styles.desktopCard, animating ? styles.desktopCardActive : styles.desktopCardIdle)}>
+                <div class={styles.desktopHeader}>
+                    <h2 class={styles.desktopTitle}>{title}</h2>
+                    <button type="button" onClick={onClose} class={styles.closeButton} aria-label="Close dialog">
+                        <X class={styles.closeIcon} />
                     </button>
                 </div>
-                <div className="px-6 py-5 overflow-y-auto text-sm text-gray-700 dark:text-gray-300 leading-relaxed flex-1">
+                <div class={styles.desktopBody}>
                     {children}
                 </div>
             </div>
         </div>
     );
 }
+
+const styles = {
+  mobileOverlay: "fixed inset-0 z-50 bg-black/40",
+  mobileContent:
+    "fixed left-0 right-0 bottom-0 z-50 mt-24 max-h-[90vh] flex flex-col rounded-t-2xl bg-white dark:bg-gray-900",
+  mobileHandle: "w-12 h-1.5 mt-3 mx-auto rounded-full bg-gray-300 shrink-0 dark:bg-gray-600",
+  mobileHeader:
+    "pt-4 pb-2 px-4 flex items-center justify-between border-b border-gray-200 gap-2 dark:border-gray-700",
+  mobileTitle: "text-lg font-bold text-gray-800 dark:text-gray-100",
+  mobileBody: "p-4 overflow-y-auto flex-1 min-h-0 text-sm text-gray-700 leading-relaxed dark:text-gray-300",
+  desktopOverlay: "fixed inset-0 z-50 flex items-center justify-center transition-colors",
+  desktopOverlayActive: "bg-black/40",
+  desktopOverlayIdle: "bg-black/0",
+  desktopCard:
+    "w-full max-w-[42rem] max-h-[80vh] m-4 flex flex-col rounded-xl border border-gray-200 bg-white shadow-2xl transition-[transform,opacity] duration-200 dark:border-gray-700 dark:bg-gray-900",
+  desktopCardActive: "opacity-100 scale-100 translate-y-0",
+  desktopCardIdle: "opacity-0 scale-95 translate-y-4",
+  desktopHeader:
+    "pt-5 pb-3 px-6 flex items-center justify-between border-b border-gray-200 gap-2 shrink-0 dark:border-gray-700",
+  desktopTitle: "text-xl font-bold text-gray-800 dark:text-gray-100",
+  desktopBody: "p-5 px-6 overflow-y-auto flex-1 min-h-0 text-sm text-gray-700 leading-relaxed dark:text-gray-300",
+  closeButton: "p-1.5 rounded-lg transition-colors cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700",
+  closeIcon: "w-5 h-5 text-gray-500",
+};

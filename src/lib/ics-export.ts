@@ -1,7 +1,9 @@
-import type { ScheduleItem, DayNumber } from '../types.ts';
-import { parseTime } from './time.ts';
+import { parseTime } from "./time";
+import type { DayNumber, ScheduleItem } from "./types";
 
-function pad(n: number): string { return n.toString().padStart(2, '0'); }
+function pad(n: number): string {
+  return n.toString().padStart(2, "0");
+}
 
 function toICalDate(d: Date): string {
   return `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
@@ -18,7 +20,11 @@ function toICalUTC(d: Date): string {
 
 /** Escape special characters for iCalendar text values. */
 function escapeICalText(text: string): string {
-  return text.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\n/g, '\\n');
+  return text
+    .replace(/\\/g, "\\\\")
+    .replace(/;/g, "\\;")
+    .replace(/,/g, "\\,")
+    .replace(/\n/g, "\\n");
 }
 
 /** Generate a UUID, with fallback for non-secure contexts. */
@@ -27,9 +33,9 @@ function generateUID(): string {
     return crypto.randomUUID();
   } catch {
     // Fallback for environments without crypto.randomUUID
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-      const r = Math.random() * 16 | 0;
-      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      return (c === "x" ? r : (r & 0x3) | 0x8).toString(16);
     });
   }
 }
@@ -46,34 +52,37 @@ function firstOccurrence(start: Date, dayNum: DayNumber): Date {
 /** Default semester length in weeks */
 const SEMESTER_WEEKS = 15;
 
-const BUILDING_A_ADDRESS = '82 Ilia Chavchavadze Avenue, Tbilisi 0179';
-const BUILDING_B_ADDRESS = 'N 82 Ilia Chavchavadze Avenue, Tbilisi 0162';
+const BUILDING_A_ADDRESS = "82 Ilia Chavchavadze Avenue, Tbilisi 0179";
+const BUILDING_B_ADDRESS = "N 82 Ilia Chavchavadze Avenue, Tbilisi 0162";
 
-/** Determine the full location string from a room code. */
+/** Determine the campus location string from a room code. */
 function roomToLocation(room: string): string {
-  if (!room) return '';
+  if (!room) return BUILDING_A_ADDRESS;
   const trimmed = room.trim();
-  if (trimmed.toUpperCase().startsWith('B')) {
-    return `${trimmed}, ${BUILDING_B_ADDRESS}`;
+  if (trimmed.toUpperCase().startsWith("B")) {
+    return BUILDING_B_ADDRESS;
   }
-  return `${trimmed}, ${BUILDING_A_ADDRESS}`;
+  return BUILDING_A_ADDRESS;
 }
 
-export function generateICS(schedule: ScheduleItem[], reminderMinutes?: number): string {
+export function generateICS(
+  schedule: ScheduleItem[],
+  reminderMinutes?: number,
+): string {
   // Use next Monday as the reference week
   const now = new Date();
   const day = now.getDay(); // 0=Sun
-  const diff = ((1 - day) + 7) % 7 || 7; // days until next Mon
+  const diff = (1 - day + 7) % 7 || 7; // days until next Mon
   const nextMonday = new Date(now);
   nextMonday.setDate(now.getDate() + diff);
   nextMonday.setHours(0, 0, 0, 0);
 
   const lines = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//EasyBTU//Schedule//EN',
-    'CALSCALE:GREGORIAN',
-    'METHOD:PUBLISH',
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//EasyBTU//Schedule//EN",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
   ];
 
   for (const item of schedule) {
@@ -90,15 +99,23 @@ export function generateICS(schedule: ScheduleItem[], reminderMinutes?: number):
       const dtStart = toICalDateTime(firstDate, startH, startM);
       const dtEnd = toICalDateTime(firstDate, endH, endM);
 
+      const subjectPrefix = item.course.subjectCode
+        ? `${item.course.subjectCode} `
+        : "";
       const summary = escapeICalText(
-        (item.course.subjectCode ? item.course.subjectCode + ' ' : '') + item.course.courseName
+        `${subjectPrefix}${item.course.courseName}`,
       );
-      const location = escapeICalText(roomToLocation(t.room || ''));
-      const description = escapeICalText(`${item.group.name} — ${item.group.lecturer}`);
+      const location = escapeICalText(roomToLocation(t.room || ""));
+      const descParts = [
+        `${subjectPrefix}${item.course.courseName}`,
+        `${item.group.name} \u2014 ${item.group.lecturer}`,
+      ];
+      if (t.room) descParts.push(`Room: ${t.room}`);
+      const description = escapeICalText(descParts.join("\\n"));
       const dtstamp = toICalUTC(now);
 
       lines.push(
-        'BEGIN:VEVENT',
+        "BEGIN:VEVENT",
         `DTSTAMP:${dtstamp}`,
         `DTSTART:${dtStart}`,
         `DTEND:${dtEnd}`,
@@ -112,29 +129,29 @@ export function generateICS(schedule: ScheduleItem[], reminderMinutes?: number):
       // Add alarm/reminder if requested
       if (reminderMinutes != null && reminderMinutes > 0) {
         lines.push(
-          'BEGIN:VALARM',
-          'ACTION:DISPLAY',
+          "BEGIN:VALARM",
+          "ACTION:DISPLAY",
           `DESCRIPTION:${escapeICalText(item.course.courseName)} in ${reminderMinutes} min`,
           `TRIGGER:-PT${reminderMinutes}M`,
-          'END:VALARM',
+          "END:VALARM",
         );
       }
 
-      lines.push('END:VEVENT');
+      lines.push("END:VEVENT");
     }
   }
 
-  lines.push('END:VCALENDAR');
-  return lines.join('\r\n');
+  lines.push("END:VCALENDAR");
+  return lines.join("\r\n");
 }
 
-export function downloadICS(content: string, filename = 'schedule.ics'): void {
-  const blob = new Blob([content], { type: 'text/calendar;charset=utf-8' });
+export function downloadICS(content: string, filename = "schedule.ics"): void {
+  const blob = new Blob([content], { type: "text/calendar;charset=utf-8" });
   const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
+  const a = document.createElement("a");
   a.href = url;
   a.download = filename;
-  a.style.display = 'none';
+  a.style.display = "none";
   document.body.appendChild(a);
   a.click();
   // Small delay to ensure download starts before cleanup
@@ -143,4 +160,3 @@ export function downloadICS(content: string, filename = 'schedule.ics'): void {
     URL.revokeObjectURL(url);
   }, 100);
 }
-
