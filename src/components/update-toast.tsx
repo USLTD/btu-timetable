@@ -1,6 +1,7 @@
-import { RefreshCw, X } from 'lucide-react';
-import { Trans } from '@lingui/react/macro';
-import { usePwaUpdate } from '../lib/use-pwa-update.ts';
+import { RefreshCw, X } from "lucide-preact";
+import * as m from "@/paraglide/messages";
+import { usePwaUpdate } from "@/hooks/use-pwa-update";
+import { cx } from "@/lib/cx";
 
 export function UpdateToast() {
     const { needsRefresh, applyUpdate, dismiss } = usePwaUpdate();
@@ -9,27 +10,41 @@ export function UpdateToast() {
     return (
         <div
             role="alert"
-            className="fixed bottom-4 right-4 z-50 max-w-sm bg-blue-600 text-white rounded-xl shadow-lg p-4 flex items-center gap-3 animate-slide-up"
+            class={cx(styles.toast, "animate-slide-up")}
         >
-            <RefreshCw className="w-5 h-5 shrink-0 animate-spin-slow" />
-            <div className="flex-1 text-sm">
-                <p className="font-semibold"><Trans>Update available</Trans></p>
-                <p className="text-blue-100 text-xs"><Trans>A new version is ready. Reload to update.</Trans></p>
+            <RefreshCw class={cx(styles.icon, "animate-spin-slow")} />
+            <div class={styles.content}>
+                <p class={styles.title}>{m.update_available()}</p>
+                <p class={styles.subtitle}>{m.a_new_version_is_ready_reload_to_update()}</p>
             </div>
-            <button
+            <button type="button"
                 onClick={applyUpdate}
-                className="px-3 py-1.5 bg-white text-blue-600 text-sm font-semibold rounded-lg hover:bg-blue-50 transition-colors"
-                aria-label="Reload to update"
+                class={styles.primaryButton}
+                aria-label={m.reload()}
             >
-                <Trans>Reload</Trans>
+                {m.reload()}
             </button>
-            <button
+            <button type="button"
                 onClick={dismiss}
-                className="p-1 text-blue-200 hover:text-white transition-colors"
-                aria-label="Dismiss update notification"
+                class={styles.dismissButton}
+                aria-label={m.dismiss()}
             >
-                <X className="w-4 h-4" />
+                <X class={styles.dismissIcon} />
             </button>
         </div>
     );
 }
+
+const styles = {
+  toast:
+    "fixed bottom-4 right-4 z-50 max-w-sm flex items-center gap-3 p-4 rounded-xl bg-blue-600 text-white shadow-lg",
+  icon: "w-5 h-5 shrink-0",
+  content: "flex-1 text-sm",
+  title: "font-semibold",
+  subtitle: "text-xs text-blue-100",
+  primaryButton:
+    "py-1.5 px-3 rounded-lg bg-white text-blue-600 text-sm font-semibold transition-colors hover:bg-blue-50 cursor-pointer",
+  dismissButton: "p-1 text-blue-200 transition-colors hover:text-white cursor-pointer",
+  dismissIcon: "w-4 h-4",
+};
+
