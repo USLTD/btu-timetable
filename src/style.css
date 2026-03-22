@@ -1,364 +1,130 @@
-@import "@unocss/reset/tailwind.css";
-@import "./styles/hydration.css";
+@import "tailwindcss";
 
-/* Keep custom select dropdown arrow */
-select {
-  appearance: none;
-  padding-right: 2.5rem;
-  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-  background-position: right 0.5rem center;
-  background-repeat: no-repeat;
-  background-size: 1.5em 1.5em;
-}
-
-/* Keep root containers full-width to avoid SSR alignment drift */
-#page-view,
-#page-content,
-main {
-  width: 100%;
-  min-width: 0;
-  display: block;
-}
-
-.dark [type='text'],
-.dark [type='email'],
-.dark [type='url'],
-.dark [type='password'],
-.dark [type='number'],
-.dark [type='date'],
-.dark [type='datetime-local'],
-.dark [type='month'],
-.dark [type='search'],
-.dark [type='tel'],
-.dark [type='time'],
-.dark [type='week'],
-.dark [multiple],
-.dark textarea,
-.dark select {
-  background-color: #374151;
-  border-color: #4b5563;
-  color: #f9fafb;
-}
-
-[type='text']:focus,
-[type='email']:focus,
-[type='url']:focus,
-[type='password']:focus,
-[type='number']:focus,
-[type='date']:focus,
-[type='datetime-local']:focus,
-[type='month']:focus,
-[type='search']:focus,
-[type='tel']:focus,
-[type='time']:focus,
-[type='week']:focus,
-[multiple]:focus,
-textarea:focus,
-select:focus {
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-  border-color: #3b82f6;
-  box-shadow: 0 0 0 1px #3b82f6;
-}
-
-
+@custom-variant dark (&:where(.dark, .dark *));
 
 /* Global focus-visible ring for keyboard navigation */
 :focus-visible {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
-  border-radius: 4px;
+    outline: 2px solid #3b82f6;
+    outline-offset: 2px;
+    border-radius: 4px;
 }
 
 /* Remove default outlines when using mouse */
 :focus:not(:focus-visible) {
-  outline: none;
+    outline: none;
 }
 
-/* Make native browser widgets respect dark mode */
+/* Make native browser widgets (clock icons, calendar pickers, number spinners)
+   respect dark mode so they don't stay black-on-white */
 .dark input[type="time"],
 .dark input[type="date"],
 .dark input[type="number"],
 .dark select {
-  color-scheme: dark;
-}
-
-/* Range slider thumb styling */
-.range-slider-input {
-  position: absolute;
-  width: 100%;
-  appearance: none;
-  background: transparent;
-  pointer-events: none;
-  cursor: pointer;
-}
-
-.range-slider-input::-webkit-slider-thumb {
-  pointer-events: auto;
-  width: 1rem;
-  height: 1rem;
-  appearance: none;
-  background: #2563eb;
-  border-radius: 9999px;
-}
-
-.range-slider-input::-moz-range-thumb {
-  pointer-events: auto;
-  width: 1rem;
-  height: 1rem;
-  appearance: none;
-  background: #2563eb;
-  border: none;
-  border-radius: 9999px;
+    color-scheme: dark;
 }
 
 /* Toast slide-up animation */
 @keyframes slide-up {
-  from {
-    transform: translateY(1rem);
-    opacity: 0;
-  }
-  to {
-    transform: translateY(0);
-    opacity: 1;
-  }
+    from {
+        transform: translateY(1rem);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
 .animate-slide-up {
-  animation: slide-up 0.3s ease-out;
+    animation: slide-up 0.3s ease-out;
 }
 
 /* Slow spin for update icon */
 @keyframes spin-slow {
-  to {
-    transform: rotate(360deg);
-  }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .animate-spin-slow {
-  animation: spin-slow 2s linear infinite;
-}
-
-/* Scroll-to-top button float animation */
-@keyframes float-bob {
-  0% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
-  100% {
-    transform: translateY(0);
-  }
-}
-
-.scroll-top-anim {
-  animation: float-bob 2.4s ease-in-out infinite;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .scroll-top-anim {
-    animation: none;
-  }
-
-  /* Disable all animations and transitions */
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-
-  /* Disable toast animations */
-  .animate-slide-up {
-    animation: none;
-    opacity: 1;
-    transform: none;
-  }
-
-  /* Disable page transitions */
-  #page-content {
-    transition: none;
-    opacity: 1;
-  }
-
-  /* Disable hover effects that rely on transitions */
-  button:hover,
-  [role="button"]:hover {
-    transform: none;
-  }
-
-  /* Ensure responsive dialog animations are disabled */
-  .transition-colors,
-  .transition-all,
-  .transition-transform {
-    transition: none !important;
-  }
-}
-
-/* Skip rendering offscreen schedule cards */
-.schedule-card {
-  content-visibility: auto;
-  contain-intrinsic-size: 800px 600px;
-}
-
-/* Screen reader only content */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-}
-
-/* Page transition animation */
-#page-content {
-  opacity: 1;
-  transition: opacity 0.3s ease-in-out;
-}
-body.page-transition #page-content {
-  opacity: 0;
+    animation: spin-slow 2s linear infinite;
 }
 
 /* Print-friendly styles */
 @media print {
-  .no-print,
-  footer,
-  [role="alert"],
-  .animate-slide-up {
-    display: none !important;
-  }
 
-  body {
-    background: white !important;
-    color: black !important;
-    font-size: 11pt;
-  }
+    /* Hide non-essential UI elements via .no-print class */
+    .no-print,
+    footer,
+    [role="alert"],
+    .animate-slide-up {
+        display: none !important;
+    }
 
-  * {
-    box-shadow: none !important;
-    text-shadow: none !important;
-  }
+    /* Reset backgrounds & shadows for clean printout */
+    body {
+        background: white !important;
+        color: black !important;
+        font-size: 11pt;
+    }
 
-  *,
-  *::before,
-  *::after {
-    color: black !important;
-    border-color: #999 !important;
-    background: white !important;
-  }
+    * {
+        box-shadow: none !important;
+        text-shadow: none !important;
+    }
 
-  [data-calendar] * {
-    background: transparent !important;
-  }
+    /* Force all text and borders to print-friendly colors */
+    *,
+    *::before,
+    *::after {
+        color: black !important;
+        border-color: #999 !important;
+        background: white !important;
+    }
 
-  [data-calendar] [class*="border-l-4"] {
-    border-left-color: #333 !important;
-    background: #f5f5f5 !important;
-  }
+    /* Preserve calendar course block colors as light gray tints */
+    [data-calendar] * {
+        background: transparent !important;
+    }
 
-  [data-calendar-grid] {
-    display: grid !important;
-  }
+    [data-calendar] [class*="border-l-4"] {
+        border-left-color: #333 !important;
+        background: #f5f5f5 !important;
+    }
 
-  [data-calendar-mobile] {
-    display: none !important;
-  }
+    /* Keep calendar grid layout intact — use data attributes */
+    [data-calendar-grid] {
+        display: grid !important;
+    }
 
-  .max-w-6xl {
-    max-width: 100% !important;
-  }
+    [data-calendar-mobile] {
+        display: none !important;
+    }
 
-  .rounded-xl,
-  .rounded-lg {
-    border-radius: 0 !important;
-  }
+    /* Full width, no max-width constraint */
+    .max-w-6xl {
+        max-width: 100% !important;
+    }
 
-  [id^="schedule-card"] {
-    break-inside: avoid;
-    page-break-inside: avoid;
-    margin-bottom: 1rem;
-    border: 1px solid #ccc !important;
-    padding: 0.5rem !important;
-  }
+    /* Remove rounded corners and outer padding */
+    .rounded-xl,
+    .rounded-lg {
+        border-radius: 0 !important;
+    }
 
-  .schedule-card {
-    content-visibility: visible !important;
-  }
+    /* Schedule cards: avoid page breaks inside */
+    [id^="schedule-card"] {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        margin-bottom: 1rem;
+        border: 1px solid #ccc !important;
+        padding: 0.5rem !important;
+    }
 
-  [data-calendar] {
-    break-inside: avoid;
-    page-break-inside: avoid;
-  }
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  :root {
-    --text-primary: #000000;
-    --text-secondary: #000000;
-    --text-muted: #000000;
-    --bg-primary: #ffffff;
-    --bg-secondary: #ffffff;
-    --bg-tertiary: #ffffff;
-    --border-primary: #000000;
-    --border-secondary: #000000;
-    --accent-primary: #0000ff;
-    --accent-secondary: #ff0000;
-  }
-
-  button, [role="button"] {
-    border: 2px solid #000000 !important;
-    font-weight: 600 !important;
-  }
-
-  button:focus, [role="button"]:focus {
-    outline: 3px solid #000000 !important;
-    outline-offset: 2px !important;
-  }
-
-  input, select, textarea {
-    border: 2px solid #000000 !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-  }
-
-  a {
-    color: #0000ff !important;
-    text-decoration: underline !important;
-    font-weight: 600 !important;
-  }
-
-  a:focus {
-    outline: 3px solid #000000 !important;
-    outline-offset: 2px !important;
-  }
-
-  .text-gray-400,
-  .text-gray-500,
-  .text-gray-600 {
-    color: #000000 !important;
-  }
-
-  .bg-gray-50,
-  .bg-gray-100,
-  .bg-gray-200 {
-    background: #ffffff !important;
-    border: 1px solid #000000 !important;
-  }
-
-  .border-gray-200,
-  .border-gray-300,
-  .border-gray-400 {
-    border-color: #000000 !important;
-  }
-
-  /* Ensure icons and images have proper contrast */
-  svg {
-    filter: contrast(1.5);
-  }
+    /* Keep calendar intact */
+    [data-calendar] {
+        break-inside: avoid;
+        page-break-inside: avoid;
+    }
 }

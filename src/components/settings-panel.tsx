@@ -1,302 +1,223 @@
-import {
-  Settings,
-  ChevronDown,
-  ChevronUp,
-  X,
-  Plus,
-  Trash2,
-  Car,
-} from "lucide-preact";
-import { useLocale } from "@/lib/i18n";
-import * as m from "@/paraglide/messages";
-import { RangeSlider } from "./range-slider";
-import type {
-  BusyPeriod,
-  DayNumber,
-  DayPref,
-  DaySetting,
-  DaySettings,
-  MinMax,
-} from "@/lib/types";
-import { localizedDayName } from "../lib/constants";
-import { formatTimeInput, formatClockTime } from "../lib/time";
-import { cx } from "@/lib/cx";
+import { useState } from 'react';
+import { Settings, ChevronDown, ChevronUp, Star, X, Plus, Trash2, Car } from 'lucide-react';
+import { Trans, useLingui } from '@lingui/react/macro';
+import { RangeSlider } from './range-slider.tsx';
+import type { BusyPeriod, Course, DayNumber, DayPref, DaySetting, DaySettings, LecturerPref, LecturerWeight, MinMax } from '../types.ts';
+import { localizedDayName } from '../lib/constants.ts';
+import { formatTime } from '../lib/time.ts';
 
 interface SettingsPanelProps {
   dailyCommute: MinMax;
   setDailyCommute: (v: MinMax) => void;
   classesPerDay: MinMax;
-  classesPerDayEnabled: boolean;
-  setClassesPerDayEnabled: (v: boolean) => void;
   setClassesPerDay: (v: MinMax) => void;
   maxOverlap: number;
-  maxOverlapEnabled: boolean;
-  setMaxOverlapEnabled: (v: boolean) => void;
-  maxDaysOnCampus: number | null;
-  setMaxDaysOnCampus: (v: number | null) => void;
   setMaxOverlap: (v: number) => void;
   globalTime: MinMax;
   updateGlobalTime: (min: number, max: number) => void;
   daySettings: DaySettings;
-  setDaySettings: (v: DaySettings | ((prev: DaySettings) => DaySettings)) => void;
   toggleDayPref: (dayNum: DayNumber) => void;
   updateDayTime: (dayNum: DayNumber, min: number, max: number) => void;
   updateDaySetting: (dayNum: DayNumber, patch: Partial<DaySetting>) => void;
   showAdvanced: boolean;
   setShowAdvanced: (v: boolean) => void;
-  enableTemplates?: boolean;
+  courses: Course[];
+  lecturerPrefs: LecturerPref[];
+  setLecturerPrefs: (v: LecturerPref[]) => void;
 }
 
 export function SettingsPanel({
   dailyCommute, setDailyCommute,
-  classesPerDay, setClassesPerDay, classesPerDayEnabled, setClassesPerDayEnabled,
-  maxOverlap, setMaxOverlap, maxOverlapEnabled, setMaxOverlapEnabled,
-  maxDaysOnCampus, setMaxDaysOnCampus,
+  classesPerDay, setClassesPerDay,
+  maxOverlap, setMaxOverlap,
   globalTime, updateGlobalTime,
-  daySettings, setDaySettings, toggleDayPref, updateDayTime, updateDaySetting,
+  daySettings, toggleDayPref, updateDayTime, updateDaySetting,
   showAdvanced, setShowAdvanced,
-  enableTemplates,
+  courses, lecturerPrefs, setLecturerPrefs,
 }: SettingsPanelProps) {
-  const locale = useLocale();
+  const [showLecturers, setShowLecturers] = useState(false);
+  const { t, i18n } = useLingui();
+  const locale = i18n.locale;
 
-  const applyTemplate = (prefs: Record<DayNumber, DayPref>) => {
-    setDaySettings((prev) => {
-      const next = { ...prev };
-      for (const day of [1, 2, 3, 4, 5, 6, 7] as DayNumber[]) {
-        next[day] = { ...prev[day], pref: prefs[day] ?? prev[day].pref };
-      }
-      return next;
-    });
+  // Collect unique lecturers from loaded courses
+  const allLecturers = [...new Set(courses.flatMap(c => c.groups.map(g => g.lecturer)))].filter(Boolean).sort();
+
+  const getLecturerWeight = (name: string): LecturerWeight => {
+    return lecturerPrefs.find(p => p.lecturer === name)?.weight ?? 'neutral';
   };
 
-  const resetDayPrefs = () => {
-    setDaySettings((prev) => {
-      const next = { ...prev };
-      for (const day of [1, 2, 3, 4, 5, 6, 7] as DayNumber[]) {
-        next[day] = { ...prev[day], pref: "enabled" };
-      }
-      return next;
-    });
+  const cycleLecturerPref = (name: string) => {
+    const current = getLecturerWeight(name);
+    const order: LecturerWeight[] = ['neutral', 'prefer', 'avoid'];
+    const next = order[(order.indexOf(current) + 1) % 3];
+    const filtered = lecturerPrefs.filter(p => p.lecturer !== name);
+    if (next !== 'neutral') filtered.push({ lecturer: name, weight: next });
+    setLecturerPrefs(filtered);
   };
 
   return (
-    <div class={styles.panel}>
+    <div className="mb-6 flex flex-col gap-6">
 
       {/* Main Config Grid */}
-      <div class={styles.mainCard}>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-x-6 gap-y-4 bg-gray-50 dark:bg-gray-800/50 p-5 rounded-lg border border-gray-200 dark:border-gray-700">
 
         {/* Daily Commute */}
-        <div class={cx(styles.section, styles.sectionWide)}>
-          <div class={styles.label}>{m.daily_round_trip_commute()}</div>
-          <div class={styles.row}>
-            <span class={styles.valueWide}>{dailyCommute.min}h</span>
-            <div class={styles.sliderWrap}>
+        <div className="flex flex-col gap-1.5 lg:col-span-2">
+          <label className="text-sm font-semibold text-gray-700 dark:text-gray-200"><Trans>Daily Round-Trip Commute</Trans></label>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-bold w-10 text-right dark:text-gray-300">{dailyCommute.min}h</span>
+            <div className="flex-1 px-2">
               <RangeSlider min={dailyCommute.min} max={dailyCommute.max} minLimit={0} maxLimit={6} step={0.5} onChange={(min, max) => setDailyCommute({ min, max })} />
             </div>
-            <span class={styles.valueWide}>{dailyCommute.max}h</span>
+            <span className="text-sm font-bold w-10 dark:text-gray-300">{dailyCommute.max}h</span>
           </div>
         </div>
 
         {/* Classes Per Day */}
-        <div class={cx(styles.section, styles.sectionWide)}>
-          <div class={styles.label}>
-            <label class="flex items-center gap-2 cursor-pointer w-fit" title="Toggle constraints to define required free/busy days instead">
-              <input type="checkbox" checked={classesPerDayEnabled} onChange={(e) => setClassesPerDayEnabled(e.currentTarget.checked)} class="w-3.5 h-3.5 rounded text-blue-600 focus:ring-blue-500" />
-              {m.classes_per_day_min_max()}
-            </label>
-          </div>
-          <div class={cx(styles.row, !classesPerDayEnabled && "opacity-50 pointer-events-none")}>
-            <span class={styles.valueNarrow}>{classesPerDay.min}</span>
-            <div class={styles.sliderWrap}>
+        <div className="flex flex-col gap-1.5 lg:col-span-2">
+          <label className="text-sm font-semibold text-gray-700 dark:text-gray-200"><Trans>Classes Per Day (Min - Max)</Trans></label>
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-bold w-4 text-right dark:text-gray-300">{classesPerDay.min}</span>
+            <div className="flex-1 px-2">
               <RangeSlider min={classesPerDay.min} max={classesPerDay.max} minLimit={1} maxLimit={8} step={1} onChange={(min, max) => setClassesPerDay({ min, max })} />
             </div>
-            <span class={styles.valueNarrow}>{classesPerDay.max}</span>
-          </div>
-        </div>
-
-        {/* Max Days On Campus */}
-        <div class={cx(styles.section, styles.sectionNarrow)}>
-          <div class={styles.label}>
-            <label class="flex items-center gap-2 cursor-pointer w-fit">
-              <input type="checkbox" checked={maxDaysOnCampus !== null} onChange={(e) => setMaxDaysOnCampus(e.currentTarget.checked ? 5 : null)} class="w-3.5 h-3.5 rounded text-blue-600 focus:ring-blue-500" />
-              {m.max_days_on_campus()}
-            </label>
-          </div>
-          <div class={cx(styles.rowTight, maxDaysOnCampus === null && "opacity-50 pointer-events-none")}>
-            <input type="number" step="1" min="1" max="7" value={maxDaysOnCampus ?? 5} onChange={(e) => setMaxDaysOnCampus(Number((e.currentTarget as HTMLInputElement).value))}
-              class={cx(styles.inputBase, styles.inputNarrow)} />
-            <span class={styles.helper}>{m.days()}</span>
+            <span className="text-sm font-bold w-4 dark:text-gray-300">{classesPerDay.max}</span>
           </div>
         </div>
 
         {/* Max Overlap */}
-        <div class={cx(styles.section, styles.sectionNarrow)}>
-          <div class={styles.label}>
-            <label class="flex items-center gap-2 cursor-pointer w-fit">
-              <input type="checkbox" checked={maxOverlapEnabled} onChange={(e) => setMaxOverlapEnabled(e.currentTarget.checked)} class="w-3.5 h-3.5 rounded text-blue-600 focus:ring-blue-500" />
-              {m.max_overlap()}
-            </label>
-          </div>
-          <div class={cx(styles.rowTight, !maxOverlapEnabled && "opacity-50 pointer-events-none")}>
-            <input type="number" step="1" min="0" value={maxOverlap} onChange={(e) => setMaxOverlap(Number((e.currentTarget as HTMLInputElement).value))}
-              class={cx(styles.inputBase, styles.inputNarrow)} />
-            <span class={styles.helper}>{m.mins()}</span>
+        <div className="flex flex-col gap-1.5">
+          <label className="text-sm font-semibold text-gray-700 dark:text-gray-200"><Trans>Max Overlap</Trans></label>
+          <div className="flex items-center gap-2">
+            <input type="number" step="1" min="0" value={maxOverlap} onChange={(e) => setMaxOverlap(Number(e.target.value))}
+              className="w-16 border dark:border-gray-600 rounded px-2 py-1 text-sm shadow-sm outline-none bg-white dark:bg-gray-800 dark:text-gray-200" />
+            <span className="text-sm text-gray-500 dark:text-gray-400"><Trans>mins</Trans></span>
           </div>
         </div>
 
         {/* Global Time Range */}
-        <div class={styles.sectionFull}>
-          <div class={styles.sectionHeader}>
-            <div class={styles.label}>{m.default_allowed_time_range_all_days()}</div>
+        <div className="flex flex-col gap-1.5 lg:col-span-5 pt-2 border-t border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1">
+            <label className="text-sm font-semibold text-gray-700 dark:text-gray-200"><Trans>Default Allowed Time Range (All Days)</Trans></label>
             {/* Quick presets */}
-            <div class={styles.quickPresetRow}>
-              <button type="button" onClick={() => updateGlobalTime(540, globalTime.max)}
-                class={styles.quickPresetBtn}
-                title={m.start_from_nine()}>
-                {m.from_nine().replace("9:00", formatClockTime(540, locale))}
+            <div className="flex items-center gap-1 text-xs flex-wrap">
+              <button onClick={() => updateGlobalTime(540, globalTime.max)}
+                className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                title={t`Start from 9:00`}>
+                <Trans>From 9:00</Trans>
               </button>
-              <button type="button" onClick={() => updateGlobalTime(600, globalTime.max)}
-                class={styles.quickPresetBtn}
-                title={m.start_from_ten()}>
-                {m.from_ten().replace("10:00", formatClockTime(600, locale))}
+              <button onClick={() => updateGlobalTime(600, globalTime.max)}
+                className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                title={t`Start from 10:00`}>
+                <Trans>From 10:00</Trans>
               </button>
-              <button type="button" onClick={() => updateGlobalTime(globalTime.min, 1020)}
-                class={styles.quickPresetBtn}
-                title={m.end_by_five_pm()}>
-                {m.until_five_pm().replace("17:00", formatClockTime(1020, locale))}
+              <button onClick={() => updateGlobalTime(globalTime.min, 1020)}
+                className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                title={t`End by 17:00`}>
+                <Trans>Until 17:00</Trans>
               </button>
-              <button type="button" onClick={() => updateGlobalTime(globalTime.min, 960)}
-                class={styles.quickPresetBtn}
-                title={m.end_by_four_pm()}>
-                {m.until_four_pm().replace("16:00", formatClockTime(960, locale))}
+              <button onClick={() => updateGlobalTime(globalTime.min, 960)}
+                className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-blue-100 dark:hover:bg-blue-900/30 transition-colors"
+                title={t`End by 16:00`}>
+                <Trans>Until 16:00</Trans>
               </button>
-              <button type="button" onClick={() => updateGlobalTime(480, 1260)}
-                class={cx(styles.quickPresetBtn, styles.quickPresetDanger)}
-                title={m.reset_to_full_range()}>
-                {m.reset()}
+              <button onClick={() => updateGlobalTime(480, 1260)}
+                className="px-2 py-0.5 rounded bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors"
+                title={t`Reset to full range`}>
+                <Trans>Reset</Trans>
               </button>
             </div>
           </div>
-          <div class={styles.rangeRow}>
-            <input type="time" value={formatTimeInput(globalTime.min)} onChange={(e) => { const [h, m] = (e.currentTarget as HTMLInputElement).value.split(':').map(Number); updateGlobalTime(Math.min((h * 60) + m, globalTime.max - 30), globalTime.max); }}
-              class={cx(styles.inputBase, styles.inputTimeCompact)} />
-            <div class={styles.rangeSliderDesktop}>
+          <div className="flex items-center gap-3 max-w-2xl">
+            <input type="time" value={formatTime(globalTime.min)} onChange={(e) => { const [h, m] = e.target.value.split(':').map(Number); updateGlobalTime(Math.min((h * 60) + m, globalTime.max - 30), globalTime.max); }}
+              className="border dark:border-gray-600 rounded px-2 py-1 text-sm shadow-sm bg-white dark:bg-gray-800 dark:text-gray-200" />
+            <div className="flex-1 hidden sm:block px-2">
               <RangeSlider min={globalTime.min} max={globalTime.max} minLimit={480} maxLimit={1320} step={30} onChange={updateGlobalTime} />
             </div>
-            <input type="time" value={formatTimeInput(globalTime.max)} onChange={(e) => { const [h, m] = (e.currentTarget as HTMLInputElement).value.split(':').map(Number); updateGlobalTime(globalTime.min, Math.max((h * 60) + m, globalTime.min + 30)); }}
-              class={cx(styles.inputBase, styles.inputTimeCompact)} />
+            <input type="time" value={formatTime(globalTime.max)} onChange={(e) => { const [h, m] = e.target.value.split(':').map(Number); updateGlobalTime(globalTime.min, Math.max((h * 60) + m, globalTime.min + 30)); }}
+              className="border dark:border-gray-600 rounded px-2 py-1 text-sm shadow-sm bg-white dark:bg-gray-800 dark:text-gray-200" />
           </div>
         </div>
       </div>
 
       {/* Day Constraints Row */}
-      <div class={styles.sectionStack}>
-        <div class={styles.label}>
-          {m.weekly_day_constraints_click_to_cycle()}
-        </div>
-        <div class={styles.dayRow}>
+      <div className="flex flex-col gap-2">
+        <label className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+          <Trans>Weekly Day Constraints (Click to cycle)</Trans>
+        </label>
+        <div className="grid grid-cols-4 sm:flex rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden w-full">
           {([1, 2, 3, 4, 5, 6, 7] as DayNumber[]).map((dayNum) => {
             const state = daySettings[dayNum].pref;
-            const dayLabel = localizedDayName(dayNum, locale, "long");
-            const prefClasses: Record<DayPref, string> = {
-              enabled: styles.dayButtonEnabled,
-              prioritize: styles.dayButtonPrioritize,
-              disabled: styles.dayButtonDisabled,
+            const shortName = localizedDayName(dayNum, locale, 'short');
+            const styles: Record<DayPref, string> = {
+              enabled: 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-100 border-green-500',
+              prioritize: 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 hover:bg-blue-100 border-blue-500',
+              disabled: 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 hover:bg-red-100 border-red-500 opacity-90',
             };
-            const labels: Record<DayPref, string> = { enabled: m.enabled(), prioritize: m.prioritize_free(), disabled: m.disabled() };
+            const labels: Record<DayPref, string> = { enabled: t`Enabled`, prioritize: t`Prioritize Free`, disabled: t`Disabled` };
             return (
-              <button type="button" key={dayNum} onClick={() => toggleDayPref(dayNum)}
-                aria-label={`${dayLabel}: ${labels[state]}`}
-                class={cx(styles.dayButton, prefClasses[state])}>
-                <div class={styles.dayShort}>{dayLabel}</div>
-                <div class={styles.dayLabel}>{labels[state]}</div>
+              <button key={dayNum} onClick={() => toggleDayPref(dayNum)}
+                aria-label={`${shortName}: ${labels[state]}`}
+                className={`flex-1 py-2 px-1 text-center text-sm border-r last:border-r-0 border-b-4 border-r-gray-200 dark:border-r-gray-700 transition-all ${styles[state]}`}>
+                <div className="font-bold">{shortName}</div>
+                <div className="text-[10px] uppercase tracking-wide mt-0.5">{labels[state]}</div>
               </button>
             );
           })}
-          <button
-            type="button"
-            onClick={resetDayPrefs}
-            aria-label={m.reset_all()}
-            class={cx(styles.dayButton, styles.dayButtonReset)}
-          >
-            <div class={styles.dayShort}>{m.reset()}</div>
-            <div class={styles.dayLabel}>{m.reset_all()}</div>
-          </button>
         </div>
       </div>
 
-      {enableTemplates && (
-        <div class={styles.sectionStack}>
-          <div class={styles.label}>
-            {m.week_templates()}
-          </div>
-          <div class={styles.templateRow}>
-            <button type="button"
-              onClick={() =>
-                applyTemplate({
-                  1: "enabled",
-                  2: "enabled",
-                  3: "enabled",
-                  4: "enabled",
-                  5: "enabled",
-                  6: "disabled",
-                  7: "disabled",
-                })
-              }
-              class={styles.templateButton}
-            >
-              {m.weekdays_only()}
-            </button>
-            <button type="button"
-              onClick={() =>
-                applyTemplate({
-                  1: "enabled",
-                  2: "enabled",
-                  3: "enabled",
-                  4: "enabled",
-                  5: "prioritize",
-                  6: "disabled",
-                  7: "disabled",
-                })
-              }
-              class={styles.templateButton}
-            >
-              {m.prefer_free_friday()}
-            </button>
-            <button type="button"
-              onClick={() =>
-                applyTemplate({
-                  1: "enabled",
-                  2: "enabled",
-                  3: "enabled",
-                  4: "enabled",
-                  5: "enabled",
-                  6: "enabled",
-                  7: "enabled",
-                })
-              }
-              class={styles.templateButton}
-            >
-              {m.all_days_enabled()}
-            </button>
-          </div>
+      {/* Instructor Preferences (Feature 6) */}
+      {allLecturers.length > 0 && (
+        <div className="border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm overflow-hidden bg-white dark:bg-gray-800">
+          <button onClick={() => setShowLecturers(!showLecturers)}
+            className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 flex justify-between items-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+            <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
+              <Star className="w-4 h-4" />
+              <Trans>Lecturer Preferences</Trans>
+              {lecturerPrefs.length > 0 && <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-1.5 rounded-full">{lecturerPrefs.length}</span>}
+            </div>
+            {showLecturers ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
+          </button>
+          {showLecturers && (
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700 space-y-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400 pb-2 border-b dark:border-gray-700"><Trans>Click to cycle: Neutral → Prefer → Avoid</Trans></p>
+              <div className="flex flex-wrap gap-2">
+                {allLecturers.map(name => {
+                  const weight = getLecturerWeight(name);
+                  const cls = weight === 'prefer'
+                    ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 border-green-300 dark:border-green-700'
+                    : weight === 'avoid'
+                      ? 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 border-red-300 dark:border-red-700'
+                      : 'bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600';
+                  const icon = weight === 'prefer' ? <Star className="w-3 h-3 fill-current" /> : weight === 'avoid' ? <X className="w-3 h-3" /> : null;
+                  return (
+                    <button key={name} onClick={() => cycleLecturerPref(name)}
+                      className={`border px-2 py-1 rounded-full text-xs flex items-center gap-1 transition-colors ${cls}`}>
+                      {icon} {name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       )}
 
       {/* Advanced Per-Day Settings */}
-      <div class={styles.card}>
-        <button type="button" onClick={() => setShowAdvanced(!showAdvanced)}
-          class={styles.cardHeader} aria-expanded={showAdvanced} aria-controls="advanced-settings">
-          <div class={styles.cardTitle}>
-            <Settings class={styles.cardIcon} />
-            {m.advanced_per_day_settings()}
+      <div className="border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm overflow-hidden bg-white dark:bg-gray-800">
+        <button onClick={() => setShowAdvanced(!showAdvanced)}
+          className="w-full px-4 py-3 bg-gray-50 dark:bg-gray-800 flex justify-between items-center hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+          <div className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-200">
+            <Settings className="w-4 h-4" />
+            <Trans>Advanced Per-Day Settings</Trans>
           </div>
-          {showAdvanced ? <ChevronUp class={styles.chevron} /> : <ChevronDown class={styles.chevron} />}
+          {showAdvanced ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
         </button>
         {showAdvanced && (
-          <div id="advanced-settings" class={styles.cardBodyLarge}>
-            <p class={styles.cardNote}>
-              {m.day_settings_advanced_hint()}
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700 space-y-5">
+            <p className="text-xs text-gray-500 dark:text-gray-400 pb-2 border-b dark:border-gray-700">
+              <Trans>Override time bounds, set commute, and mark busy periods for each day.</Trans>
             </p>
             {([1, 2, 3, 4, 5, 6, 7] as DayNumber[]).map((dayNum) => {
               const ds = daySettings[dayNum];
@@ -324,82 +245,65 @@ export function SettingsPanel({
               };
 
               return (
-                <div key={dayNum} class={styles.dayCard}>
-                  <div class={styles.dayHeader}>
-                    <div class={styles.dayName}>{dayName}</div>
-                    <div class={styles.dayRangeRow}>
-                      <input type="time" value={formatTimeInput(ds.min)} onChange={(e) => { const [h, m] = (e.currentTarget as HTMLInputElement).value.split(':').map(Number); updateDayTime(dayNum, Math.min((h * 60) + m, ds.max - 30), ds.max); }}
-                        class={cx(styles.inputBase, styles.inputTime)} />
-                      <div class={styles.rangeSliderMd}>
+                <div key={dayNum} className="border border-gray-100 dark:border-gray-700 rounded-lg p-3 space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3">
+                    <div className="w-24 font-medium text-sm text-gray-700 dark:text-gray-300 shrink-0">{dayName}</div>
+                    <div className="flex-1 flex items-center gap-3 max-w-xl">
+                      <input type="time" value={formatTime(ds.min)} onChange={(e) => { const [h, m] = e.target.value.split(':').map(Number); updateDayTime(dayNum, Math.min((h * 60) + m, ds.max - 30), ds.max); }}
+                        className="border dark:border-gray-600 rounded px-2 py-1 text-sm shadow-sm w-28 bg-white dark:bg-gray-800 dark:text-gray-200" />
+                      <div className="flex-1 hidden md:block px-2">
                         <RangeSlider min={ds.min} max={ds.max} minLimit={480} maxLimit={1320} step={30} onChange={(min, max) => updateDayTime(dayNum, min, max)} />
                       </div>
-                      <input type="time" value={formatTimeInput(ds.max)} onChange={(e) => { const [h, m] = (e.currentTarget as HTMLInputElement).value.split(':').map(Number); updateDayTime(dayNum, ds.min, Math.max((h * 60) + m, ds.min + 30)); }}
-                        class={cx(styles.inputBase, styles.inputTime)} />
+                      <input type="time" value={formatTime(ds.max)} onChange={(e) => { const [h, m] = e.target.value.split(':').map(Number); updateDayTime(dayNum, ds.min, Math.max((h * 60) + m, ds.min + 30)); }}
+                        className="border dark:border-gray-600 rounded px-2 py-1 text-sm shadow-sm w-28 bg-white dark:bg-gray-800 dark:text-gray-200" />
                     </div>
                   </div>
 
-                  {/* Per-day commuting and gaps */}
-                  <div class="flex flex-wrap items-center gap-x-6 gap-y-3">
-                    <div class={styles.commuteRow} style={{ paddingLeft: 0 }}>
-                      <Car class={styles.commuteIcon} />
-                      <span class={styles.commuteLabel}>{m.commute_colon()}</span>
-                      <input
-                        type="number" step="0.5" min="0" max="12"
-                        value={ds.commute ?? ''}
-                        placeholder={`${((dailyCommute.min + dailyCommute.max) / 2).toFixed(1)}`}
-                        onChange={(e) => {
-                          const v = (e.currentTarget as HTMLInputElement).value;
-                          updateDaySetting(dayNum, { commute: v === '' ? undefined : Number(v) });
-                        }}
-                        class={cx(styles.inputBase, styles.inputTiny, styles.inputNarrow)}
-                      />
-                      <span class={styles.commuteUnit}>h</span>
-                      {ds.commute != null && (
-                        <button type="button" onClick={() => updateDaySetting(dayNum, { commute: undefined })}
-                          class={styles.resetCommute} title={m.reset_to_default()} aria-label={`Reset commute for ${dayName}`}>
-                          <X class={styles.smallIcon} />
-                        </button>
-                      )}
-                    </div>
-
-                    <div class={styles.commuteRow} style={{ paddingLeft: 0 }}>
-                      <span class={styles.commuteLabel}>{m.max_gaps_per_day()}:</span>
-                      <input
-                        type="number" step="0.5" min="0" max="12"
-                        value={ds.maxGaps ?? ''}
-                        placeholder="∞"
-                        onChange={(e) => {
-                          const v = (e.currentTarget as HTMLInputElement).value;
-                          updateDaySetting(dayNum, { maxGaps: v === '' ? null : Number(v) });
-                        }}
-                        class={cx(styles.inputBase, styles.inputTiny, styles.inputNarrow)}
-                      />
-                      <span class={styles.commuteUnit}>h</span>
-                    </div>
+                  {/* Per-day commute */}
+                  <div className="flex items-center gap-2 pl-0 sm:pl-27">
+                    <Car className="w-4 h-4 text-gray-400 dark:text-gray-500 shrink-0" />
+                    <label className="text-xs text-gray-500 dark:text-gray-400 shrink-0"><Trans>Commute:</Trans></label>
+                    <input
+                      type="number" step="0.5" min="0" max="12"
+                      value={ds.commute ?? ''}
+                      placeholder={`${((dailyCommute.min + dailyCommute.max) / 2).toFixed(1)}`}
+                      onChange={(e) => {
+                        const v = e.target.value;
+                        updateDaySetting(dayNum, { commute: v === '' ? undefined : Number(v) });
+                      }}
+                      className="w-16 border dark:border-gray-600 rounded px-2 py-0.5 text-xs shadow-sm bg-white dark:bg-gray-800 dark:text-gray-200"
+                    />
+                    <span className="text-xs text-gray-400 dark:text-gray-500">h</span>
+                    {ds.commute != null && (
+                      <button onClick={() => updateDaySetting(dayNum, { commute: undefined })}
+                        className="text-gray-400 hover:text-red-500 transition-colors" title={t`Reset to default`}>
+                        <X className="w-3 h-3" />
+                      </button>
+                    )}
                   </div>
 
                   {/* Busy periods */}
-                  <div class={styles.busyList}>
+                  <div className="pl-0 sm:pl-27 space-y-1.5">
                     {busyPeriods.map((bp, bpIdx) => (
-                      <div key={`${bp.start}-${bp.end}`} class={styles.busyRow}>
-                        <span class={styles.busyLabel}>{m.busy_colon()}</span>
-                        <input type="time" value={formatTimeInput(bp.start)}
-                          onChange={(e) => { const [h, m] = (e.currentTarget as HTMLInputElement).value.split(':').map(Number); updateBusyPeriod(bpIdx, 'start', h * 60 + m); }}
-                          class={cx(styles.inputBase, styles.inputTiny, styles.inputTimeSmall)} />
-                        <span class={styles.busyDash}>–</span>
-                        <input type="time" value={formatTimeInput(bp.end)}
-                          onChange={(e) => { const [h, m] = (e.currentTarget as HTMLInputElement).value.split(':').map(Number); updateBusyPeriod(bpIdx, 'end', h * 60 + m); }}
-                          class={cx(styles.inputBase, styles.inputTiny, styles.inputTimeSmall)} />
-                        <button type="button" onClick={() => removeBusyPeriod(bpIdx)}
-                          class={styles.removeBusy} aria-label={`Remove busy period ${bpIdx + 1} for ${dayName}`}>
-                          <Trash2 class={styles.smallIcon} />
+                      <div key={bpIdx} className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500 dark:text-gray-400 w-10 shrink-0"><Trans>Busy:</Trans></span>
+                        <input type="time" value={formatTime(bp.start)}
+                          onChange={(e) => { const [h, m] = e.target.value.split(':').map(Number); updateBusyPeriod(bpIdx, 'start', h * 60 + m); }}
+                          className="border dark:border-gray-600 rounded px-1.5 py-0.5 text-xs shadow-sm w-24 bg-white dark:bg-gray-800 dark:text-gray-200" />
+                        <span className="text-xs text-gray-400">–</span>
+                        <input type="time" value={formatTime(bp.end)}
+                          onChange={(e) => { const [h, m] = e.target.value.split(':').map(Number); updateBusyPeriod(bpIdx, 'end', h * 60 + m); }}
+                          className="border dark:border-gray-600 rounded px-1.5 py-0.5 text-xs shadow-sm w-24 bg-white dark:bg-gray-800 dark:text-gray-200" />
+                        <button onClick={() => removeBusyPeriod(bpIdx)}
+                          className="text-gray-400 hover:text-red-500 transition-colors">
+                          <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     ))}
-                    <button type="button" onClick={addBusyPeriod}
-                      class={styles.addLink} aria-label={`Add busy period for ${dayName}`}>
-                      <Plus class={styles.smallIcon} />
-                      {m.add_busy_period()}
+                    <button onClick={addBusyPeriod}
+                      className="flex items-center gap-1 text-xs text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors">
+                      <Plus className="w-3.5 h-3.5" />
+                      <Trans>Add busy period</Trans>
                     </button>
                   </div>
                 </div>
@@ -411,96 +315,3 @@ export function SettingsPanel({
     </div>
   );
 }
-
-const styles = {
-  panel: "mb-6 flex flex-col gap-6",
-  mainCard:
-    "bg-gray-50 border border-gray-200 rounded-lg p-3 sm:p-5 flex flex-col sm:flex-row flex-wrap gap-x-6 gap-y-3 dark:bg-gray-800/50 dark:border-gray-700",
-  section: "flex flex-col gap-1.5 flex-1 min-w-0",
-  sectionWide: "sm:flex-[2_1_18rem]",
-  sectionNarrow: "sm:flex-[1_1_10rem]",
-  sectionFull: "basis-full pt-2 border-t border-gray-200 space-y-1.5 dark:border-gray-700",
-  sectionHeader: "flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between sm:gap-1",
-  label: "text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-200",
-  row: "grid grid-cols-[auto_1fr_auto] items-center gap-2 sm:flex sm:flex-wrap sm:gap-3",
-  rowTight: "flex items-center gap-2",
-  valueWide: "w-9 text-right text-xs sm:w-10 sm:text-sm font-bold text-gray-700 dark:text-gray-300",
-  valueNarrow: "w-4 text-right text-xs sm:text-sm font-bold text-gray-700 dark:text-gray-300",
-  sliderWrap: "flex-1 px-1 sm:px-2",
-  helper: "text-sm text-gray-600 dark:text-gray-300",
-  inputBase:
-    "border border-gray-200 rounded-md px-2 py-1 text-xs sm:text-sm bg-white text-gray-800 shadow-sm outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200",
-  inputNarrow: "w-14 sm:w-16",
-  inputTimeCompact: "w-full min-w-[6.5rem] sm:w-28 sm:min-w-0",
-  quickPresetRow: "flex flex-wrap gap-1 text-xs",
-  quickPresetBtn:
-    "px-2 py-0.5 rounded-md text-xs bg-gray-100 text-gray-600 transition-colors cursor-pointer hover:bg-blue-100 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-blue-900/30",
-  quickPresetDanger: "hover:bg-red-100 dark:hover:bg-red-900/30",
-  rangeRow: "grid grid-cols-2 gap-2 sm:grid-cols-[minmax(6rem,auto)_1fr_minmax(6rem,auto)] sm:items-center sm:gap-3",
-  rangeSliderDesktop: "hidden sm:block sm:px-2",
-  sectionStack: "flex flex-col gap-2",
-  dayRow:
-    "grid grid-cols-2 sm:flex rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden w-full",
-  dayButton:
-    "flex-1 py-2 px-1 text-center text-sm border-r last:border-r-0 border-b-4 border-r-gray-200 dark:border-r-gray-700 transition-all",
-  dayButtonEnabled:
-    "bg-green-50 text-green-700 hover:bg-green-100 border-green-500 dark:bg-green-900/30 dark:text-green-400 dark:border-green-600",
-  dayButtonPrioritize:
-    "bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-500 dark:bg-blue-900/30 dark:text-blue-400 dark:border-blue-600",
-  dayButtonDisabled:
-    "bg-red-50 text-red-700 opacity-90 hover:bg-red-100 border-red-500 dark:bg-red-900/30 dark:text-red-400 dark:border-red-600",
-  dayButtonReset:
-    "bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:border-gray-600",
-  dayShort: "font-semibold text-[11px] sm:text-xs",
-  dayLabel: "text-[10px] uppercase tracking-[0.08em] mt-0.5",
-  templateRow:
-    "inline-flex w-fit max-w-full flex-wrap rounded-lg border border-gray-200 overflow-hidden bg-gray-50 dark:border-gray-700 dark:bg-gray-800",
-  templateButton:
-    "px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors cursor-pointer hover:bg-blue-100 border-r border-gray-200 last:border-r-0 dark:border-gray-700 dark:text-gray-200 dark:hover:bg-blue-900/30",
-  card: "border border-gray-200 rounded-lg shadow-sm bg-white overflow-hidden dark:border-gray-700 dark:bg-gray-800",
-  cardHeader:
-    "w-full px-4 py-3 bg-gray-50 flex justify-between items-center transition-colors cursor-pointer hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700",
-  cardTitle: "flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-200",
-  cardIcon: "w-4 h-4",
-  cardBadge: "text-xs px-1.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300",
-  chevron: "w-5 h-5 text-gray-600 dark:text-gray-300",
-  cardBody: "p-4 border-t border-gray-200 space-y-2 dark:border-gray-700",
-  cardBodyLarge: "p-4 border-t border-gray-200 space-y-5 dark:border-gray-700",
-  cardNote: "text-xs text-gray-600 pb-2 border-b border-gray-200 dark:text-gray-300 dark:border-gray-700",
-  lecturerList: "flex flex-wrap gap-2",
-  lecturerButton:
-    "border border-gray-200 rounded-full px-2 py-1 text-xs flex flex-col items-start gap-0.5 transition-colors",
-  lecturerPrefer:
-    "bg-green-50 text-green-700 border-green-300 dark:bg-green-900/30 dark:text-green-400 dark:border-green-700",
-  lecturerAvoid:
-    "bg-red-50 text-red-700 border-red-300 dark:bg-red-900/30 dark:text-red-400 dark:border-red-700",
-  lecturerNeutral: "bg-gray-50 text-gray-600 border-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600",
-  lecturerName: "flex items-center gap-1",
-  lecturerIcon: "w-3 h-3",
-  lecturerIconFilled: "w-3 h-3 fill-current",
-  ratingRow: "flex items-center text-xs opacity-80 gap-1",
-  ratingStars: "text-current",
-  ratingStar: "w-3 h-3",
-  dayCard: "border border-gray-100 rounded-lg p-3 space-y-3 dark:border-gray-700",
-  dayHeader: "flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-3",
-  dayName: "w-24 font-medium text-sm text-gray-700 shrink-0 dark:text-gray-300",
-  dayRangeRow: "flex-1 flex flex-wrap items-center max-w-[30rem] gap-2 sm:gap-3",
-  inputTime: "w-[45%] flex-1 min-w-[6rem] sm:w-28 sm:flex-none",
-  rangeSliderMd: "flex-1 hidden px-2 md:block",
-  commuteRow: "flex items-center gap-2 sm:pl-[6.75rem] flex-wrap",
-  commuteIcon: "w-4 h-4 text-gray-500 shrink-0 dark:text-gray-300",
-  commuteLabel: "text-xs text-gray-600 shrink-0 dark:text-gray-300",
-  inputTiny: "px-2 py-0.5 text-xs w-16",
-  commuteUnit: "text-xs text-gray-600 dark:text-gray-300",
-  resetCommute: "p-2 text-gray-400 transition-colors cursor-pointer hover:text-red-500 min-w-[44px] min-h-[44px] flex items-center justify-center",
-  smallIcon: "w-3 h-3",
-  busyList: "space-y-1.5 sm:pl-[6.75rem]",
-  busyRow: "flex flex-wrap items-center gap-2",
-  busyLabel: "w-10 shrink-0 text-xs text-gray-600 dark:text-gray-300",
-  inputTimeSmall: "w-[40%] flex-1 min-w-[5.5rem] sm:w-24 sm:flex-none",
-  busyDash: "text-xs text-gray-600",
-  removeBusy: "p-2 text-gray-400 transition-colors cursor-pointer hover:text-red-500 min-w-[44px] min-h-[44px] flex items-center justify-center",
-  addLink:
-    "flex items-center gap-1 text-xs text-blue-600 transition-colors cursor-pointer hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300",
-};
-

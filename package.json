@@ -1,59 +1,64 @@
 {
+  "name": "easy-btu-timetable",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Offline-first BTU schedule optimizer — upload course data, set constraints, and find your perfect week",
+  "homepage": "https://usltd.github.io/easy-btu-timetable/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/USLTD/easy-btu-timetable.git"
+  },
+  "license": "MIT",
   "scripts": {
-    "dev": "vike dev",
-    "build": "pnpm compile && vike build",
-    "preview": "vike build && vike preview",
-    "lint": "biome lint --write .",
-    "format": "biome format --write .",
-    "compile": "paraglide-js compile --emit-ts-declarations && buf generate",
-    "watch:compile": "paraglide-js compile --emit-ts-declarations --watch",
-    "test": "vitest",
-    "test:run": "vitest run"
+    "dev": "vite",
+    "build": "lingui extract && lingui compile --typescript && tsc -b && vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "messages:extract": "lingui extract",
+    "messages:compile": "lingui compile --typescript"
   },
   "dependencies": {
-    "@bufbuild/protobuf": "^2.0.0",
     "@dnd-kit/helpers": "^0.3.2",
     "@dnd-kit/react": "^0.3.2",
-    "@preact/signals": "^2.8.2",
-    "@unocss/reset": "^66.6.6",
-    "core-js": "^3.48.0",
-    "fflate": "^0.8.2",
+    "@lingui/core": "^5.9.1",
+    "@lingui/react": "^5.9.1",
+    "@tailwindcss/vite": "^4.2.0",
     "html-to-image": "^1.11.13",
-    "lucide-preact": "^0.577.0",
+    "lucide-react": "^0.575.0",
     "lz-string": "^1.5.0",
-    "preact": "^10.29.0",
-    "preact-render-to-string": "^6.5.11",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "ts-extras": "^0.17.0",
-    "url-polyfill": "^1.1.14",
-    "vaul": "^1.1.2",
-    "vike": "^0.4.255",
-    "whatwg-fetch": "^3.6.20"
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "tailwindcss": "^4.2.0",
+    "vaul": "^1.1.2"
   },
   "devDependencies": {
-    "@bufbuild/buf": "^1.50.0",
-    "@bufbuild/protoc-gen-es": "^2.0.0",
-    "@biomejs/biome": "2.4.7",
-    "@inlang/paraglide-js": "^2.15.0",
-    "@preact/preset-vite": "^2.10.4",
-    "@testing-library/preact": "^3.2.4",
-    "@types/react": "^19.2.14",
+    "@eslint/js": "^9.39.1",
+    "@lingui/babel-plugin-lingui-macro": "^5.9.1",
+    "@lingui/cli": "^5.9.1",
+    "@lingui/vite-plugin": "^5.9.1",
+    "@types/node": "^24.10.1",
+    "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-legacy": "^7.2.1",
-    "autoprefixer": "^10.4.21",
-    "jsdom": "^26.1.0",
-    "postcss": "^8.5.6",
-    "terser": "^5.46.0",
-    "type-fest": "^5.4.4",
-    "typescript": "^5.9.3",
-    "unocss": "^66.6.6",
-    "vite": "^7.3.1",
+    "@vitejs/plugin-react": "^5.1.1",
+    "babel-plugin-react-compiler": "^1.0.0",
+    "eslint": "^9.39.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.24",
+    "globals": "^16.5.0",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.48.0",
+    "vite": "^8.0.0-beta.13",
     "vite-plugin-pwa": "^1.2.0",
     "vite-plugin-sitemap": "^0.8.2",
-    "vitest": "^3.2.2",
     "workbox-window": "^7.4.0"
   },
-  "type": "module",
-  "packageManager": "pnpm@10.32.1+sha512.a706938f0e89ac1456b6563eab4edf1d1faf3368d1191fc5c59790e96dc918e4456ab2e67d613de1043d2e8c81f87303e6b40d4ffeca9df15ef1ad567348f2be"
+  "pnpm": {
+    "overrides": {
+      "vite": "^8.0.0-beta.13"
+    },
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
 }

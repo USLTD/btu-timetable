@@ -1,9 +1,8 @@
-import { Component, type ComponentChildren } from "preact";
-import * as m from "@/paraglide/messages";
+import { Component, type ReactNode, type ErrorInfo } from 'react';
 
 interface Props {
-  children: ComponentChildren;
-  fallback?: ComponentChildren;
+    children: ReactNode;
+    fallback?: ReactNode;
 }
 
 interface State {
@@ -21,28 +20,27 @@ export class ErrorBoundary extends Component<Props, State> {
         return { hasError: true, error };
     }
 
-    componentDidCatch(error: Error) {
-        console.error("ErrorBoundary caught:", error);
+    componentDidCatch(error: Error, info: ErrorInfo) {
+        console.error('ErrorBoundary caught:', error, info.componentStack);
     }
 
     render() {
         if (this.state.hasError) {
             if (this.props.fallback) return this.props.fallback;
             return (
-                <div class={styles.wrap}>
-                    <div class={styles.card}>
-                        <h2 class={styles.title}>
-                            {m.error_server_error_title()}
+                <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-900 p-8">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-8 max-w-md text-center">
+                        <h2 className="text-xl font-bold text-red-600 dark:text-red-400 mb-3">
+                            Something went wrong
                         </h2>
-                        <p class={styles.message}>
-                            {this.state.error?.message ?? m.error_unexpected()}
+                        <p className="text-gray-600 dark:text-gray-400 mb-4 text-sm">
+                            {this.state.error?.message ?? 'An unexpected error occurred.'}
                         </p>
                         <button
-                            type="button"
                             onClick={() => { this.setState({ hasError: false, error: null }); }}
-                            class={styles.button}
+                            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-6 py-2 rounded-lg transition-colors"
                         >
-                            {m.try_again()}
+                            Try again
                         </button>
                     </div>
                 </div>
@@ -51,13 +49,3 @@ export class ErrorBoundary extends Component<Props, State> {
         return this.props.children;
     }
 }
-
-const styles = {
-  wrap: "min-h-screen flex items-center justify-center p-8 bg-gray-100 dark:bg-gray-900",
-  card:
-    "max-w-md w-full text-center p-8 rounded-xl bg-white shadow-lg space-y-3 dark:bg-gray-800",
-  title: "text-xl font-bold text-red-600 dark:text-red-400",
-  message: "text-sm text-gray-600 dark:text-gray-400",
-  button:
-    "inline-flex items-center justify-center py-2 px-6 rounded-lg bg-blue-600 text-white font-medium transition-colors hover:bg-blue-700 cursor-pointer",
-};

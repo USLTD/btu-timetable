@@ -1,375 +1,176 @@
-import { useCallback, useMemo, useState } from "preact/hooks";
-import { SystemBanner } from "@/components/system-banner";
-import { useToast } from "@/components/toast";
-import { AppProviders } from "@/providers/app-providers";
-import { AppHeader } from "@/components/app-header";
-import { AppToolbar } from "@/components/app-toolbar";
-import { UserscriptSection } from "@/components/userscript-section";
-import { MainContent } from "@/components/main-content";
-import { HydrationIndicator } from "@/components/hydration-indicator";
-import { FeatureFlagsDialog } from "@/components/feature-flags-dialog";
-import { ManualCourseDialog } from "@/components/manual-course-dialog";
-import { ResponsiveDialog } from "@/components/responsive-dialog";
-import { PrivacyPolicy } from "@/components/legal/privacy-policy";
-import { TermsOfService } from "@/components/legal/terms-of-service";
-import { SettingsPanel } from "@/components/settings-panel";
-import { FileUpload } from "@/components/file-upload";
-import { HashIO } from "@/components/hash-io";
-import { useSchedulerWorker } from "@/hooks/use-scheduler-worker";
-import { useUndoRedo } from "@/hooks/use-undo-redo";
-import { useMockData } from "@/hooks/use-mock-data";
-import { copyToClipboard } from "@/lib/clipboard";
-import { cx } from "@/lib/cx";
-import { useFeatureFlags } from "@/lib/feature-flags";
-import { parseFiles } from "@/lib/parsers";
-import type { ShareableState } from "@/lib/shareable-state";
-import type { BusyPeriod, Course, DayNumber } from "@/lib/types";
-import { encodeProtoHash, importProtoHash, shareToUrlProto } from "@/lib/url-state";
-import * as m from "@/paraglide/messages";
-import { usePageContext } from "@/renderer/usePageContext";
-import { useSchedule } from "@/contexts/schedule-context";
-import { useCourse } from "@/contexts/course-context";
-import { useSettings } from "@/contexts/settings-context";
-import { useUI } from "@/contexts/ui-context";
-
+﻿import { useState, useCallback, useEffect, useMemo } from 'react';
+import { Calendar as CalendarIcon, Sun, Moon, Monitor, Download, Share2, Import, Copy, Check, Printer, Undo2, Redo2, Puzzle, X, MoreHorizontal, ArrowUp } from 'lucide-react';
+import { Trans, useLingui } from '@lingui/react/macro';
+import { usePwaInstall } from './lib/use-pwa-install.ts';
+import { encodeState, importHash, shareToUrl } from './lib/url-state.ts';
+import type { Course, DayNumber, DayPref, DaySetting, DaySettings, LecturerPref, MinMax, RejectionReason, ScoredSchedule } from './types.ts';
+import { parseFiles } from './lib/parsers.ts';
+import { usePersistedState } from './lib/storage.ts';
+import { useTheme } from './lib/use-theme.ts';
+import { useToast } from './components/toast.tsx';
+import { useSchedulerWorker } from './lib/use-scheduler-worker.ts';
+import { useUndoRedo } from './lib/use-undo-redo.ts';
+import { locales, loadCatalog, type Locale } from './i18n.ts';
+import { SettingsPanel } from './components/settings-panel.tsx';
+import { FileUpload } from './components/file-upload.tsx';
+import { CourseList } from './components/course-list.tsx';
+import { ScheduleResults } from './components/schedule-results.tsx';
+import { ResponsiveDialog } from './components/responsive-dialog.tsx';
+import { exportToPrintablePDF } from './lib/html-export.ts';
+const DEFAULT_DAY_SETTING = { min: 480, max: 1260 };
+const INITIAL_DAY_SETTINGS: DaySettings = {
+  1: { pref: 'enabled', ...DEFAULT_DAY_SETTING },
+  2: { pref: 'enabled', ...DEFAULT_DAY_SETTING },
+  3: { pref: 'enabled', ...DEFAULT_DAY_SETTING },
+  4: { pref: 'enabled', ...DEFAULT_DAY_SETTING },
+  5: { pref: 'enabled', ...DEFAULT_DAY_SETTING },
+  6: { pref: 'enabled', ...DEFAULT_DAY_SETTING },
+  7: { pref: 'enabled', ...DEFAULT_DAY_SETTING },
+};
 export default function App() {
-  const pageContext = usePageContext();
-  const systemBannerText = (pageContext.data as Record<string, any>)?.systemBannerText;
-
-  return (
-    <AppProviders>
-      <AppContent systemBannerText={systemBannerText} />
-    </AppProviders>
-  );
-}
-
-function AppContent({ systemBannerText }: { systemBannerText?: string }) {
-  const { schedules, rejections, setSchedules, setRejections } = useSchedule();
-  const { courses, setCourses, removeCourse, duplicateCourse, reorderCourses, toggleCourse } = useCourse();
-  const {
-    dailyCommute,
-    classesPerDay,
-    classesPerDayEnabled,
-    maxOverlap,
-    maxOverlapEnabled,
-    maxDaysOnCampus,
-    globalTime,
-    daySettings,
-    lecturerPrefs,
-    minRating,
-    setDailyCommute,
-    setClassesPerDay,
-    setClassesPerDayEnabled,
-    setMaxOverlap,
-    setMaxOverlapEnabled,
-    setMaxDaysOnCampus,
-    setGlobalTime,
-    setDaySettings,
-    setLecturerPrefs,
-    setMinRating,
-    toggleDayPref,
-    updateGlobalTime,
-    updateDayTime,
-    updateDaySetting,
-  } = useSettings();
-  const {
-    isLoading,
-    setLoading,
-    showPrivacy,
-    setShowPrivacy,
-    showTerms,
-    setShowTerms,
-    showFeatureFlags,
-    setShowFeatureFlags,
-    showManualCourse,
-    setShowManualCourse,
-    showImport,
-    setShowImport,
-    importText,
-    setImportText,
-    exportHash,
-    setExportHash,
-    hasSearched,
-    setHasSearched,
-    limitWarning,
-    setLimitWarning,
-  } = useUI();
-
-  useMockData();
-
-  const { toast } = useToast();
-  const { flags } = useFeatureFlags();
-  const scheduler = useSchedulerWorker();
-
-  const [shared, setShared] = useState(false);
-  const [showAdvanced, setShowAdvanced] = useState(false);
-  const [whatIfExclusions, setWhatIfExclusions] = useState<Set<string>>(new Set());
+  const [courses, setCourses] = usePersistedState<Course[]>('app-courses', []);
+  const [schedules, setSchedules] = usePersistedState<ScoredSchedule[]>('app-schedules', []);
+  const [dailyCommute, setDailyCommute] = usePersistedState<MinMax>('app-commute', { min: 1.0, max: 2.5 });
+  const [classesPerDay, setClassesPerDay] = usePersistedState<MinMax>('app-classes-per-day', { min: 1, max: 5 });
+  const [maxOverlap, setMaxOverlap] = usePersistedState<number>('app-max-overlap', 5);
+  const [globalTime, setGlobalTime] = usePersistedState<MinMax>('app-global-time', { min: 480, max: 1260 });
+  const [daySettings, setDaySettings] = usePersistedState<DaySettings>('app-day-settings', INITIAL_DAY_SETTINGS);
+  const [lecturerPrefs, setLecturerPrefs] = usePersistedState<LecturerPref[]>('app-lecturer-prefs', []);
+  const [loading, setLoading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [showAdvanced, setShowAdvanced] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [limitWarning, setLimitWarning] = useState(false);
+  const [rejections, setRejections] = useState<RejectionReason[]>([]);
+  const [whatIfExclusions, setWhatIfExclusions] = useState<Set<string>>(new Set());
+  const [focusedSchedule, setFocusedSchedule] = useState(0);
+  const [showPrivacy, setShowPrivacy] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+  const [showToolbarMenu, setShowToolbarMenu] = useState(false);
+
+
+  // Initialize state based on manual dismissal OR the global variable injected by the userscript
+  const [showUserscriptHint, setShowUserscriptHint] = useState(() => {
+    if (typeof window === 'undefined') return true;
+    const manuallyDismissed = localStorage.getItem('dismissed-userscript-hint') === '1';
+    const userscriptActive = !!(window as any).__BTU_USERSCRIPT_ACTIVE;
+    return !manuallyDismissed && !userscriptActive;
+  });
 
   const maxResults = 20;
+  const { theme, cycleTheme } = useTheme();
+  const { toast } = useToast();
 
-  const settingsSnapshot = useMemo(
-    () => ({
-      daySettings,
-      globalTime,
-      classesPerDay,
-      maxOverlap,
-      dailyCommute,
-      lecturerPrefs,
-    }),
-    [
-      daySettings,
-      globalTime,
-      classesPerDay,
-      maxOverlap,
-      dailyCommute,
-      lecturerPrefs,
-    ],
-  );
+  // Consent banner
+  const [consentDismissed, setConsentDismissed] = useState(() => localStorage.getItem('consent-dismissed') === '1');
+  const dismissConsent = useCallback(() => { setConsentDismissed(true); localStorage.setItem('consent-dismissed', '1'); }, []);
 
-  const restoreSettings = useCallback(
-    (s: typeof settingsSnapshot) => {
-      setDaySettings(s.daySettings);
-      setGlobalTime(s.globalTime);
-      setClassesPerDay(s.classesPerDay);
-      setMaxOverlap(s.maxOverlap);
-      setDailyCommute(s.dailyCommute);
-      setLecturerPrefs(s.lecturerPrefs);
-    },
-    [
-      setDaySettings,
-      setGlobalTime,
-      setClassesPerDay,
-      setMaxOverlap,
-      setDailyCommute,
-      setLecturerPrefs,
-    ],
-  );
-
-  const { undo, redo, canUndo, canRedo } = useUndoRedo(
-    settingsSnapshot,
-    restoreSettings,
-  );
-
-  const handleShare = useCallback(async () => {
-    try {
-      const state: ShareableState = {
-        courses,
-        daySettings,
-        globalTime,
-        classesPerDay,
-        maxOverlap,
-        dailyCommute,
-        lecturerPrefs,
-      };
-      const url = shareToUrlProto(state);
-      await copyToClipboard(url);
-      setShared(true);
-      toast(m.link_copied_to_clipboard());
-      setTimeout(() => setShared(false), 3000);
-    } catch (error) {
-      console.error("Failed to share:", error);
-      toast(m.error_unexpected());
-    }
-  }, [
-    courses,
-    daySettings,
-    globalTime,
-    classesPerDay,
-    maxOverlap,
-    dailyCommute,
-    lecturerPrefs,
-    toast,
-  ]);
-
-  const handlePrint = useCallback(() => {
-    window.print();
+  // Scroll-to-top FAB
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  useEffect(() => {
+    const handler = () => setShowScrollTop(window.scrollY > 400);
+    window.addEventListener('scroll', handler, { passive: true });
+    return () => window.removeEventListener('scroll', handler);
   }, []);
 
-  const handleFiles = useCallback(async (files: FileList) => {
-    try {
-      const parsedCourses = await parseFiles(files, courses);
-      setCourses(parsedCourses);
-      toast(m.parsed_courses_count({ 0: parsedCourses.length }));
-    } catch (error) {
-      console.error("Failed to parse files:", error);
-      toast(m.error_unexpected());
-    }
-  }, [courses, setCourses, toast]);
+  const themeIcon = theme === 'dark' ? <Moon className="w-5 h-5" /> : theme === 'light' ? <Sun className="w-5 h-5" /> : <Monitor className="w-5 h-5" />;
+  const { canInstall, install } = usePwaInstall();
+  const scheduler = useSchedulerWorker();
 
-  const handleImport = useCallback(() => {
-    try {
-      const success = importProtoHash(importText);
-      if (success) {
-        setShowImport(false);
-        setImportText("");
-        setExportHash("");
-        setHasSearched(false);
-        setLimitWarning(false);
-        toast(m.backup_file_imported());
-      } else {
-        toast(m.backup_file_import_failed());
-      }
-    } catch (error) {
-      console.error("Failed to import:", error);
-      toast(m.backup_file_import_failed());
-    }
-  }, [
-    importText,
-    setShowImport,
-    setImportText,
-    setExportHash,
-    setHasSearched,
-    setLimitWarning,
-    toast,
-  ]);
+  // Undo/redo for settings
+  const settingsSnapshot = useMemo(() => ({
+    daySettings, globalTime, classesPerDay, maxOverlap, dailyCommute, lecturerPrefs,
+  }), [daySettings, globalTime, classesPerDay, maxOverlap, dailyCommute, lecturerPrefs]);
 
-  const handleExport = useCallback(() => {
-    try {
-      const state: ShareableState = {
-        courses,
-        daySettings,
-        globalTime,
-        classesPerDay,
-        maxOverlap,
-        dailyCommute,
-        lecturerPrefs,
-      };
-      const hash = encodeProtoHash(state);
-      setExportHash(hash);
-      setShowImport(false);
-      toast(m.export_code());
-    } catch (error) {
-      console.error("Failed to export:", error);
-      toast(m.error_unexpected());
-    }
-  }, [
-    courses,
-    daySettings,
-    globalTime,
-    classesPerDay,
-    maxOverlap,
-    dailyCommute,
-    lecturerPrefs,
-    setExportHash,
-    setShowImport,
-    toast,
-  ]);
+  const restoreSettings = useCallback((s: typeof settingsSnapshot) => {
+    setDaySettings(s.daySettings);
+    setGlobalTime(s.globalTime);
+    setClassesPerDay(s.classesPerDay);
+    setMaxOverlap(s.maxOverlap);
+    setDailyCommute(s.dailyCommute);
+    setLecturerPrefs(s.lecturerPrefs);
+  }, [setDaySettings, setGlobalTime, setClassesPerDay, setMaxOverlap, setDailyCommute, setLecturerPrefs]);
 
-  const handleAddManualCourse = useCallback(
-    (course: Course) => {
-      setCourses((prev) => {
-        const existingNames = prev.map((c) => c.courseName);
-        const name = existingNames.includes(course.courseName)
-          ? `${course.courseName} (${prev.length + 1})`
-          : course.courseName;
-        return [...prev, { ...course, courseName: name, order: prev.length }];
-      });
-    },
-    [setCourses],
-  );
-
-  const handleTogglePin = useCallback(
-    (idx: number) => {
-      setSchedules((prev) => {
-        const updated = [...prev];
-        updated[idx] = { ...updated[idx], pinned: !updated[idx].pinned };
-        return updated;
-      });
-    },
-    [setSchedules],
-  );
-
-  const handleRenameSchedule = useCallback((idx: number, label: string) => {
+  const { undo, redo, canUndo, canRedo } = useUndoRedo(settingsSnapshot, restoreSettings);
+  const toggleDayPref = useCallback((dayNum: DayNumber) => {
+    setDaySettings((prev: DaySettings) => {
+      const states: DayPref[] = ['enabled', 'prioritize', 'disabled'];
+      const current = prev[dayNum].pref;
+      const next = states[(states.indexOf(current) + 1) % 3];
+      return { ...prev, [dayNum]: { ...prev[dayNum], pref: next } };
+    });
+  }, [setDaySettings]);
+  const updateGlobalTime = useCallback((min: number, max: number) => {
+    setGlobalTime({ min, max });
+    setDaySettings((prev: DaySettings) => {
+      const next = { ...prev };
+      for (let i = 1; i <= 7; i++) next[i as DayNumber] = { ...next[i as DayNumber], min, max };
+      return next;
+    });
+  }, [setGlobalTime, setDaySettings]);
+  const updateDayTime = useCallback((dayNum: DayNumber, min: number, max: number) => {
+    setDaySettings((prev: DaySettings) => ({ ...prev, [dayNum]: { ...prev[dayNum], min, max } }));
+  }, [setDaySettings]);
+  const updateDaySetting = useCallback((dayNum: DayNumber, patch: Partial<DaySetting>) => {
+    setDaySettings((prev: DaySettings) => ({ ...prev, [dayNum]: { ...prev[dayNum], ...patch } }));
+  }, [setDaySettings]);
+  const handleFiles = async (files: FileList) => {
+    setCourses(await parseFiles(files, courses));
+  };
+  const toggleCourse = (index: number) => {
+    const updated = [...courses];
+    updated[index] = { ...updated[index], isActive: !updated[index].isActive };
+    setCourses(updated);
+  };
+  const handleLockGroup = (courseIdx: number, groupName: string | undefined) => {
+    const updated = [...courses];
+    updated[courseIdx] = { ...updated[courseIdx], lockedGroup: groupName };
+    setCourses(updated);
+  };
+  const handleExcludeGroups = (courseIdx: number, excludedGroups: string[]) => {
+    const updated = [...courses];
+    updated[courseIdx] = { ...updated[courseIdx], excludedGroups };
+    setCourses(updated);
+  };
+  const handleReorder = (reordered: Course[]) => {
+    setCourses(reordered);
+  };
+  const handleTogglePin = (idx: number) => {
+    const updated = [...schedules];
+    updated[idx] = { ...updated[idx], pinned: !updated[idx].pinned };
+    setSchedules(updated);
+  };
+  const handleRenameSchedule = (idx: number, label: string) => {
     const updated = [...schedules];
     updated[idx] = { ...updated[idx], label: label || undefined };
     setSchedules(updated);
-  }, [schedules, setSchedules]);
-
-  const handleGenerate = useCallback(async () => {
-    if (courses.length === 0) {
-      toast(m.add_course());
-      return;
-    }
-
-    const effectiveCourses = whatIfExclusions.size > 0
-      ? courses.map((c) =>
-          whatIfExclusions.has(c.courseName) ? { ...c, isActive: false } : c,
-        )
-      : courses;
-
-    const activeCourses = effectiveCourses.filter((c) => c.isActive);
-    if (activeCourses.length === 0) {
-      toast(m.activate());
-      return;
-    }
-
+  };
+  const handleGenerate = async () => {
+    setLoading(true);
     setHasSearched(true);
     setLimitWarning(false);
-    setLoading(true);
-
+    setRejections([]);
     try {
-      const result = await scheduler.run(activeCourses, {
-        daySettings,
-        classesPerDay,
-        maxOverlap,
-        dailyCommute,
-        maxResults,
-        lecturerPrefs,
-        minRating,
+      // What-if: filter out excluded courses for this run
+      const effectiveCourses = whatIfExclusions.size > 0
+        ? courses.map(c => whatIfExclusions.has(c.courseName) ? { ...c, isActive: false } : c)
+        : courses;
+      const result = await scheduler.run(effectiveCourses, {
+        daySettings, classesPerDay, maxOverlap, dailyCommute, maxResults, lecturerPrefs,
       });
-
       setSchedules(result.schedules);
-      setRejections(result.rejections);
       setLimitWarning(result.limitReached);
-
-      if (result.schedules.length === 0) {
-        toast(m.no_valid_schedules_found());
-      } else {
-        toast(m.generated_schedules_count({ 0: result.schedules.length }));
-      }
-    } catch (error) {
-      console.error("Generation failed:", error);
-      toast(m.error_unexpected());
+      setRejections(result.rejections);
+    } catch {
+      setSchedules([]);
     } finally {
       setLoading(false);
     }
-  }, [
-    courses,
-    whatIfExclusions,
-    daySettings,
-    classesPerDay,
-    maxOverlap,
-    dailyCommute,
-    maxResults,
-    lecturerPrefs,
-    minRating,
-    scheduler,
-    setSchedules,
-    setRejections,
-    setHasSearched,
-    setLimitWarning,
-    setLoading,
-    toast,
-  ]);
+  };
+  const handleClear = () => { setCourses([]); setSchedules([]); setRejections([]); setWhatIfExclusions(new Set()); };
 
-  const handleClearCourses = useCallback(() => {
-    setCourses([]);
-    setSchedules([]);
-    setRejections([]);
-    setHasSearched(false);
-    setLimitWarning(false);
-    setWhatIfExclusions(new Set());
-  }, [
-    setCourses,
-    setSchedules,
-    setRejections,
-    setHasSearched,
-    setLimitWarning,
-  ]);
-
-  const handleToggleWhatIf = useCallback((courseName: string) => {
-    setWhatIfExclusions((prev) => {
+  const toggleWhatIf = useCallback((courseName: string) => {
+    setWhatIfExclusions(prev => {
       const next = new Set(prev);
       if (next.has(courseName)) next.delete(courseName);
       else next.add(courseName);
@@ -377,196 +178,433 @@ function AppContent({ systemBannerText }: { systemBannerText?: string }) {
     });
   }, []);
 
-  const handleLockGroup = useCallback((courseIdx: number, groupName: string | undefined) => {
-    setCourses((prev) => prev.map((course, idx) =>
-      idx === courseIdx ? { ...course, lockedGroup: groupName } : course,
-    ));
-  }, [setCourses]);
+  const [currentLocale, setCurrentLocale] = usePersistedState<Locale>('app-locale', 'en');
+  const { t } = useLingui();
 
-  const handleExcludeGroups = useCallback((courseIdx: number, excludedGroups: string[]) => {
-    setCourses((prev) => prev.map((course, idx) =>
-      idx === courseIdx ? { ...course, excludedGroups } : course,
-    ));
-  }, [setCourses]);
+  const switchLocale = async (locale: Locale) => {
+    await loadCatalog(locale);
+    setCurrentLocale(locale);
+  };
 
-  const handleAddBusyPeriod = useCallback((dayNum: DayNumber, bp: BusyPeriod) => {
-    const existing = daySettings[dayNum].busyPeriods ?? [];
-    // Prevent overlaps
-    const overlaps = existing.some(e => bp.start < e.end && e.start < bp.end);
-    if (overlaps) return;
-    updateDaySetting(dayNum, {
-      busyPeriods: [...existing, bp].sort((a, b) => a.start - b.start),
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Skip when inside inputs
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+
+      if (e.key === 'g' || e.key === 'G') {
+        e.preventDefault();
+        handleGenerate();
+      } else if ((e.key === 'z' || e.key === 'Z') && (e.ctrlKey || e.metaKey) && !e.shiftKey) {
+        e.preventDefault();
+        undo();
+      } else if (((e.key === 'y' || e.key === 'Y') && (e.ctrlKey || e.metaKey)) || ((e.key === 'z' || e.key === 'Z') && (e.ctrlKey || e.metaKey) && e.shiftKey)) {
+        e.preventDefault();
+        redo();
+      } else if (e.key === 'd' || e.key === 'D') {
+        e.preventDefault();
+        cycleTheme();
+      } else if (e.key === 'ArrowRight' && schedules.length > 0) {
+        e.preventDefault();
+        setFocusedSchedule(prev => Math.min(prev + 1, schedules.length - 1));
+        // Scroll to focused schedule card
+        document.getElementById(`schedule-card-${Math.min(focusedSchedule + 1, schedules.length - 1)}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else if (e.key === 'ArrowLeft' && schedules.length > 0) {
+        e.preventDefault();
+        setFocusedSchedule(prev => Math.max(prev - 1, 0));
+        document.getElementById(`schedule-card-${Math.max(focusedSchedule - 1, 0)}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      } else if ((e.key === 'p' || e.key === 'P') && schedules.length > 0) {
+        e.preventDefault();
+        handleTogglePin(focusedSchedule);
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  });
+
+  const addBusyPeriod = useCallback((dayNum: DayNumber, bp: { start: number; end: number }) => {
+    setDaySettings((prev: DaySettings) => {
+      const ds = prev[dayNum];
+      const existing = ds.busyPeriods ?? [];
+      // Prevent overlap (touching is OK: bp.start === e.end)
+      const overlaps = existing.some(e => bp.start < e.end && e.start < bp.end);
+      if (overlaps) return prev;
+      return { ...prev, [dayNum]: { ...ds, busyPeriods: [...existing, bp].sort((a, b) => a.start - b.start) } };
     });
-  }, [daySettings, updateDaySetting]);
+  }, [setDaySettings]);
 
-  const handleRemoveBusyPeriod = useCallback((dayNum: DayNumber, bpIdx: number) => {
-    const existing = daySettings[dayNum].busyPeriods ?? [];
-    updateDaySetting(dayNum, {
-      busyPeriods: existing.filter((_, i) => i !== bpIdx),
+  const removeBusyPeriod = useCallback((dayNum: DayNumber, bpIdx: number) => {
+    setDaySettings((prev: DaySettings) => {
+      const ds = prev[dayNum];
+      const bps = (ds.busyPeriods ?? []).filter((_, i) => i !== bpIdx);
+      return { ...prev, [dayNum]: { ...ds, busyPeriods: bps } };
     });
-  }, [daySettings, updateDaySetting]);
+  }, [setDaySettings]);
+
+  // --- URL sharing ---
+  const [showImport, setShowImport] = useState(false);
+  const [importText, setImportText] = useState('');
+  const [exportHash, setExportHash] = useState('');
+  const [copied, setCopied] = useState(false);
+  const [shared, setShared] = useState(false);
+
+  const buildShareableState = useCallback(() => ({
+    courses, daySettings, globalTime, classesPerDay, maxOverlap, dailyCommute, lecturerPrefs,
+  }), [courses, daySettings, globalTime, classesPerDay, maxOverlap, dailyCommute, lecturerPrefs]);
+
+  const handleShare = useCallback(() => {
+    shareToUrl(buildShareableState());
+    setShared(true);
+    toast(t`Link copied to clipboard!`);
+    setTimeout(() => setShared(false), 2000);
+  }, [buildShareableState]);
+
+  const handleExportHash = useCallback(() => {
+    const hash = encodeState(buildShareableState());
+    setExportHash(hash);
+    setShowImport(false);
+  }, [buildShareableState]);
+
+  const handleImport = useCallback(() => {
+    if (!importText.trim()) return;
+    const ok = importHash(importText.trim());
+    if (ok) {
+      setImportText('');
+      setShowImport(false);
+      setExportHash('');
+      // Clear transient state
+      setSchedules([]);
+      setRejections([]);
+      setWhatIfExclusions(new Set());
+      setHasSearched(false);
+    }
+  }, [importText, setSchedules]);
+
+  const copyExportHash = useCallback(() => {
+    navigator.clipboard.writeText(exportHash).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    }).catch(() => { });
+  }, [exportHash]);
+
+  // Listen for the custom event in case React loads faster than the userscript executes
+  useEffect(() => {
+    const handleDetected = () => setShowUserscriptHint(false);
+    window.addEventListener('btu-userscript-detected', handleDetected);
+
+    // Safety check for race conditions
+    if (typeof window !== 'undefined' && (window as any).__BTU_USERSCRIPT_ACTIVE) {
+      setShowUserscriptHint(false);
+    }
+
+    return () => window.removeEventListener('btu-userscript-detected', handleDetected);
+  }, []);
 
   return (
-    <>
-      <HydrationIndicator />
-      <main class={styles.page}>
-        <a href="#main-content" class={styles.skipLink}>
-          {m.skip_to_main_content()}
-        </a>
-        <a href="#course-upload" class={styles.skipLink}>
-          {m.skip_to_course_upload()}
-        </a>
-        <a href="#schedule-results" class={styles.skipLink}>
-          {m.skip_to_schedule_results()}
-        </a>
-
-        <div id="main-content" class={styles.pageInner}>
-          <div class={styles.card}>
-            <div class={styles.toolbar}>
-              <AppHeader />
-              <AppToolbar
-                shared={shared}
-                onShare={handleShare}
-                onPrint={handlePrint}
-                canUndo={canUndo}
-                canRedo={canRedo}
-                onUndo={undo}
-                onRedo={redo}
-                onShowFeatureFlags={() => setShowFeatureFlags(true)}
-              />
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 p-4 md:p-8 font-sans transition-colors" role="main">
+      <div className="max-w-6xl mx-auto">
+        <div className="bg-white dark:bg-gray-800 p-4 sm:p-6 rounded-xl shadow-sm mb-6">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <h1 className="text-lg sm:text-2xl font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+              <CalendarIcon className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+              <Trans>Ultimate Schedule Optimizer</Trans>
+            </h1>
+            <div className="flex items-center gap-1 flex-wrap">
+              {/* Locale switcher */}
+              <select
+                value={currentLocale}
+                onChange={e => switchLocale(e.target.value as Locale)}
+                className="text-sm border dark:border-gray-600 rounded px-2 py-1.5 bg-white dark:bg-gray-800 dark:text-gray-300 cursor-pointer"
+                title={t`Language`}
+                aria-label={t`Choose language`}
+              >
+                {Object.entries(locales).map(([code, name]) => (
+                  <option key={code} value={code}>{name}</option>
+                ))}
+              </select>
+              {canInstall && (
+                <button onClick={install} title={t`Install App`} aria-label={t`Install App`}
+                  className="p-2 rounded-lg text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-gray-700 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500">
+                  <Download className="w-5 h-5" />
+                </button>
+              )}
+              <button onClick={handleShare} title={shared ? t`Link copied!` : t`Share (copy URL)`} aria-label={t`Share settings`}
+                className={`p-2 rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-blue-500 ${shared ? 'text-green-500' : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'}`}>
+                {shared ? <Check className="w-5 h-5" /> : <Share2 className="w-5 h-5" />}
+              </button>
+              {/* Desktop-only: Undo, Redo, Print */}
+              <button onClick={() => {
+                if (schedules.length > 0) {
+                  const target = schedules[focusedSchedule] ?? schedules[0];
+                  exportToPrintablePDF(target.schedule, focusedSchedule + 1);
+                  toast(t`Print window opened`);
+                } else {
+                  toast(t`No schedules to print`, 'info');
+                }
+              }} title={t`Print schedule`} aria-label={t`Print schedule`}
+                className="hidden sm:inline-flex p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors no-print focus-visible:ring-2 focus-visible:ring-blue-500">
+                <Printer className="w-5 h-5" />
+              </button>
+              <button onClick={undo} disabled={!canUndo} title={t`Undo (Ctrl+Z)`}
+                className="hidden sm:inline-flex p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-30 no-print"
+                aria-label={t`Undo`}>
+                <Undo2 className="w-5 h-5" />
+              </button>
+              <button onClick={redo} disabled={!canRedo} title={t`Redo (Ctrl+Y)`}
+                className="hidden sm:inline-flex p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-30 no-print"
+                aria-label={t`Redo`}>
+                <Redo2 className="w-5 h-5" />
+              </button>
+              <button onClick={cycleTheme} title={t`Theme: ${theme}`} aria-label={t`Toggle theme`}
+                className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus-visible:ring-2 focus-visible:ring-blue-500">
+                {themeIcon}
+              </button>
+              {/* Mobile overflow menu */}
+              <div className="relative sm:hidden">
+                <button onClick={() => setShowToolbarMenu(!showToolbarMenu)} aria-label={t`More options`}
+                  className="p-2 rounded-lg text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                  <MoreHorizontal className="w-5 h-5" />
+                </button>
+                {showToolbarMenu && (
+                  <div className="absolute right-0 top-full mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg z-50 min-w-[140px] py-1">
+                    <button onClick={() => { undo(); setShowToolbarMenu(false); }} disabled={!canUndo}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30">
+                      <Undo2 className="w-4 h-4" /> {t`Undo`}
+                    </button>
+                    <button onClick={() => { redo(); setShowToolbarMenu(false); }} disabled={!canRedo}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 disabled:opacity-30">
+                      <Redo2 className="w-4 h-4" /> {t`Redo`}
+                    </button>
+                    <button onClick={() => {
+                      if (schedules.length > 0) {
+                        const target = schedules[focusedSchedule] ?? schedules[0];
+                        exportToPrintablePDF(target.schedule, focusedSchedule + 1);
+                        toast(t`Print window opened`);
+                      } else {
+                        toast(t`No schedules to print`, 'info');
+                      }
+                      setShowToolbarMenu(false);
+                    }}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700">
+                      <Printer className="w-4 h-4" /> {t`Print`}
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-
-            <p class={cx(styles.subtitle, styles.noPrint)}>
-              {m.hero_subtitle()}
-            </p>
-
-            <UserscriptSection />
-
-            <div class={styles.noPrint}>
-              <SettingsPanel
-                dailyCommute={dailyCommute}
-                setDailyCommute={setDailyCommute}
-                classesPerDay={classesPerDay}
-                setClassesPerDay={setClassesPerDay}
-                classesPerDayEnabled={classesPerDayEnabled}
-                setClassesPerDayEnabled={setClassesPerDayEnabled}
-                maxOverlap={maxOverlap}
-                setMaxOverlap={setMaxOverlap}
-                maxOverlapEnabled={maxOverlapEnabled}
-                setMaxOverlapEnabled={setMaxOverlapEnabled}
-                maxDaysOnCampus={maxDaysOnCampus}
-                setMaxDaysOnCampus={setMaxDaysOnCampus}
-                globalTime={globalTime}
-                updateGlobalTime={updateGlobalTime}
-                daySettings={daySettings}
-                setDaySettings={setDaySettings}
-                toggleDayPref={toggleDayPref}
-                updateDayTime={updateDayTime}
-                updateDaySetting={updateDaySetting}
-                showAdvanced={showAdvanced}
-                setShowAdvanced={setShowAdvanced}
-                enableTemplates={flags["preset-week-templates"]}
-              />
+          </div>
+          <p className="text-gray-600 dark:text-gray-400 mb-4 no-print">
+            <Trans>Upload course files, dial in your precise constraints, and find your perfect week.</Trans>
+          </p>
+          {showUserscriptHint && (
+            <div className="flex items-center gap-2 mb-4 px-3 py-2 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 text-sm text-amber-800 dark:text-amber-300 no-print">
+              <Puzzle className="w-4 h-4 shrink-0" />
+              <span className="flex-1">
+                <Trans>Tip: Install the</Trans>{' '}
+                <a href="https://userscripts.usltd.ge/btu-timetable-helper.user.js"
+                  target="_blank" rel="noopener noreferrer"
+                  className="font-medium underline hover:text-amber-900 dark:hover:text-amber-200 transition-colors">
+                  <Trans>BTU Helper Userscript</Trans>
+                </a>{' '}
+                <Trans>to export timetable pages directly from BTU's website.</Trans>
+              </span>
+              <button onClick={() => {
+                localStorage.setItem('dismissed-userscript-hint', '1');
+                setShowUserscriptHint(false);
+              }
+              }
+                className="p-1 rounded hover:bg-amber-100 dark:hover:bg-amber-800/40 transition-colors shrink-0"
+                aria-label={t`Dismiss`}>
+                <X className="w-3.5 h-3.5" />
+              </button>
             </div>
-
-            <HashIO
-              showImport={showImport}
-              setShowImport={setShowImport}
-              importText={importText}
-              setImportText={setImportText}
-              exportHash={exportHash}
-              setExportHash={setExportHash}
-              onImport={handleImport}
-              onExport={handleExport}
+          )}
+          <div className="no-print">
+            <SettingsPanel
+              dailyCommute={dailyCommute} setDailyCommute={setDailyCommute}
+              classesPerDay={classesPerDay} setClassesPerDay={setClassesPerDay}
+              maxOverlap={maxOverlap} setMaxOverlap={setMaxOverlap}
+              globalTime={globalTime} updateGlobalTime={updateGlobalTime}
+              daySettings={daySettings} toggleDayPref={toggleDayPref} updateDayTime={updateDayTime} updateDaySetting={updateDaySetting}
+              showAdvanced={showAdvanced} setShowAdvanced={setShowAdvanced}
+              courses={courses} lecturerPrefs={lecturerPrefs} setLecturerPrefs={setLecturerPrefs}
             />
-
-            <div id="course-upload" class={styles.noPrint}>
-              <FileUpload
-                isDragging={isDragging}
-                setIsDragging={setIsDragging}
-                onFiles={handleFiles}
-                onOpenManualCourseDialog={() => setShowManualCourse(true)}
-                hasCourses={courses.length > 0}
+          </div>
+          {/* Import / Export hash controls */}
+          <div className="flex flex-wrap items-center gap-2 mb-3 no-print">
+            <button onClick={() => { setShowImport(!showImport); setExportHash(''); }}
+              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+              <Import className="w-4 h-4" />
+              <Trans>Import Hash</Trans>
+            </button>
+            <button onClick={handleExportHash}
+              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
+              <Copy className="w-4 h-4" />
+              <Trans>Export Hash</Trans>
+            </button>
+          </div>
+          {showImport && (
+            <div className="flex items-center gap-2 mb-3">
+              <input
+                type="text" value={importText} onChange={e => setImportText(e.target.value)}
+                placeholder={t`Paste shared hash here…`}
+                className="flex-1 border dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm bg-white dark:bg-gray-800 dark:text-gray-200 shadow-sm"
               />
+              <button onClick={handleImport}
+                disabled={!importText.trim()}
+                className="px-4 py-1.5 rounded-lg bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 disabled:opacity-50 transition-colors">
+                <Trans>Apply</Trans>
+              </button>
             </div>
-
-            <MainContent
-              courses={courses}
-              loading={isLoading}
-              onToggleCourse={toggleCourse}
-              onClearCourses={handleClearCourses}
-              onGenerate={handleGenerate}
-              onLockGroup={handleLockGroup}
-              onExcludeGroups={handleExcludeGroups}
-              onReorderCourses={reorderCourses}
-              whatIfExclusions={whatIfExclusions}
-              onToggleWhatIf={handleToggleWhatIf}
-              onRemoveCourse={removeCourse}
-              onDuplicateCourse={flags["quick-duplicate-course"] ? duplicateCourse : undefined}
-              enableDuplicate={flags["quick-duplicate-course"]}
-              dailyCommute={dailyCommute}
-              classesPerDay={classesPerDay}
-              maxOverlap={maxOverlap}
-              daySettings={daySettings}
-              lecturerPrefs={lecturerPrefs}
-              setLecturerPrefs={setLecturerPrefs}
-              minRating={minRating}
-              setMinRating={setMinRating}
-              maxResults={maxResults}
-              schedules={schedules}
-              rejections={rejections}
-              hasSearched={hasSearched}
-              limitWarning={limitWarning}
-              onTogglePin={handleTogglePin}
-              onRenameSchedule={handleRenameSchedule}
-              onAddBusyPeriod={handleAddBusyPeriod}
-              onRemoveBusyPeriod={handleRemoveBusyPeriod}
-              onShowPrivacy={() => setShowPrivacy(true)}
-              onShowTerms={() => setShowTerms(true)}
+          )}
+          {exportHash && (
+            <div className="flex items-center gap-2 mb-3">
+              <input
+                type="text" readOnly value={exportHash}
+                onClick={copyExportHash}
+                className="flex-1 border dark:border-gray-600 rounded-lg px-3 py-1.5 text-sm bg-gray-50 dark:bg-gray-700 dark:text-gray-200 shadow-sm cursor-pointer select-all font-mono text-xs"
+                title={t`Click to copy`}
+              />
+              <span className={`text-xs transition-opacity ${copied ? 'text-green-500 opacity-100' : 'text-gray-400 opacity-0'}`}>
+                <Trans>Copied!</Trans>
+              </span>
+            </div>
+          )}
+          <div className="no-print">
+            <FileUpload isDragging={isDragging} setIsDragging={setIsDragging} onFiles={handleFiles} hasCourses={courses.length > 0} />
+            <CourseList
+              courses={courses} loading={loading}
+              onToggle={toggleCourse} onClear={handleClear} onGenerate={handleGenerate}
+              onLockGroup={handleLockGroup} onExcludeGroups={handleExcludeGroups} onReorder={handleReorder}
+              whatIfExclusions={whatIfExclusions} onToggleWhatIf={toggleWhatIf}
             />
           </div>
         </div>
-
-        {systemBannerText && <SystemBanner text={systemBannerText} />}
-
-        <FeatureFlagsDialog
-          open={showFeatureFlags}
-          onClose={() => setShowFeatureFlags(false)}
+        <ScheduleResults
+          schedules={schedules} daySettings={daySettings} dailyCommute={dailyCommute}
+          classesPerDay={classesPerDay} maxOverlap={maxOverlap} maxResults={maxResults}
+          lecturerPrefs={lecturerPrefs}
+          hasSearched={hasSearched} loading={loading} limitWarning={limitWarning}
+          rejections={rejections} courses={courses}
+          onTogglePin={handleTogglePin}
+          onRenameSchedule={handleRenameSchedule} onLockGroup={handleLockGroup} onAddBusyPeriod={addBusyPeriod}
+          onRemoveBusyPeriod={removeBusyPeriod}
         />
-        <ManualCourseDialog
-          open={showManualCourse}
-          onClose={() => setShowManualCourse(false)}
-          onAddCourse={handleAddManualCourse}
-          existingCourseNames={courses.map((c) => c.courseName)}
-          enableBulkInput={flags["bulk-manual-input"]}
-        />
-        <ResponsiveDialog
-          open={showPrivacy}
-          onClose={() => setShowPrivacy(false)}
-          title={m.privacy_policy()}
-        >
-          <PrivacyPolicy />
+
+        <footer className="mt-8 pb-4 text-center text-xs text-gray-400 dark:text-gray-500 no-print space-y-1">
+          <div className="flex items-center justify-center gap-2 flex-wrap">
+            <span>2026 © Luka Mamukashvili</span>
+            <span>·</span>
+            <a href="https://github.com/USLTD/btu-timetable" target="_blank" rel="noopener noreferrer"
+              className="hover:text-blue-500 dark:hover:text-blue-400 underline transition-colors"><Trans>Source Code</Trans></a>
+            <span>·</span>
+            <button onClick={() => setShowPrivacy(true)}
+              className="hover:text-blue-500 dark:hover:text-blue-400 underline transition-colors"><Trans>Privacy Policy</Trans></button>
+            <span>·</span>
+            <button onClick={() => setShowTerms(true)}
+              className="hover:text-blue-500 dark:hover:text-blue-400 underline transition-colors"><Trans>Terms of Service</Trans></button>
+          </div>
+        </footer>
+
+        <ResponsiveDialog open={showPrivacy} onClose={() => setShowPrivacy(false)} title={t`Privacy Policy`}>
+          <PrivacyContent />
         </ResponsiveDialog>
-        <ResponsiveDialog
-          open={showTerms}
-          onClose={() => setShowTerms(false)}
-          title={m.terms_of_service()}
-        >
-          <TermsOfService />
+
+        <ResponsiveDialog open={showTerms} onClose={() => setShowTerms(false)} title={t`Terms of Service`}>
+          <TermsContent />
         </ResponsiveDialog>
-      </main>
-    </>
+
+        {/* Consent banner */}
+        {!consentDismissed && (
+          <div className="fixed bottom-0 inset-x-0 z-40 bg-gray-900/95 dark:bg-gray-800/95 backdrop-blur text-white text-sm px-4 py-3 flex items-center justify-between gap-3 no-print">
+            <p className="flex-1 min-w-0">
+              <Trans>By using this app, you agree to our</Trans>{' '}
+              <button onClick={() => setShowPrivacy(true)} className="underline text-blue-300 hover:text-blue-200"><Trans>Privacy Policy</Trans></button>{' '}
+              <Trans>and</Trans>{' '}
+              <button onClick={() => setShowTerms(true)} className="underline text-blue-300 hover:text-blue-200"><Trans>Terms of Service</Trans></button>.
+            </p>
+            <button onClick={dismissConsent} className="shrink-0 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 rounded text-xs font-semibold transition-colors">
+              OK
+            </button>
+          </div>
+        )}
+
+        {/* Scroll-to-top FAB */}
+        {showScrollTop && (
+          <button
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            className="fixed bottom-6 right-6 z-30 p-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg transition-all no-print"
+            aria-label={t`Scroll to top`}
+          >
+            <ArrowUp className="w-5 h-5" />
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
 
-const styles = {
-  page: "min-h-screen bg-gray-100 text-gray-900 dark:bg-gray-900 dark:text-gray-100",
-  pageInner: "max-w-6xl mx-auto p-4 md:p-6",
-  card: "bg-white rounded-2xl border border-gray-200 shadow p-4 md:p-6 dark:bg-gray-800 dark:border-gray-700",
-  toolbar:
-    "flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4 mb-4",
-  subtitle: "mt-1 mb-4 text-sm text-gray-500 dark:text-gray-400",
-  noPrint: "no-print",
-  skipLink:
-    "absolute left-0 -translate-y-full bg-blue-600 text-white px-4 py-2 text-sm font-semibold transition-transform focus:translate-y-0 focus:outline-none focus:ring-2 focus:ring-blue-400 z-50 rounded-br-lg",
-};
+function PrivacyContent() {
+  return (
+    <div className="space-y-4">
+      <p className="text-gray-500 dark:text-gray-400 italic"><Trans>Effective date: 23 February 2026</Trans></p>
+      <p><Trans>Easy BTU Timetable (&ldquo;we&rdquo;, &ldquo;us&rdquo;, or &ldquo;the App&rdquo;) operates the website <a href="https://timetable.usltd.ge" className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">timetable.usltd.ge</a> and the associated Progressive Web App (the &ldquo;Service&rdquo;).</Trans></p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Information We Collect</Trans></h3>
+      <p><Trans>We collect <strong>no personal data</strong> of any kind.</Trans></p>
+      <ul className="list-disc pl-5 space-y-1">
+        <li><Trans>No names, emails, student IDs, or any other identifiers.</Trans></li>
+        <li><Trans>No IP addresses, device information, or analytics data are stored or transmitted by us.</Trans></li>
+        <li><Trans>All course data, preferences, busy periods, and generated schedules are processed <strong>entirely in your browser</strong> using JavaScript and never leave your device.</Trans></li>
+      </ul>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Local Storage and PWA Caching</Trans></h3>
+      <p><Trans>The App uses your browser&apos;s localStorage and IndexedDB (via the PWA service worker) to save your course list, constraints, and pinned schedules and enable offline functionality. You can clear this data at any time via your browser settings. We have no access to it.</Trans></p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Third-Party Services</Trans></h3>
+      <ul className="list-disc pl-5 space-y-1">
+        <li><Trans><strong>Hosting:</strong> GitHub Pages (static files only). GitHub&apos;s own privacy policy applies to any server logs they may keep; we do not receive or control them.</Trans></li>
+        <li><Trans>No advertising, tracking pixels, Google Analytics, Meta pixels, or any other third-party scripts are used.</Trans></li>
+      </ul>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Children&apos;s Privacy</Trans></h3>
+      <p><Trans>The Service is intended for university students. We do not knowingly collect data from anyone under 18.</Trans></p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Changes to This Policy</Trans></h3>
+      <p><Trans>We may update this Privacy Policy occasionally. We will post the new version with a new effective date. Continued use after changes constitutes acceptance.</Trans></p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Contact Us</Trans></h3>
+      <p><Trans>Questions? Open an issue at <a href="https://github.com/USLTD/btu-timetable/issues" className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">github.com/USLTD/btu-timetable/issues</a> or email the maintainer via the repository.</Trans></p>
+      <p className="text-gray-500 dark:text-gray-400 text-xs italic"><Trans>This policy was last updated on 23 February 2026.</Trans></p>
+    </div>
+  );
+}
+
+function TermsContent() {
+  return (
+    <div className="space-y-4">
+      <p className="text-gray-500 dark:text-gray-400 italic"><Trans>Effective date: 23 February 2026</Trans></p>
+      <p><Trans>Welcome to Easy BTU Timetable (the &ldquo;Service&rdquo;), provided by USLTD at <a href="https://timetable.usltd.ge" className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">timetable.usltd.ge</a>.</Trans></p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Acceptance of Terms</Trans></h3>
+      <p><Trans>By accessing or using the Service, you agree to be bound by these Terms. If you do not agree, please do not use the Service.</Trans></p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Description of Service</Trans></h3>
+      <p><Trans>The Service is a free, open-source Progressive Web App that helps students of Business and Technology University (BTU) generate optimal timetables from data exported from the BTU portal. All computation occurs locally in your browser.</Trans></p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>User Responsibilities</Trans></h3>
+      <ul className="list-disc pl-5 space-y-1">
+        <li><Trans>You are responsible for verifying that any generated schedule complies with BTU rules and your actual course requirements.</Trans></li>
+        <li><Trans>You must not use the Service for any unlawful purpose.</Trans></li>
+        <li><Trans>You acknowledge that the Service is provided &ldquo;as is&rdquo; and may contain inaccuracies.</Trans></li>
+      </ul>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Intellectual Property</Trans></h3>
+      <ul className="list-disc pl-5 space-y-1">
+        <li><Trans>The source code is licensed under the MIT License (see LICENSE file in the GitHub repository).</Trans></li>
+        <li><Trans>All BTU logos, course names, and related materials remain the property of BTU. The App merely processes user-supplied data.</Trans></li>
+      </ul>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Disclaimers and Limitation of Liability</Trans></h3>
+      <p className="uppercase text-xs"><Trans>THE SERVICE IS PROVIDED &ldquo;AS IS&rdquo; AND &ldquo;AS AVAILABLE&rdquo; WITHOUT ANY WARRANTIES OF ANY KIND, EXPRESS OR IMPLIED.</Trans></p>
+      <p><Trans>We are not affiliated with BTU and make no representations about the accuracy or completeness of generated schedules. We shall not be liable for any direct, indirect, incidental, special, consequential, or exemplary damages arising from your use of the Service, including but not limited to missed classes, scheduling conflicts, or academic consequences.</Trans></p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Governing Law</Trans></h3>
+      <p><Trans>These Terms are governed by the laws of Georgia (country), without regard to conflict-of-law principles. Any disputes shall be resolved in the courts of Tbilisi, Georgia.</Trans></p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Changes to Terms</Trans></h3>
+      <p><Trans>We may revise these Terms at any time. The updated version will be posted here with a new effective date. Your continued use constitutes acceptance.</Trans></p>
+      <h3 className="font-bold text-base text-gray-800 dark:text-gray-100"><Trans>Contact</Trans></h3>
+      <p><Trans>For questions, please open an issue at <a href="https://github.com/USLTD/btu-timetable" className="text-blue-500 underline" target="_blank" rel="noopener noreferrer">github.com/USLTD/btu-timetable</a>.</Trans></p>
+      <p className="text-gray-500 dark:text-gray-400 text-xs italic">&copy; 2026 USLTD &ndash; MIT Licensed Open Source Project</p>
+    </div>
+  );
+}

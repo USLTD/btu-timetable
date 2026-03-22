@@ -1,38 +1,69 @@
-import type { ScheduleItem, DayNumber } from "./types";
-import { getLocale } from "@/paraglide/runtime";
-import * as m from "@/paraglide/messages";
-import { localizedDayName } from "./constants";
-import { collectScheduleEvents } from "./schedule-events";
+import type { ScheduleItem } from '../types.ts';
+import { parseTime } from './time.ts';
+
+const DAY_NAMES: Record<number, string> = {
+  1: 'Monday', 2: 'Tuesday', 3: 'Wednesday', 4: 'Thursday',
+  5: 'Friday', 6: 'Saturday', 7: 'Sunday',
+};
+
+interface FlatEvent {
+  time: string;
+  room: string;
+  course: string;
+  subjectCode: string;
+  groupName: string;
+  lecturer: string;
+  startMin: number;
+}
 
 /**
  * Generate an HTML table of the schedule grouped by day.
  * Uses DOM APIs for clean, well-formed output.
  */
-export function generateScheduleHTML(schedule: ScheduleItem[], title = m.schedule_default_title()): string {
-  const locale = getLocale();
-  const docTitle = title || m.schedule_default_title();
-  const byDay = collectScheduleEvents(schedule);
+export function generateScheduleHTML(schedule: ScheduleItem[], title = 'My Schedule'): string {
+  const byDay: Record<number, FlatEvent[]> = {};
 
-  const doc = document.implementation.createHTMLDocument(docTitle);
+  for (const item of schedule) {
+    for (const t of item.group.times) {
+      const parsed = parseTime(t.time);
+      if (!parsed) continue;
+      const day = t.day as number;
+      if (!byDay[day]) byDay[day] = [];
+      byDay[day].push({
+        time: t.time,
+        room: t.room || '',
+        course: item.course.courseName,
+        subjectCode: item.course.subjectCode || '',
+        groupName: item.group.name,
+        lecturer: item.group.lecturer,
+        startMin: parsed.start,
+      });
+    }
+  }
+
+  // Sort events within each day
+  for (const d of Object.keys(byDay)) {
+    byDay[Number(d)].sort((a, b) => a.startMin - b.startMin);
+  }
+
+  const doc = document.implementation.createHTMLDocument(title);
   const fieldset = doc.createElement('fieldset');
   fieldset.style.cssText = 'margin:20px 0;border:1px solid #ddd;border-radius:8px;padding:15px;font-family:Arial,sans-serif;';
 
   const legend = doc.createElement('legend');
   legend.style.cssText = 'font-size:1.3em;font-weight:bold;padding:0 10px;';
-  legend.textContent = docTitle;
+  legend.textContent = title;
   fieldset.appendChild(legend);
 
   const table = doc.createElement('table');
   table.style.cssText = 'width:100%;border-collapse:collapse;';
   const tbody = doc.createElement('tbody');
 
-  const sortedDays = (Object.keys(byDay) as unknown as DayNumber[])
-    .filter((day) => byDay[day].length > 0)
-    .sort((a, b) => a - b);
+  const sortedDays = Object.keys(byDay).map(Number).sort((a, b) => a - b);
 
   for (const dayNum of sortedDays) {
-    const dayName = localizedDayName(dayNum as DayNumber, locale, 'long');
-    const events = byDay[dayNum as DayNumber];
+    const dayName = DAY_NAMES[dayNum] ?? `Day ${dayNum}`;
+    const events = byDay[dayNum];
 
     // Day header row
     const dayRow = doc.createElement('tr');
@@ -49,15 +80,7 @@ export function generateScheduleHTML(schedule: ScheduleItem[], title = m.schedul
     // Column header row
     const headerRow = doc.createElement('tr');
     headerRow.style.cssText = 'background:#f5f5f5;font-weight:bold;';
-    const labels = [
-      m.schedule_table_time(),
-      m.schedule_table_room(),
-      m.schedule_table_course(),
-      m.schedule_table_group(),
-      m.schedule_table_lecturer(),
-      m.schedule_table_code(),
-    ];
-    for (const label of labels) {
+    for (const label of ['Time', 'Room', 'Course', 'Group', 'Lecturer', 'Code']) {
       const td = doc.createElement('td');
       td.style.cssText = 'padding:6px 8px;border-bottom:1px solid #ddd;';
       const b = doc.createElement('b');
@@ -70,7 +93,7 @@ export function generateScheduleHTML(schedule: ScheduleItem[], title = m.schedul
     // Event rows
     for (const ev of events) {
       const tr = doc.createElement('tr');
-      for (const val of [ev.time, ev.room, ev.course, ev.group, ev.lecturer, ev.subjectCode]) {
+      for (const val of [ev.time, ev.room, ev.course, ev.groupName, ev.lecturer, ev.subjectCode]) {
         const td = doc.createElement('td');
         td.style.cssText = 'padding:6px 8px;border-bottom:1px solid #eee;';
         td.textContent = val;
@@ -87,14 +110,9 @@ export function generateScheduleHTML(schedule: ScheduleItem[], title = m.schedul
 }
 
 /** Download a string as an HTML file. */
-export function downloadHTML(
-  content: string,
-  filename = 'schedule.html',
-  title?: string,
-): void {
-  const docTitle = title ?? filename.replace('.html', '');
+export function downloadHTML(content: string, filename = 'schedule.html'): void {
   const fullHtml = `<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>${docTitle}</title>
+<html><head><meta charset="utf-8"><title>${filename.replace('.html', '')}</title>
 <style>body{font-family:Arial,sans-serif;margin:20px;}</style>
 </head><body>${content}</body></html>`;
 
@@ -114,17 +132,16 @@ export function downloadHTML(
 
 /** Open a printable PDF view using the schedule HTML. */
 export function exportToPrintablePDF(schedule: ScheduleItem[], optionNum: number): void {
-  const title = m.schedule_option_title({ 0: optionNum });
-  const html = generateScheduleHTML(schedule, title);
+  const html = generateScheduleHTML(schedule, `BTU Schedule — Option ${optionNum}`);
 
   const printWin = window.open('', '_blank');
   if (!printWin) return;
   printWin.document.write(`<!DOCTYPE html>
 <html><head><meta charset="utf-8">
-  <title>${title}</title>
+  <title>BTU Schedule — Option ${optionNum}</title>
   <style>
     @media print {
-      @page { margin: 1.5cm; size: A4 landscape; }
+      @page { margin: 1.5cm; size: A4 portrait; }
       body { font-family: Arial, sans-serif; color: #222; }
       fieldset { border: 2px solid #ddd; padding: 20px; }
       table { width: 100%; border-collapse: collapse; }
