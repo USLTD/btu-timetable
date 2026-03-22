@@ -191,7 +191,15 @@ export async function exportAsImage(
     'opacity: 0',  // invisible but still laid out
     'width: 840px', // explicit width for consistent rendering
   ].join(';');
-  container.innerHTML = html;
+
+  // Use DOMParser to safely parse HTML string instead of innerHTML
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  const parsedContent = doc.body.firstChild;
+  if (parsedContent) {
+    container.appendChild(parsedContent);
+  }
+
   document.body.appendChild(container);
 
   // Force layout computation

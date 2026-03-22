@@ -51,6 +51,7 @@ export function FeatureFlagsDialog({ open, onClose }: FeatureFlagsDialogProps) {
             onChange={(e) => setQuery(e.currentTarget.value)}
             placeholder={m.search_flags()}
             class={styles.searchInput}
+            maxLength={1000}
           />
           <button
             type="button"
