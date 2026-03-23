@@ -71,6 +71,7 @@ export function HashIO({
             onChange={(e) => setImportText(e.currentTarget.value)}
             placeholder={m.paste_shared_hash_here()}
             class={styles.input}
+            maxLength={10000}
           />
           <button
             type="button"

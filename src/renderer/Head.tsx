@@ -12,7 +12,11 @@ export function Head() {
   return (
     <>
       <meta charSet="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+      <meta
+        http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self' https://rateuni.framework.ge; worker-src 'self' blob:; manifest-src 'self';"
+      />
       <meta name="theme-color" content="#2563eb" />
       <meta name="color-scheme" content="light dark" />
       <meta name="description" content={description} />

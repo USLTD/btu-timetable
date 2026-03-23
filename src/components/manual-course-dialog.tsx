@@ -374,6 +374,7 @@ export function ManualCourseDialog({
               onChange={(e) => setCourseName(e.currentTarget.value)}
               class={styles.input}
               placeholder={m.example_calculus()}
+              maxLength={256}
             />
           </div>
           <div>
@@ -387,6 +388,7 @@ export function ManualCourseDialog({
               onChange={(e) => setSubjectCode(e.currentTarget.value)}
               class={styles.input}
               placeholder={m.optional()}
+              maxLength={64}
             />
           </div>
         </div>
@@ -415,6 +417,7 @@ export function ManualCourseDialog({
                   onChange={(e) => updateGroup(gIdx, { name: e.currentTarget.value })}
                   class={styles.input}
                   placeholder={m.group_name()}
+                  maxLength={128}
                 />
                 <input
                   type="text"
@@ -422,6 +425,7 @@ export function ManualCourseDialog({
                   onChange={(e) => updateGroup(gIdx, { lecturer: e.currentTarget.value })}
                   class={styles.input}
                   placeholder={m.lecturer()}
+                  maxLength={128}
                 />
               </div>
               <div class={styles.timeList}>
@@ -462,6 +466,7 @@ export function ManualCourseDialog({
                       onChange={(e) => updateTime(gIdx, tIdx, { room: e.currentTarget.value })}
                       class={styles.inputSmall}
                       placeholder={m.room()}
+                      maxLength={64}
                     />
                     {group.times.length > 1 && (
                       <button type="button"
@@ -518,6 +523,7 @@ export function ManualCourseDialog({
               rows={4}
               class={cx(styles.inputSmall, styles.bulkTextarea)}
               placeholder={m.bulk_input_placeholder()}
+              maxLength={50000}
             />
             {bulkError && (
               <div class={styles.errorBox}>
