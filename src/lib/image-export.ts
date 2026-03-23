@@ -214,20 +214,53 @@ export async function exportAsImage(
     // Force another layout
     void container.offsetHeight;
 
+    // Detect device capabilities and adjust pixel ratio for memory-constrained devices
+    // Lower-end devices may have limited memory for high-resolution image rendering
+    let pixelRatio = 2;
+    if (navigator.deviceMemory && navigator.deviceMemory < 4) {
+      // Devices with less than 4GB RAM use lower resolution
+      pixelRatio = 1;
+    } else if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 2) {
+      // Devices with 2 or fewer CPU cores use lower resolution
+      pixelRatio = 1;
+    }
+
     let dataUrl: string;
     const captureNode = container.firstElementChild as HTMLElement;
-    const options = { quality: 0.95, pixelRatio: 2, cacheBust: true, skipAutoScale: true };
+    const options = { quality: 0.95, pixelRatio, cacheBust: true, skipAutoScale: true };
 
-    switch (format) {
-      case 'jpeg':
-        dataUrl = await toJpeg(captureNode, { ...options, backgroundColor: '#ffffff' });
-        break;
-      case 'svg':
-        dataUrl = await toSvg(captureNode, options);
-        break;
-      default:
-        dataUrl = await toPng(captureNode, options);
-        break;
+    try {
+      switch (format) {
+        case 'jpeg':
+          dataUrl = await toJpeg(captureNode, { ...options, backgroundColor: '#ffffff' });
+          break;
+        case 'svg':
+          dataUrl = await toSvg(captureNode, options);
+          break;
+        default:
+          dataUrl = await toPng(captureNode, options);
+          break;
+      }
+    } catch (error) {
+      // If high-resolution rendering fails (likely due to memory constraints),
+      // retry with pixelRatio: 1 for more compatibility
+      if (pixelRatio > 1) {
+        const fallbackOptions = { ...options, pixelRatio: 1 };
+        switch (format) {
+          case 'jpeg':
+            dataUrl = await toJpeg(captureNode, { ...fallbackOptions, backgroundColor: '#ffffff' });
+            break;
+          case 'svg':
+            dataUrl = await toSvg(captureNode, fallbackOptions);
+            break;
+          default:
+            dataUrl = await toPng(captureNode, fallbackOptions);
+            break;
+        }
+      } else {
+        // Re-throw if already at lowest resolution
+        throw error;
+      }
     }
 
     const ext = format === 'svg' ? 'svg' : format;

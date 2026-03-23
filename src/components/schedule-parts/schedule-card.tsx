@@ -117,6 +117,8 @@ export function ScheduleCard({
             <input ref={labelInputRef} type="text" defaultValue={res.label ?? ''}
               placeholder={m.option_number({ 0: idx + 1 })}
               class={styles.labelInput}
+              maxLength={128}
+              aria-label={m.option_number({ 0: idx + 1 })}
               onBlur={e => { onRenameSchedule(originalIdx, (e.currentTarget as HTMLInputElement).value.trim()); setEditingLabel(null); }}
               onKeyDown={e => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); if (e.key === 'Escape') setEditingLabel(null); }}
             />

@@ -20,6 +20,27 @@ main {
   display: block;
 }
 
+/* Mobile touch optimizations */
+button,
+[role="button"],
+a,
+[role="link"] {
+  touch-action: manipulation; /* Prevent double-tap zoom delay on mobile */
+}
+
+/* Allow panning and zooming on scrollable containers */
+[data-calendar],
+.overflow-y-auto,
+[data-vaul-drawer] {
+  touch-action: pan-y pinch-zoom;
+}
+
+/* Prevent unwanted scrolling during drag operations */
+[draggable="true"],
+[data-dnd-kit-draggable] {
+  touch-action: none;
+}
+
 .dark [type='text'],
 .dark [type='email'],
 .dark [type='url'],
