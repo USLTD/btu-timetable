@@ -11,8 +11,8 @@ export function set(el: HTMLElement | null, styles: Record<string, string>, igno
 			continue;
 		}
 
-		originalStyles[key] = (el.style as Record<string, string>)[key];
-		(el.style as Record<string, string>)[key] = value;
+		originalStyles[key] = (el.style as unknown as Record<string, string>)[key];
+		(el.style as unknown as Record<string, string>)[key] = value;
 	}
 
 	if (ignoreCache) return;
@@ -29,7 +29,7 @@ export function reset(el: HTMLElement | null, prop: string) {
 		return;
 	}
 
-	(el.style as Record<string, string>)[prop] = originalStyles[prop];
+	(el.style as unknown as Record<string, string>)[prop] = originalStyles[prop];
 }
 
 export const isVertical = (direction: 'top' | 'bottom' | 'left' | 'right') => {

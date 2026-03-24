@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
 
-function useCallbackRef<T extends (...args: unknown[]) => unknown>(
-	callback: T | undefined,
-): T {
+function useCallbackRef<T extends unknown[]>(
+	callback: ((...args: T) => void) | undefined,
+) {
 	const callbackRef = useRef(callback);
 
 	useEffect(() => {
@@ -11,7 +11,7 @@ function useCallbackRef<T extends (...args: unknown[]) => unknown>(
 
 	return useMemo(
 		() =>
-			((...args) => callbackRef.current?.(...args)) as T,
+			(...args: T) => callbackRef.current?.(...args),
 		[],
 	);
 }
@@ -26,14 +26,16 @@ function useUncontrolledState<T>({
 	const uncontrolledState = useState<T | undefined>(defaultProp);
 	const [value] = uncontrolledState;
 	const prevValueRef = useRef(value);
-	const handleChange = useCallbackRef(onChange);
+	const handleChange = useCallbackRef([value] as const);
 
 	useEffect(() => {
 		if (prevValueRef.current !== value) {
-			handleChange?.(value as T);
+			if (onChange && value !== undefined) {
+				onChange(value);
+			}
 			prevValueRef.current = value;
 		}
-	}, [value, handleChange]);
+	}, [value, onChange]);
 
 	return uncontrolledState;
 }
@@ -53,20 +55,22 @@ export function useControllableState<T>({
 	});
 	const isControlled = prop !== undefined;
 	const value = isControlled ? prop : uncontrolledProp;
-	const handleChange = useCallbackRef(onChange);
 
 	const setValue = useCallback(
 		(nextValue: T | ((prev: T) => T)) => {
 			if (isControlled) {
-				const setter = nextValue as (prev: T) => T;
 				const value =
-					typeof nextValue === 'function' ? setter(prop as T) : nextValue;
-				if (value !== prop) handleChange(value as T);
+					typeof nextValue === 'function'
+						? (nextValue as (prev: T) => T)(prop as T)
+						: nextValue;
+				if (value !== prop && onChange) {
+					onChange(value);
+				}
 			} else {
-				setUncontrolledProp(nextValue);
+				setUncontrolledProp(nextValue as T);
 			}
 		},
-		[isControlled, prop, setUncontrolledProp, handleChange],
+		[isControlled, prop, setUncontrolledProp, onChange],
 	);
 
 	return [value, setValue] as const;
