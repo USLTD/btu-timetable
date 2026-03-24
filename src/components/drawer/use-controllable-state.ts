@@ -1,20 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'preact/hooks';
-
-function useCallbackRef<T extends unknown[]>(
-	callback: ((...args: T) => void) | undefined,
-) {
-	const callbackRef = useRef(callback);
-
-	useEffect(() => {
-		callbackRef.current = callback;
-	});
-
-	return useMemo(
-		() =>
-			(...args: T) => callbackRef.current?.(...args),
-		[],
-	);
-}
+import { useCallback, useEffect, useRef, useState } from 'preact/hooks';
 
 function useUncontrolledState<T>({
 	defaultProp,
@@ -26,7 +10,6 @@ function useUncontrolledState<T>({
 	const uncontrolledState = useState<T | undefined>(defaultProp);
 	const [value] = uncontrolledState;
 	const prevValueRef = useRef(value);
-	const handleChange = useCallbackRef([value] as const);
 
 	useEffect(() => {
 		if (prevValueRef.current !== value) {

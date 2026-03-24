@@ -51,7 +51,7 @@ export type DialogProps = {
 	 */
 	scrollLockTimeout?: number;
 	/**
-	 * When `true`, don't move the drawer upwards if there's space, but rather only change it's height so it's fully scrollable when the keyboard is open
+	 * When `true`, don't move the drawer upwards if there's space, but rather only change its height so it's fully scrollable when the keyboard is open
 	 */
 	fixed?: boolean;
 	/**
@@ -61,7 +61,7 @@ export type DialogProps = {
 	handleOnly?: boolean;
 	/**
 	 * When `false` dragging, clicking outside, pressing esc, etc. will not close the drawer.
-	 * Use this in comination with the `open` prop, otherwise you won't be able to open/close the drawer.
+	 * Use this in combination with the `open` prop, otherwise you won't be able to open/close the drawer.
 	 * @default true
 	 */
 	dismissible?: boolean;
@@ -90,7 +90,7 @@ export type DialogProps = {
 	 */
 	disablePreventScroll?: boolean;
 	/**
-	 * When `true` Vaul will reposition inputs rather than scroll then into view if the keyboard is in the way.
+	 * When `true` Vaul will reposition inputs rather than scroll them into view if the keyboard is in the way.
 	 * Setting it to `false` will fall back to the default browser behavior.
 	 * @default true when {@link snapPoints} is defined
 	 */

@@ -204,7 +204,7 @@ export function Root({
 			!modal ||
 			justReleased ||
 			!hasBeenOpened ||
-			!disablePreventScroll,
+			disablePreventScroll,
 	});
 
 	const { restorePositionSetting } = usePositionFixed({
@@ -394,9 +394,12 @@ export function Root({
 
 		const closeDrawerThreshold = drawerDimension * closeThreshold;
 
-		onReleaseProp?.(event, true);
+		const shouldClose = velocity > VELOCITY_THRESHOLD || Math.abs(draggedDistance) > closeDrawerThreshold;
+		const willBeOpen = !(dismissible && shouldClose);
 
-		if (velocity > VELOCITY_THRESHOLD || Math.abs(draggedDistance) > closeDrawerThreshold) {
+		onReleaseProp?.(event, willBeOpen);
+
+		if (shouldClose) {
 			if (dismissible) {
 				closeDrawer();
 			} else {
@@ -485,16 +488,30 @@ export function Root({
 
 // Drawer.Overlay component
 export const Overlay = forwardRef<HTMLDivElement, JSX.HTMLAttributes<HTMLDivElement>>(
-	function Overlay({ ...rest }, ref) {
-		// Import context is not needed here since we don't use it
-		// We'll just render a simple overlay
+	function Overlay({ onClick, ...rest }, ref) {
+		const { isOpen, dismissible, onOpenChange } = useDrawerContext();
+
+		const handleClick = useCallback(
+			(event: JSX.TargetedMouseEvent<HTMLDivElement>) => {
+				if (onClick) {
+					onClick(event);
+				}
+
+				if (!event.defaultPrevented && dismissible && onOpenChange) {
+					onOpenChange(false);
+				}
+			},
+			[onClick, dismissible, onOpenChange],
+		);
+
 		return (
 			<div
 				{...rest}
 				ref={ref}
 				data-vaul-overlay=""
 				data-vaul-snap-points="false"
-				data-state="open"
+				data-state={isOpen ? 'open' : 'closed'}
+				onClick={handleClick}
 			/>
 		);
 	},
@@ -504,15 +521,35 @@ Overlay.displayName = 'Drawer.Overlay';
 
 // Drawer.Content component
 export const Content = forwardRef<HTMLDivElement, JSX.HTMLAttributes<HTMLDivElement>>(
-	function Content({ ...rest }, ref) {
+	function Content({ onPointerDown, onPointerMove, onPointerUp, onPointerCancel, ...rest }, ref) {
+		const {
+			drawerRef,
+			direction,
+			isOpen,
+			onPress,
+			onDrag,
+			onRelease,
+		} = useDrawerContext();
+
+		const composedRef = useComposedRefs(ref, drawerRef);
+
+		const handlePointerDown = chain(onPointerDown, onPress);
+		const handlePointerMove = chain(onPointerMove, onDrag);
+		const handlePointerUp = chain(onPointerUp, onRelease);
+		const handlePointerCancel = chain(onPointerCancel, onRelease);
+
 		return (
 			<div
 				{...rest}
-				ref={ref}
+				ref={composedRef}
 				data-vaul-drawer=""
-				data-vaul-drawer-direction="bottom"
+				data-vaul-drawer-direction={direction ?? 'bottom'}
 				data-vaul-snap-points="false"
-				data-state="open"
+				data-state={isOpen ? 'open' : 'closed'}
+				onPointerDown={handlePointerDown}
+				onPointerMove={handlePointerMove}
+				onPointerUp={handlePointerUp}
+				onPointerCancel={handlePointerCancel}
 			/>
 		);
 	},
@@ -523,7 +560,7 @@ Content.displayName = 'Drawer.Content';
 // Drawer.Title component
 export const Title = forwardRef<HTMLHeadingElement, JSX.HTMLAttributes<HTMLHeadingElement>>(
 	function Title({ ...rest }, ref) {
-		return <div {...rest} ref={ref} data-vaul-title="" />;
+		return <h2 {...rest} ref={ref} data-vaul-title="" />;
 	},
 );
 

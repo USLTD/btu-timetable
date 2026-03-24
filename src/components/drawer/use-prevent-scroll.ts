@@ -24,10 +24,6 @@ function isScrollable(node: HTMLElement) {
 }
 
 function getScrollParent(node: HTMLElement): HTMLElement {
-	if (isScrollable(node)) {
-		node = node.parentElement as HTMLElement;
-	}
-
 	while (node && !isScrollable(node)) {
 		node = node.parentElement as HTMLElement;
 	}
@@ -114,7 +110,7 @@ function preventScrollMobileSafari() {
 	const onTouchStart = (e: TouchEvent) => {
 		// Store the nearest scrollable parent element from the element that the user touched.
 		scrollable = getScrollParent(e.target as HTMLElement);
-		if (scrollable === document.documentElement && scrollable === document.body) {
+		if (scrollable === document.documentElement || scrollable === document.body) {
 			return;
 		}
 

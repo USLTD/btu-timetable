@@ -58,12 +58,17 @@ export function getTranslate(
 	let mat = transform.match(/^matrix3d\((.+)\)$/);
 	if (mat) {
 		// https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/matrix3d
-		return Number.parseFloat(mat[1].split(', ')[isVertical(direction) ? 13 : 12]);
+		const values = mat[1].split(',').map((v) => v.trim());
+		return Number.parseFloat(values[isVertical(direction) ? 13 : 12]);
 	}
 
 	// https://developer.mozilla.org/en-US/docs/Web/CSS/transform-function/matrix
 	mat = transform.match(/^matrix\((.+)\)$/);
-	return mat ? Number.parseFloat(mat[1].split(', ')[isVertical(direction) ? 5 : 4]) : null;
+	if (!mat) {
+		return null;
+	}
+	const values = mat[1].split(',').map((v) => v.trim());
+	return Number.parseFloat(values[isVertical(direction) ? 5 : 4]);
 }
 
 export function dampenValue(v: number) {

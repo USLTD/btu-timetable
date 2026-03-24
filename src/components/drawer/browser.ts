@@ -1,9 +1,11 @@
 export function isMobileFirefox() {
+	if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+		return false;
+	}
 	const userAgent = navigator.userAgent;
 	return (
-		typeof window !== 'undefined' &&
-		(/Firefox/.test(userAgent) && /Mobile/.test(userAgent) || // Android Firefox
-			/FxiOS/.test(userAgent)) // iOS Firefox
+		(/Firefox/.test(userAgent) && /Mobile/.test(userAgent)) || // Android Firefox
+		/FxiOS/.test(userAgent) // iOS Firefox
 	);
 }
 
@@ -16,6 +18,9 @@ export function isIPhone() {
 }
 
 export function isSafari() {
+	if (typeof window === 'undefined' || typeof navigator === 'undefined') {
+		return false;
+	}
 	return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
 }
 
