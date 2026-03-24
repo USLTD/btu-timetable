@@ -1,6 +1,7 @@
 import type { ComponentChildren } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { Drawer } from "vaul";
+import { Drawer } from "@/components/drawer";
+import "@/components/drawer/drawer.css";
 import { X } from "lucide-preact";
 import { useIsMobile } from "@/hooks/use-is-mobile";
 import { cx } from "@/lib/cx";
