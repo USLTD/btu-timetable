@@ -1,6 +1,6 @@
-import { useState, useEffect } from "preact/hooks";
 import { ArrowUp } from "lucide-preact";
 import * as m from "@/paraglide/messages";
+import { useScrollPosition } from "@/hooks/use-scroll-position";
 
 const styles = {
   button:
@@ -9,13 +9,7 @@ const styles = {
 };
 
 export function ScrollTopClient() {
-  const [showScrollTop, setShowScrollTop] = useState(false);
-
-  useEffect(() => {
-    const handler = () => setShowScrollTop(window.scrollY > 400);
-    window.addEventListener("scroll", handler, { passive: true });
-    return () => window.removeEventListener("scroll", handler);
-  }, []);
+  const showScrollTop = useScrollPosition(400);
 
   if (!showScrollTop) return null;
 
