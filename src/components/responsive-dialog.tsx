@@ -98,7 +98,7 @@ export function ResponsiveDialog({ open, onClose, title, children }: ResponsiveD
                 <Drawer.Portal>
                     <Drawer.Overlay class={styles.mobileOverlay} />
                     <Drawer.Content class={styles.mobileContent}>
-                        <div class={styles.mobileHandle} />
+                        <Drawer.Handle class={styles.mobileHandle} />
                         <div class={styles.mobileHeader}>
                             <Drawer.Title class={styles.mobileTitle}>{title}</Drawer.Title>
                             <button type="button" onClick={onClose} class={styles.closeButton} aria-label="Close dialog">

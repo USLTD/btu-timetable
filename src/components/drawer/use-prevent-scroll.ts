@@ -15,7 +15,7 @@ function chain(...callbacks: Array<((...args: unknown[]) => void) | undefined>) 
 	};
 }
 
-// @ts-ignore
+// @ts-expect-error
 const visualViewport = typeof document !== 'undefined' && window.visualViewport;
 
 function isScrollable(node: HTMLElement) {

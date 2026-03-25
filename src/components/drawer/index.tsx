@@ -6,7 +6,7 @@ import { useControllableState } from './use-controllable-state';
 import { useComposedRefs } from './use-composed-refs';
 import { usePreventScroll } from './use-prevent-scroll';
 import { isSafari } from './browser';
-import { set, reset, chain, getTranslate, isVertical, dampenValue } from './helpers';
+import { set, chain, getTranslate, isVertical, dampenValue } from './helpers';
 import {
 	TRANSITIONS,
 	VELOCITY_THRESHOLD,
@@ -157,6 +157,7 @@ export function Root({
 	onAnimationEnd,
 	container,
 	autoFocus = false,
+	handleOnly = false,
 }: Partial<DialogProps>) {
 	const [isOpen = false, setIsOpen] = useControllableState({
 		defaultProp: defaultOpen,
@@ -207,7 +208,7 @@ export function Root({
 			disablePreventScroll,
 	});
 
-	const { restorePositionSetting } = usePositionFixed({
+	usePositionFixed({
 		isOpen,
 		modal,
 		hasBeenOpened,
@@ -453,7 +454,7 @@ export function Root({
 			keyboardIsOpen,
 			snapPointsOffset: null,
 			snapPoints: null,
-			handleOnly: false,
+			handleOnly,
 			modal,
 			shouldFade: true,
 			activeSnapPoint: null,
@@ -480,6 +481,15 @@ export function Root({
 			openProp,
 			setIsOpen,
 			closeDrawer,
+			onPress,
+			onRelease,
+			onDrag,
+			onNestedDrag,
+			onNestedOpenChange,
+			onNestedRelease,
+			keyboardIsOpen,
+			shouldAnimate,
+			handleOnly,
 		],
 	);
 
@@ -526,6 +536,7 @@ export const Content = forwardRef<HTMLDivElement, JSX.HTMLAttributes<HTMLDivElem
 			drawerRef,
 			direction,
 			isOpen,
+			handleOnly,
 			onPress,
 			onDrag,
 			onRelease,
@@ -533,10 +544,12 @@ export const Content = forwardRef<HTMLDivElement, JSX.HTMLAttributes<HTMLDivElem
 
 		const composedRef = useComposedRefs(ref, drawerRef);
 
-		const handlePointerDown = chain(onPointerDown, onPress);
-		const handlePointerMove = chain(onPointerMove, onDrag);
-		const handlePointerUp = chain(onPointerUp, onRelease);
-		const handlePointerCancel = chain(onPointerCancel, onRelease);
+		// Only attach pointer handlers if handleOnly is false
+		// When handleOnly is true, only the Handle component should be draggable
+		const handlePointerDown = handleOnly ? onPointerDown : chain(onPointerDown, onPress);
+		const handlePointerMove = handleOnly ? onPointerMove : chain(onPointerMove, onDrag);
+		const handlePointerUp = handleOnly ? onPointerUp : chain(onPointerUp, onRelease);
+		const handlePointerCancel = handleOnly ? onPointerCancel : chain(onPointerCancel, onRelease);
 
 		return (
 			<div
@@ -566,6 +579,43 @@ export const Title = forwardRef<HTMLHeadingElement, JSX.HTMLAttributes<HTMLHeadi
 
 Title.displayName = 'Drawer.Title';
 
+// Drawer.Handle component
+export const Handle = forwardRef<HTMLDivElement, JSX.HTMLAttributes<HTMLDivElement>>(
+	function Handle({ onPointerDown, onPointerMove, onPointerUp, onPointerCancel, ...rest }, ref) {
+		const {
+			handleOnly,
+			onPress,
+			onDrag,
+			onRelease,
+		} = useDrawerContext();
+
+		// Only attach handlers if handleOnly is enabled
+		if (!handleOnly) {
+			return <div {...rest} ref={ref} data-vaul-handle="" />;
+		}
+
+		const handlePointerDown = chain(onPointerDown, onPress);
+		const handlePointerMove = chain(onPointerMove, onDrag);
+		const handlePointerUp = chain(onPointerUp, onRelease);
+		const handlePointerCancel = chain(onPointerCancel, onRelease);
+
+		return (
+			<div
+				{...rest}
+				ref={ref}
+				data-vaul-handle=""
+				data-vaul-handle-active="true"
+				onPointerDown={handlePointerDown}
+				onPointerMove={handlePointerMove}
+				onPointerUp={handlePointerUp}
+				onPointerCancel={handlePointerCancel}
+			/>
+		);
+	},
+);
+
+Handle.displayName = 'Drawer.Handle';
+
 // Drawer.Portal component
 export function Portal({ children, container }: PortalProps) {
 	const [mounted, setMounted] = useState(false);
@@ -591,4 +641,5 @@ export const Drawer = {
 	Content,
 	Portal,
 	Title,
+	Handle,
 };
