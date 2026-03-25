@@ -154,6 +154,7 @@ export function Root({
 	direction = 'bottom',
 	defaultOpen = false,
 	disablePreventScroll = true,
+	repositionInputs = true,
 	onAnimationEnd,
 	container,
 	autoFocus = false,
@@ -205,7 +206,8 @@ export function Root({
 			!modal ||
 			justReleased ||
 			!hasBeenOpened ||
-			disablePreventScroll,
+			!repositionInputs ||
+			!disablePreventScroll,
 	});
 
 	usePositionFixed({
