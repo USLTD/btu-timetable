@@ -42,14 +42,16 @@ export function useSyncExternalStore<T>(
   }, [subscribe, getSnapshot]);
 
   // Client-side hydration sync (if the server snapshot differed)
+  // This runs once on mount to sync server snapshot with client snapshot
   useEffect(() => {
     if (getServerSnapshot && typeof window !== "undefined") {
       const clientSnapshot = getSnapshot();
-      if (clientSnapshot !== state) {
+      if (clientSnapshot !== stateRef.current) {
         setState(clientSnapshot);
       }
     }
-  }, [getServerSnapshot, getSnapshot, state]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount for hydration sync
 
   return state;
 }

@@ -4,10 +4,12 @@ export const THEME_INIT_SCRIPT =
   "(function(){try{var raw=localStorage.getItem('app-theme');var t='system';if(raw){try{t=JSON.parse(raw);}catch(e){t=raw;}}var dark=t==='dark'||(t==='system'&&matchMedia('(prefers-color-scheme:dark)').matches);document.documentElement.classList.toggle('dark',dark);var meta=document.querySelector('meta[name=\"theme-color\"]');if(meta)meta.content=dark?'#1f2937':'#2563eb';}catch(e){}})();";
 
 import * as m from "@/paraglide/messages";
+import { getBaseUrl } from "@/lib/base-url";
 
 export function Head() {
   const title = m.page_title();
   const description = m.seo_description();
+  const baseUrl = getBaseUrl();
 
   return (
     <>
@@ -28,10 +30,10 @@ export function Head() {
         property="og:description"
         content={description}
       />
-      <meta property="og:url" content="https://timetable.usltd.ge/" />
-      <meta property="og:image" content="https://timetable.usltd.ge/og-image.png" />
+      <meta property="og:url" content={`${baseUrl}/`} />
+      <meta property="og:image" content={`${baseUrl}/og-image.png`} />
       <meta property="og:image:alt" content={title} />
-      <meta property="og:logo" content="https://timetable.usltd.ge/logo.png" />
+      <meta property="og:logo" content={`${baseUrl}/logo.png`} />
 
       <meta name="twitter:card" content="summary_large_image" />
       <meta name="twitter:title" content={title} />
@@ -39,13 +41,13 @@ export function Head() {
         name="twitter:description"
         content={description}
       />
-      <meta name="twitter:image" content="https://timetable.usltd.ge/og-image.png" />
+      <meta name="twitter:image" content={`${baseUrl}/og-image.png`} />
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "name": title,
-        "url": "https://timetable.usltd.ge/",
+        "url": `${baseUrl}/`,
         "description": description,
         "applicationCategory": "EducationalApplication",
         "operatingSystem": "Any",

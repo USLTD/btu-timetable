@@ -85,7 +85,24 @@ export default defineConfig(({ mode }) => {
         renderLegacyChunks: true,
       }),
       sitemap({
-        hostname: "https://timetable.usltd.ge",
+        hostname: (() => {
+          // Netlify
+          const netlifyUrl = process.env.URL || process.env.DEPLOY_URL;
+          if (netlifyUrl) return netlifyUrl.replace(/\/$/, '');
+
+          // Vercel
+          const vercelUrl = process.env.VERCEL_URL;
+          if (vercelUrl) {
+            return vercelUrl.startsWith('http') ? vercelUrl.replace(/\/$/, '') : `https://${vercelUrl}`;
+          }
+
+          // GitHub Pages
+          const pagesUrl = process.env.PAGES_URL;
+          if (pagesUrl) return pagesUrl.replace(/\/$/, '');
+
+          // Fallback
+          return "https://timetable.usltd.ge";
+        })(),
         dynamicRoutes: ["/en", "/ka"],
         changefreq: "weekly",
         priority: 0.8,

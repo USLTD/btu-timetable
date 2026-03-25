@@ -1,6 +1,7 @@
 import type { ComponentChildren } from "preact";
 import { useEffect, useRef, useState } from "preact/hooks";
-import { Drawer } from "vaul";
+import { Drawer } from "@/components/drawer";
+import "@/components/drawer/drawer.css";
 import { X } from "lucide-preact";
 import { useIsMobile } from "@/hooks/use-is-mobile";
 import { cx } from "@/lib/cx";
@@ -97,7 +98,7 @@ export function ResponsiveDialog({ open, onClose, title, children }: ResponsiveD
                 <Drawer.Portal>
                     <Drawer.Overlay class={styles.mobileOverlay} />
                     <Drawer.Content class={styles.mobileContent}>
-                        <div class={styles.mobileHandle} />
+                        <Drawer.Handle class={styles.mobileHandle} />
                         <div class={styles.mobileHeader}>
                             <Drawer.Title class={styles.mobileTitle}>{title}</Drawer.Title>
                             <button type="button" onClick={onClose} class={styles.closeButton} aria-label="Close dialog">
